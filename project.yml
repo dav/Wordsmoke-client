@@ -13,12 +13,12 @@ targets:
     platform: iOS
     sources: [Wordsmoke]
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.akuaku.wordsmoke
+      PRODUCT_BUNDLE_IDENTIFIER: org.akuaku.playwordsmoke
     info:
       path: Wordsmoke/Info.plist
       properties:
         CFBundleDisplayName: Wordsmoke
-        CFBundleIdentifier: org.akuaku.wordsmoke
+        CFBundleIdentifier: org.akuaku.playwordsmoke
         UILaunchScreen: {}
     scheme:
       testTargets:
