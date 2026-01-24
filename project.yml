@@ -1,0 +1,42 @@
+name: Wordsmoke
+options:
+  bundleIdPrefix: org.akuaku
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  SWIFT_VERSION: "6.2"
+  DEVELOPMENT_TEAM: ""
+packages: {}
+targets:
+  Wordsmoke:
+    type: application
+    platform: iOS
+    sources: [Wordsmoke]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.akuaku.wordsmoke
+    info:
+      path: Wordsmoke/Info.plist
+      properties:
+        CFBundleDisplayName: Wordsmoke
+        CFBundleIdentifier: org.akuaku.wordsmoke
+        UILaunchScreen: {}
+    scheme:
+      testTargets:
+        - WordsmokeTests
+        - WordsmokeUITests
+  WordsmokeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [WordsmokeTests]
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Wordsmoke
+  WordsmokeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [WordsmokeUITests]
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Wordsmoke
