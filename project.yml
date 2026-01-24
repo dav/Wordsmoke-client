@@ -14,6 +14,7 @@ targets:
     sources: [Wordsmoke]
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.akuaku.playwordsmoke
+      CODE_SIGN_ENTITLEMENTS: Wordsmoke/Wordsmoke.entitlements
     info:
       path: Wordsmoke/Info.plist
       properties:
