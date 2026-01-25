@@ -29,6 +29,39 @@ struct RootView: View {
           SessionSummaryView(session: session)
         }
 
+        if model.session != nil {
+          HStack(spacing: 12) {
+            Button("Create Game") {
+              Task {
+                await model.createGameAndInvite(goalLength: 5)
+              }
+            }
+            .buttonStyle(.bordered)
+
+            if model.currentGame != nil {
+              Button("Refresh Game") {
+                Task {
+                  await model.refreshGame()
+                }
+              }
+              .buttonStyle(.bordered)
+            }
+          }
+        }
+
+        if let game = model.currentGame {
+          GameSummaryView(game: game)
+        }
+
+        if let game = model.currentGame, game.status == "waiting" {
+          Button("Start Game") {
+            Task {
+              await model.startGame()
+            }
+          }
+          .buttonStyle(.borderedProminent)
+        }
+
         Spacer()
       }
       .padding()
@@ -39,6 +72,15 @@ struct RootView: View {
       }
       .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
         GameCenterAuthView(viewController: item.viewController)
+      }
+      .sheet(item: $model.inviteSheet) { sheet in
+        MatchmakerView(
+          joinCode: sheet.joinCode,
+          minPlayers: sheet.minPlayers,
+          maxPlayers: sheet.maxPlayers
+        ) {
+          model.dismissInviteSheet()
+        }
       }
     }
   }
@@ -56,6 +98,26 @@ struct SessionSummaryView: View {
         .font(.callout)
       Text("Account: \(session.accountID)")
         .font(.callout)
+    }
+  }
+}
+
+struct GameSummaryView: View {
+  let game: GameResponse
+
+  var body: some View {
+    VStack(alignment: .leading) {
+      Text("Game")
+        .font(.title2)
+        .bold()
+      Text("Join Code: \(game.joinCode)")
+        .font(.callout)
+      Text("Status: \(game.status)")
+        .font(.callout)
+      if let playersCount = game.playersCount {
+        Text("Players: \(playersCount)")
+          .font(.callout)
+      }
     }
   }
 }

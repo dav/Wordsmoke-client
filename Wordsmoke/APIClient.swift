@@ -16,6 +16,7 @@ struct APIClient {
   let baseURL: URL
   var accountID: String?
   var urlSession: URLSession = .shared
+  var authToken: String?
 
   func createSession(signature: GameCenterSignature, displayName: String?, nickname: String?) async throws -> SessionResponse {
     let requestBody = CreateSessionRequest(
@@ -40,17 +41,87 @@ struct APIClient {
     encoder.keyEncodingStrategy = .convertToSnakeCase
     request.httpBody = try encoder.encode(requestBody)
 
+    logRequest(request)
     let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+    return try decode(SessionResponse.self, from: data, response: response)
+  }
+
+  func createGame(goalLength: Int) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "games"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    let body = ["game": ["goal_length": goalLength]]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
     try validate(response: response, data: data)
 
-    do {
-      let decoder = JSONDecoder()
-      return try decoder.decode(SessionResponse.self, from: data)
-    } catch {
-      let body = String(data: data, encoding: .utf8) ?? ""
-      print("[API] Decode failed. status=\((response as? HTTPURLResponse)?.statusCode ?? -1) body=\(body)")
-      throw error
+    return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func joinGame(joinCode: String) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "game_join"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
     }
+
+    let body = ["join_code": joinCode]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func fetchGame(id: String) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
+    request.httpMethod = "GET"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func updateGameStatus(id: String, status: String) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
+    request.httpMethod = "PATCH"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    let body = ["game": ["status": status]]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(GameResponse.self, from: data, response: response)
   }
 
   private func validate(response: URLResponse, data: Data) throws {
@@ -62,6 +133,47 @@ struct APIClient {
       let body = String(data: data, encoding: .utf8) ?? ""
       throw APIError.statusCode(httpResponse.statusCode, body)
     }
+  }
+
+  private func decode<T: Decodable>(_ type: T.Type, from data: Data, response: URLResponse) throws -> T {
+    do {
+      let decoder = JSONDecoder()
+      return try decoder.decode(T.self, from: data)
+    } catch {
+      let body = String(data: data, encoding: .utf8) ?? ""
+      print("[API] Decode failed. status=\((response as? HTTPURLResponse)?.statusCode ?? -1) body=\(body)")
+      throw error
+    }
+  }
+
+  private func logRequest(_ request: URLRequest) {
+    #if DEBUG
+    let method = request.httpMethod ?? "GET"
+    let urlString = request.url?.absoluteString ?? "unknown"
+    let headers = request.allHTTPHeaderFields ?? [:]
+    let body = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+    print("[API] -> \(method) \(urlString)")
+    if !headers.isEmpty {
+      print("[API] Headers: \(headers)")
+    }
+    if !body.isEmpty {
+      print("[API] Body: \(body)")
+    }
+    #endif
+  }
+
+  private func logResponse(_ response: URLResponse, data: Data) {
+    #if DEBUG
+    guard let httpResponse = response as? HTTPURLResponse else {
+      print("[API] <- invalid response")
+      return
+    }
+    let body = String(data: data, encoding: .utf8) ?? ""
+    print("[API] <- \(httpResponse.statusCode) \(httpResponse.url?.absoluteString ?? "")")
+    if !body.isEmpty {
+      print("[API] Response: \(body)")
+    }
+    #endif
   }
 }
 
@@ -123,5 +235,23 @@ struct SessionPayload: Encodable {
     case salt
     case timestamp
     case bundleID
+  }
+}
+
+struct GameResponse: Decodable, Sendable {
+  let id: String
+  let status: String
+  let joinCode: String
+  let goalLength: Int
+  let currentRoundID: String?
+  let playersCount: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case status
+    case joinCode = "join_code"
+    case goalLength = "goal_length"
+    case currentRoundID = "current_round_id"
+    case playersCount = "players_count"
   }
 }

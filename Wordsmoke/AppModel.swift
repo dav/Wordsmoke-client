@@ -7,6 +7,8 @@ final class AppModel {
   var gameCenter = GameCenterService()
   var apiClient = APIClient(baseURL: AppEnvironment.baseURL)
   var session: SessionResponse?
+  var currentGame: GameResponse?
+  var inviteSheet: InviteSheet?
   var statusMessage = "Initializing Game Center…"
   var isBusy = false
 
@@ -34,6 +36,7 @@ final class AppModel {
         nickname: nil
       )
       session = response
+      apiClient.authToken = response.token
       statusMessage = "Connected to server."
     } catch {
       let debugInfo = debugDescription(for: error)
@@ -43,6 +46,53 @@ final class AppModel {
         print("[GameCenter] Last error: \(lastError)")
       }
     }
+  }
+
+  func createGameAndInvite(goalLength: Int) async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let game = try await apiClient.createGame(goalLength: goalLength)
+      currentGame = game
+      statusMessage = "Game created."
+      inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
+    } catch {
+      statusMessage = "Failed to create game: \(debugDescription(for: error))"
+    }
+  }
+
+  func refreshGame() async {
+    guard let gameID = currentGame?.id else { return }
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      currentGame = try await apiClient.fetchGame(id: gameID)
+      statusMessage = "Game refreshed."
+    } catch {
+      statusMessage = "Failed to refresh game: \(debugDescription(for: error))"
+    }
+  }
+
+  func startGame() async {
+    guard let gameID = currentGame?.id else { return }
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      currentGame = try await apiClient.updateGameStatus(id: gameID, status: "active")
+      statusMessage = "Game started."
+    } catch {
+      statusMessage = "Failed to start game: \(debugDescription(for: error))"
+    }
+  }
+
+  func dismissInviteSheet() {
+    inviteSheet = nil
   }
 
   private func debugDescription(for error: Error) -> String {
@@ -78,4 +128,11 @@ enum AppEnvironment {
     return URL(string: "https://www.akuaku.org")!
     #endif
   }
+}
+
+struct InviteSheet: Identifiable {
+  let id = UUID()
+  let joinCode: String
+  let minPlayers: Int
+  let maxPlayers: Int
 }
