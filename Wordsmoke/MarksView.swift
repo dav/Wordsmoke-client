@@ -28,9 +28,9 @@ struct MarksView: View {
 
   private func background(for mark: String) -> Color {
     switch mark {
-    case "correct":
+    case "🟩":
       return .green
-    case "present":
+    case "🟨":
       return .orange
     default:
       return .gray

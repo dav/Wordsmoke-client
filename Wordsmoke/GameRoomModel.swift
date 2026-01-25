@@ -7,7 +7,7 @@ final class GameRoomModel {
   private(set) var game: GameResponse
   private let apiClient: APIClient
   let localPlayerID: String
-  var round: RoundResponse?
+  var round: RoundPayload?
   var guessWord = ""
   var phrase = ""
   var errorMessage: String?
@@ -18,7 +18,6 @@ final class GameRoomModel {
   var selectedFavoriteID: String?
   var selectedLeastID: String?
   var voteSubmitted = false
-  var anonymousOrderIDs: [String] = []
   var isBusy = false
 
   init(game: GameResponse, apiClient: APIClient, localPlayerID: String) {
@@ -38,7 +37,8 @@ final class GameRoomModel {
     defer { isBusy = false }
 
     do {
-      round = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
+      let response = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
+      round = response.round
       resetVotingIfNeeded()
       errorMessage = nil
     } catch {
@@ -96,21 +96,13 @@ final class GameRoomModel {
     ownSubmission() != nil
   }
 
-  func orderedAnonymousPhrases() -> [AnonymousPhrase] {
-    guard let round else { return [] }
-    let phrases = round.anonymousPhrases ?? []
-    if anonymousOrderIDs.isEmpty || Set(anonymousOrderIDs) != Set(phrases.map(\.id)) {
-      anonymousOrderIDs = phrases.map(\.id)
-    }
-    let map = Dictionary(uniqueKeysWithValues: phrases.map { ($0.id, $0) })
-    return anonymousOrderIDs.compactMap { map[$0] }
+  func ownSubmission() -> RoundSubmission? {
+    round?.submissions.first { $0.playerID == localPlayerID }
   }
 
-  func ownSubmission() -> RoundSubmission? {
-    if let own = round?.ownSubmission {
-      return own
-    }
-    return round?.submissions?.first { $0.playerID == localPlayerID }
+  func otherSubmissions() -> [RoundSubmission] {
+    guard let round else { return [] }
+    return round.submissions.filter { $0.playerID != localPlayerID }
   }
 
   func toggleFavorite(for submission: RoundSubmission) {
@@ -173,7 +165,6 @@ final class GameRoomModel {
       selectedFavoriteID = nil
       selectedLeastID = nil
       voteSubmitted = false
-      anonymousOrderIDs = []
       lastRoundID = round.id
     }
   }

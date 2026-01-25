@@ -1,15 +1,11 @@
 import Foundation
 
-struct RoundResponse: Decodable, Sendable {
+struct RoundPayload: Decodable, Sendable {
   let id: String
   let number: Int
   let status: String
   let stage: String
-  let submissions: [RoundSubmission]?
-  let anonymousPhrases: [AnonymousPhrase]?
-  let submittedPlayerIDs: [String]?
-  let players: [RoundPlayer]?
-  let ownSubmission: RoundSubmission?
+  let submissions: [RoundSubmission]
   let phraseVotesCount: Int
 
   enum CodingKeys: String, CodingKey {
@@ -18,42 +14,31 @@ struct RoundResponse: Decodable, Sendable {
     case status
     case submissions
     case stage
-    case anonymousPhrases = "anonymous_phrases"
-    case submittedPlayerIDs = "submitted_player_ids"
-    case players
-    case ownSubmission = "own_submission"
     case phraseVotesCount = "phrase_votes_count"
   }
 }
 
-struct RoundPlayer: Decodable, Identifiable, Sendable {
-  let id: String
-  let name: String
+struct RoundResponse: Decodable, Sendable {
+  let gameID: String
+  let round: RoundPayload
 
   enum CodingKeys: String, CodingKey {
-    case id = "player_id"
-    case name = "player_name"
-  }
-}
-
-struct AnonymousPhrase: Decodable, Identifiable, Sendable {
-  let id: String
-  let phrase: String
-
-  enum CodingKeys: String, CodingKey {
-    case id = "submission_id"
-    case phrase
+    case gameID = "game_id"
+    case round
   }
 }
 
 struct RoundSubmission: Decodable, Identifiable, Sendable {
   let id: String
-  let guessWord: String
-  let phrase: String
+  let guessWord: String?
+  let phrase: String?
   let playerID: String
   let playerName: String
-  let marks: [String]
+  let marks: [String]?
   let correctGuess: Bool?
+  let createdAt: String?
+  let feedback: [String: String]?
+  let scoreDelta: Int?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -63,5 +48,8 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
     case playerName = "player_name"
     case marks
     case correctGuess = "correct_guess"
+    case createdAt = "created_at"
+    case feedback
+    case scoreDelta = "score_delta"
   }
 }

@@ -238,18 +238,108 @@ struct APIClient {
     }
   }
 
+  private func prettyPrintedJSON(from data: Data) -> String? {
+    // Pretty print JSON, but compress arrays under key "marks" to one line.
+    do {
+      // Parse JSON
+      let object = try JSONSerialization.jsonObject(with: data, options: [])
+
+      // Helper to build a compact array string from a JSON array value
+      func compactArrayString(from value: Any) -> String? {
+        guard let array = value as? [Any] else { return nil }
+        // Convert elements to JSON fragments
+        let elements: [String] = array.compactMap { element in
+          if let s = element as? String {
+            // Properly JSON-escape the string
+            if let jsonData = try? JSONSerialization.data(withJSONObject: [s], options: []),
+               let jsonArrayString = String(data: jsonData, encoding: .utf8),
+               jsonArrayString.hasPrefix("[") && jsonArrayString.hasSuffix("]") {
+              let inner = jsonArrayString.dropFirst().dropLast() // remove [ ]
+              return String(inner)
+            }
+            return "\"\(s)\""
+          } else if let n = element as? NSNumber {
+            return n.stringValue
+          } else if element is NSNull {
+            return "null"
+          } else if let dict = element as? [String: Any],
+                    let jsonData = try? JSONSerialization.data(withJSONObject: dict, options: []),
+                    let jsonString = String(data: jsonData, encoding: .utf8) {
+            return jsonString
+          } else if let arr = element as? [Any],
+                    let jsonData = try? JSONSerialization.data(withJSONObject: arr, options: []),
+                    let jsonString = String(data: jsonData, encoding: .utf8) {
+            return jsonString
+          } else {
+            return nil
+          }
+        }
+        return "[" + elements.joined(separator: ",") + "]"
+      }
+
+      // Collect paths where key == "marks" to aid in replacement
+      struct MarksOccurrence { let placeholder: String; let compact: String }
+      var occurrences: [MarksOccurrence] = []
+
+      // Recursively traverse and replace values with placeholders to make reliable string substitution
+      func traverse(_ any: Any) -> Any {
+        if var dict = any as? [String: Any] {
+          for (key, value) in dict {
+            if key == "marks", let compact = compactArrayString(from: value) {
+              // Insert a unique placeholder string unlikely to appear in payload
+              let placeholder = "__MARKS_PLACEHOLDER_\(UUID().uuidString)__"
+              dict[key] = placeholder
+              occurrences.append(MarksOccurrence(placeholder: placeholder, compact: compact))
+            } else {
+              dict[key] = traverse(value)
+            }
+          }
+          return dict
+        } else if let array = any as? [Any] {
+          return array.map { traverse($0) }
+        } else {
+          return any
+        }
+      }
+
+      let traversed = traverse(object)
+
+      // Encode with prettyPrinted
+      let prettyData = try JSONSerialization.data(withJSONObject: traversed, options: [.prettyPrinted])
+      var pretty = String(data: prettyData, encoding: .utf8) ?? ""
+
+      // Replace placeholders with compact arrays, keeping surrounding JSON formatting intact
+      for occ in occurrences {
+        // The placeholder will be encoded as a JSON string, including quotes.
+        let quotedPlaceholder = "\"\(occ.placeholder)\""
+        pretty = pretty.replacingOccurrences(of: quotedPlaceholder, with: occ.compact)
+      }
+
+      return pretty
+    } catch {
+      return nil
+    }
+  }
+
   private func logRequest(_ request: URLRequest) {
     #if DEBUG
     let method = request.httpMethod ?? "GET"
     let urlString = request.url?.absoluteString ?? "unknown"
     let headers = request.allHTTPHeaderFields ?? [:]
-    let body = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-    print("[API] -> \(method) \(urlString)")
+    let body: String = {
+      guard let data = request.httpBody else { return "" }
+      if let pretty = prettyPrintedJSON(from: data) {
+        return pretty
+      }
+      return String(data: data, encoding: .utf8) ?? ""
+    }()
+
+    print("[API] ➡️ \(method) \(urlString)")
     if !headers.isEmpty {
       print("[API] Headers: \(headers)")
     }
     if !body.isEmpty {
-      print("[API] Body: \(body)")
+      print("[API] ➡️ Body:\n\(body)")
     }
     #endif
   }
@@ -257,13 +347,32 @@ struct APIClient {
   private func logResponse(_ response: URLResponse, data: Data) {
     #if DEBUG
     guard let httpResponse = response as? HTTPURLResponse else {
-      print("[API] <- invalid response")
+      print("[API] ⬅️😵 invalid response")
       return
     }
-    let body = String(data: data, encoding: .utf8) ?? ""
-    print("[API] <- \(httpResponse.statusCode) \(httpResponse.url?.absoluteString ?? "")")
+
+    let body: String = {
+      if let pretty = prettyPrintedJSON(from: data) {
+        return pretty
+      }
+      return String(data: data, encoding: .utf8) ?? ""
+    }()
+
+    let symbol: String
+    switch httpResponse.statusCode {
+    case 200..<300:
+      symbol = "⬅️✅"
+    case 400..<500:
+      symbol = "⬅️‼️"
+    case 500...:
+      symbol = "⬅️❌"
+    default:
+      symbol = "⬅️🤔"
+    }
+    print("[API] \(symbol) \(httpResponse.statusCode) \(httpResponse.url?.absoluteString ?? "")")
+
     if !body.isEmpty {
-      print("[API] Response: \(body)")
+      print("[API] ⬅️ Body:\n\(body)")
     }
     #endif
   }

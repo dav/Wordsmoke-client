@@ -70,30 +70,32 @@ struct GameRoomView: View {
               VStack(alignment: .leading, spacing: 6) {
                 Text("Your report")
                   .font(.headline)
-                Text(own.phrase)
-                MarksView(
-                  marks: own.marks,
-                  letters: own.guessWord.map { String($0) },
-                  size: 36
-                )
+                if let phrase = own.phrase {
+                  Text(phrase)
+                }
+                if let marks = own.marks, let guessWord = own.guessWord {
+                  MarksView(
+                    marks: marks,
+                    letters: guessWord.map { String($0) },
+                    size: 36
+                  )
+                }
               }
             }
 
-            if let players = round.players {
-              VStack(alignment: .leading, spacing: 6) {
-                Text("Players")
-                  .font(.headline)
-                ForEach(players) { player in
-                  HStack {
-                    Text(player.name)
-                    Spacer()
-                    if round.submittedPlayerIDs?.contains(player.id) == true {
-                      Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    } else {
-                      Image(systemName: "clock")
-                        .foregroundStyle(.orange)
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Players")
+                .font(.headline)
+              ForEach(round.submissions) { submission in
+                HStack {
+                  Text(submission.playerName)
+                  Spacer()
+                  if submission.createdAt != nil {
+                    Image(systemName: "checkmark.circle.fill")
+                      .foregroundStyle(.green)
+                  } else {
+                    Image(systemName: "clock")
+                      .foregroundStyle(.orange)
                   }
                 }
               }
@@ -107,12 +109,16 @@ struct GameRoomView: View {
                 VStack(alignment: .leading, spacing: 6) {
                   Text("Your report")
                     .font(.headline)
-                  Text(own.phrase)
-                  MarksView(
-                    marks: own.marks,
-                    letters: own.guessWord.map { String($0) },
-                    size: 36
-                  )
+                  if let phrase = own.phrase {
+                    Text(phrase)
+                  }
+                  if let marks = own.marks, let guessWord = own.guessWord {
+                    MarksView(
+                      marks: marks,
+                      letters: guessWord.map { String($0) },
+                      size: 36
+                    )
+                  }
                 }
               }
 
@@ -120,20 +126,22 @@ struct GameRoomView: View {
 
               Text("Other players’ phrases")
                 .font(.headline)
-              ForEach(model.orderedAnonymousPhrases()) { phrase in
+              ForEach(model.otherSubmissions()) { submission in
                 VStack(alignment: .leading, spacing: 8) {
-                  Text(phrase.phrase)
+                  if let phrase = submission.phrase {
+                    Text(phrase)
+                  }
                   HStack(spacing: 12) {
-                    Button("", systemImage: model.selectedFavoriteID == phrase.id ? "hand.thumbsup.fill" : "hand.thumbsup") {
-                      model.selectedFavoriteID = (model.selectedFavoriteID == phrase.id) ? nil : phrase.id
+                    Button("", systemImage: model.selectedFavoriteID == submission.id ? "hand.thumbsup.fill" : "hand.thumbsup") {
+                      model.selectedFavoriteID = (model.selectedFavoriteID == submission.id) ? nil : submission.id
                       if model.selectedLeastID == model.selectedFavoriteID {
                         model.selectedLeastID = nil
                       }
                     }
                     .buttonStyle(.bordered)
 
-                    Button("", systemImage: model.selectedLeastID == phrase.id ? "hand.thumbsdown.fill" : "hand.thumbsdown") {
-                      model.selectedLeastID = (model.selectedLeastID == phrase.id) ? nil : phrase.id
+                    Button("", systemImage: model.selectedLeastID == submission.id ? "hand.thumbsdown.fill" : "hand.thumbsdown") {
+                      model.selectedLeastID = (model.selectedLeastID == submission.id) ? nil : submission.id
                       if model.selectedLeastID == model.selectedFavoriteID {
                         model.selectedFavoriteID = nil
                       }
@@ -152,8 +160,8 @@ struct GameRoomView: View {
               .disabled(!model.canSubmitVotes() || model.isBusy)
             }
           default:
-            if let submissions = round.submissions, !submissions.isEmpty {
-              ForEach(submissions) { submission in
+            if !round.submissions.isEmpty {
+              ForEach(round.submissions) { submission in
                 VStack(alignment: .leading, spacing: 6) {
                   let isLocal = submission.playerID == model.localPlayerID
                   HStack {
@@ -164,12 +172,16 @@ struct GameRoomView: View {
                         .foregroundStyle(.green)
                     }
                   }
-                  Text(submission.phrase)
-                  MarksView(
-                    marks: submission.marks,
-                    letters: isLocal ? submission.guessWord.map { String($0) } : nil,
-                    size: 36
-                  )
+                  if let phrase = submission.phrase {
+                    Text(phrase)
+                  }
+                  if let marks = submission.marks {
+                    MarksView(
+                      marks: marks,
+                      letters: isLocal ? submission.guessWord?.map { String($0) } : nil,
+                      size: 36
+                    )
+                  }
                 }
               }
             } else {
