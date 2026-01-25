@@ -6,15 +6,25 @@ import Observation
 final class GameRoomModel {
   private(set) var game: GameResponse
   private let apiClient: APIClient
+  let localPlayerID: String
   var round: RoundResponse?
   var guessWord = ""
   var phrase = ""
   var errorMessage: String?
+  var isGuessValid = false
+  var isPhraseValid = false
+  private var lastValidatedGuess = ""
+  private var lastRoundID: String?
+  var selectedFavoriteID: String?
+  var selectedLeastID: String?
+  var voteSubmitted = false
+  var anonymousOrderIDs: [String] = []
   var isBusy = false
 
-  init(game: GameResponse, apiClient: APIClient) {
+  init(game: GameResponse, apiClient: APIClient, localPlayerID: String) {
     self.game = game
     self.apiClient = apiClient
+    self.localPlayerID = localPlayerID
   }
 
   func updateGame(_ game: GameResponse) {
@@ -29,6 +39,7 @@ final class GameRoomModel {
 
     do {
       round = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
+      resetVotingIfNeeded()
       errorMessage = nil
     } catch {
       errorMessage = error.localizedDescription
@@ -37,6 +48,7 @@ final class GameRoomModel {
 
   func submitGuess() async {
     guard let roundID = game.currentRoundID else { return }
+    guard isGuessValid, isPhraseValid else { return }
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }
@@ -49,6 +61,120 @@ final class GameRoomModel {
       await refreshRound()
     } catch {
       errorMessage = error.localizedDescription
+    }
+  }
+
+  func submitVotes() async {
+    guard let roundID = game.currentRoundID else { return }
+    guard let favoriteID = selectedFavoriteID, let leastID = selectedLeastID else { return }
+    guard favoriteID != leastID else { return }
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      try await apiClient.submitPhraseVote(gameID: game.id, roundID: roundID, favoriteID: favoriteID, leastID: leastID)
+      voteSubmitted = true
+      errorMessage = nil
+      await refreshRound()
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  func isReadyToVote() -> Bool {
+    guard let round else { return false }
+    return round.stage == "voting" && !voteSubmitted
+  }
+
+  func canShowVoting() -> Bool {
+    guard let round else { return false }
+    return round.stage == "voting"
+  }
+
+  func hasSubmittedOwnGuess() -> Bool {
+    ownSubmission() != nil
+  }
+
+  func orderedAnonymousPhrases() -> [AnonymousPhrase] {
+    guard let round else { return [] }
+    let phrases = round.anonymousPhrases ?? []
+    if anonymousOrderIDs.isEmpty || Set(anonymousOrderIDs) != Set(phrases.map(\.id)) {
+      anonymousOrderIDs = phrases.map(\.id)
+    }
+    let map = Dictionary(uniqueKeysWithValues: phrases.map { ($0.id, $0) })
+    return anonymousOrderIDs.compactMap { map[$0] }
+  }
+
+  func ownSubmission() -> RoundSubmission? {
+    if let own = round?.ownSubmission {
+      return own
+    }
+    return round?.submissions?.first { $0.playerID == localPlayerID }
+  }
+
+  func toggleFavorite(for submission: RoundSubmission) {
+    selectedFavoriteID = (selectedFavoriteID == submission.id) ? nil : submission.id
+    if selectedLeastID == selectedFavoriteID {
+      selectedLeastID = nil
+    }
+  }
+
+  func toggleLeast(for submission: RoundSubmission) {
+    selectedLeastID = (selectedLeastID == submission.id) ? nil : submission.id
+    if selectedFavoriteID == selectedLeastID {
+      selectedFavoriteID = nil
+    }
+  }
+
+  func canSubmitVotes() -> Bool {
+    guard let favoriteID = selectedFavoriteID, let leastID = selectedLeastID else { return false }
+    return favoriteID != leastID
+  }
+
+  func validateGuessWord() async {
+    let trimmed = guessWord.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    guard trimmed.count == game.goalLength else {
+      isGuessValid = false
+      isPhraseValid = phraseContainsAllLetters(phrase: phrase, guessWord: trimmed)
+      return
+    }
+
+    guard trimmed != lastValidatedGuess else {
+      isPhraseValid = phraseContainsAllLetters(phrase: phrase, guessWord: trimmed)
+      return
+    }
+
+    lastValidatedGuess = trimmed
+    do {
+      isGuessValid = try await apiClient.validateWord(trimmed)
+    } catch {
+      isGuessValid = false
+      errorMessage = error.localizedDescription
+    }
+    isPhraseValid = phraseContainsAllLetters(phrase: phrase, guessWord: trimmed)
+  }
+
+  func validatePhrase() {
+    let trimmed = guessWord.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    isPhraseValid = phraseContainsAllLetters(phrase: phrase, guessWord: trimmed)
+  }
+
+  private func phraseContainsAllLetters(phrase: String, guessWord: String) -> Bool {
+    guard !guessWord.isEmpty else { return false }
+    let phraseLower = phrase.lowercased()
+    let required = Set(guessWord)
+    return required.allSatisfy { phraseLower.contains($0) }
+  }
+
+  private func resetVotingIfNeeded() {
+    guard let round else { return }
+    if lastRoundID != round.id {
+      selectedFavoriteID = nil
+      selectedLeastID = nil
+      voteSubmitted = false
+      anonymousOrderIDs = []
+      lastRoundID = round.id
     }
   }
 }

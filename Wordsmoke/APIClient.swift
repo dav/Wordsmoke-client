@@ -140,6 +140,24 @@ struct APIClient {
     return try decode(RoundSubmission.self, from: data, response: response)
   }
 
+  func submitPhraseVote(gameID: String, roundID: String, favoriteID: String, leastID: String) async throws {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)/phrase_votes"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    let body = ["phrase_vote": ["favorite_submission_id": favoriteID, "least_favorite_submission_id": leastID]]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+  }
+
   func updateGameStatus(id: String, status: String) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
     request.httpMethod = "PATCH"
@@ -158,6 +176,44 @@ struct APIClient {
     try validate(response: response, data: data)
 
     return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func fetchGames() async throws -> [GameResponse] {
+    var request = URLRequest(url: baseURL.appending(path: "games"))
+    request.httpMethod = "GET"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    let list = try decode(GamesListResponse.self, from: data, response: response)
+    return list.games
+  }
+
+  func validateWord(_ word: String) async throws -> Bool {
+    var request = URLRequest(url: baseURL.appending(path: "word_validations"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    let body = ["word": word]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    let result = try decode(WordValidationResponse.self, from: data, response: response)
+    return result.valid
   }
 
   private func validate(response: URLResponse, data: Data) throws {
@@ -290,4 +346,12 @@ struct GameResponse: Decodable, Sendable {
     case currentRoundID = "current_round_id"
     case playersCount = "players_count"
   }
+}
+
+struct GamesListResponse: Decodable, Sendable {
+  let games: [GameResponse]
+}
+
+struct WordValidationResponse: Decodable, Sendable {
+  let valid: Bool
 }

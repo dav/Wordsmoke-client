@@ -15,12 +15,17 @@ struct RootView: View {
           .foregroundStyle(.secondary)
 
         if model.gameCenter.isAuthenticated {
-          Button("Connect to Server") {
-            Task {
-              await model.connectToServer()
+          if model.session == nil {
+            Button("Connect to Server") {
+              Task {
+                await model.connectToServer()
+              }
             }
+            .buttonStyle(.borderedProminent)
+          } else {
+            Text("Connected to server.")
+              .foregroundStyle(.secondary)
           }
-          .buttonStyle(.borderedProminent)
         } else {
           Text("Sign in to Game Center to get started.")
         }
@@ -45,6 +50,16 @@ struct RootView: View {
                 }
               }
               .buttonStyle(.bordered)
+            }
+          }
+        }
+
+        if model.session != nil {
+          ActiveGamesView(games: model.games) { game in
+            model.selectGame(game)
+          } onRefresh: {
+            Task {
+              await model.loadGames()
             }
           }
         }
@@ -134,6 +149,56 @@ struct GameSummaryView: View {
       if let playersCount = game.playersCount {
         Text("Players: \(playersCount)")
           .font(.callout)
+      }
+    }
+  }
+}
+
+struct ActiveGamesView: View {
+  let games: [GameResponse]
+  let onSelect: (GameResponse) -> Void
+  let onRefresh: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        Text("Active Games")
+          .font(.title3)
+          .bold()
+        Spacer()
+        Button("Refresh") {
+          onRefresh()
+        }
+        .buttonStyle(.bordered)
+      }
+
+      if games.isEmpty {
+        Text("No games yet.")
+          .foregroundStyle(.secondary)
+      } else {
+        ForEach(games, id: \.id) { game in
+          Button {
+            onSelect(game)
+          } label: {
+            HStack {
+              VStack(alignment: .leading) {
+                Text("Join Code: \(game.joinCode)")
+                  .font(.callout)
+                  .foregroundStyle(.primary)
+                Text("Status: \(game.status)")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+              Spacer()
+              if let playersCount = game.playersCount {
+                Text("\(playersCount) players")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+            }
+          }
+          .buttonStyle(.bordered)
+        }
       }
     }
   }

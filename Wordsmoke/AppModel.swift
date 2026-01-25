@@ -9,6 +9,7 @@ final class AppModel {
   var apiClient = APIClient(baseURL: AppEnvironment.baseURL)
   var session: SessionResponse?
   var currentGame: GameResponse?
+  var games: [GameResponse] = []
   var inviteSheet: InviteSheet?
   var gameRoomModel: GameRoomModel?
   var statusMessage = "Initializing Game Center…"
@@ -41,6 +42,7 @@ final class AppModel {
       session = response
       apiClient.authToken = response.token
       statusMessage = "Connected to server."
+      await loadGames()
     } catch {
       let debugInfo = debugDescription(for: error)
       statusMessage = "Failed to connect: \(debugInfo)"
@@ -48,6 +50,18 @@ final class AppModel {
       if let lastError = gameCenter.lastError {
         print("[GameCenter] Last error: \(lastError)")
       }
+    }
+  }
+
+  func loadGames() async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      games = try await apiClient.fetchGames()
+    } catch {
+      statusMessage = "Failed to load games: \(debugDescription(for: error))"
     }
   }
 
@@ -59,7 +73,10 @@ final class AppModel {
     do {
       let game = try await apiClient.createGame(goalLength: goalLength)
       currentGame = game
-      gameRoomModel = GameRoomModel(game: game, apiClient: apiClient)
+      games.insert(game, at: 0)
+      if let session {
+        gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
+      }
       statusMessage = "Game created."
       inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
     } catch {
@@ -77,6 +94,9 @@ final class AppModel {
       currentGame = try await apiClient.fetchGame(id: gameID)
       if let currentGame {
         gameRoomModel?.updateGame(currentGame)
+      }
+      if let currentGame, let index = games.firstIndex(where: { $0.id == currentGame.id }) {
+        games[index] = currentGame
       }
       statusMessage = "Game refreshed."
     } catch {
@@ -103,12 +123,16 @@ final class AppModel {
 
   func enterGame() {
     guard let currentGame else { return }
-    if gameRoomModel == nil {
-      gameRoomModel = GameRoomModel(game: currentGame, apiClient: apiClient)
-    } else {
-      gameRoomModel?.updateGame(currentGame)
+    if let session {
+      gameRoomModel = GameRoomModel(game: currentGame, apiClient: apiClient, localPlayerID: session.playerID)
     }
+    navigationPath = NavigationPath()
     navigationPath.append(AppRoute.game)
+  }
+
+  func selectGame(_ game: GameResponse) {
+    currentGame = game
+    enterGame()
   }
 
   func dismissInviteSheet() {
