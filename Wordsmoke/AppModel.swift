@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 @MainActor
 @Observable
@@ -9,8 +10,10 @@ final class AppModel {
   var session: SessionResponse?
   var currentGame: GameResponse?
   var inviteSheet: InviteSheet?
+  var gameRoomModel: GameRoomModel?
   var statusMessage = "Initializing Game Center…"
   var isBusy = false
+  var navigationPath = NavigationPath()
 
   func start() async {
     gameCenter.configure()
@@ -56,6 +59,7 @@ final class AppModel {
     do {
       let game = try await apiClient.createGame(goalLength: goalLength)
       currentGame = game
+      gameRoomModel = GameRoomModel(game: game, apiClient: apiClient)
       statusMessage = "Game created."
       inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
     } catch {
@@ -71,6 +75,9 @@ final class AppModel {
 
     do {
       currentGame = try await apiClient.fetchGame(id: gameID)
+      if let currentGame {
+        gameRoomModel?.updateGame(currentGame)
+      }
       statusMessage = "Game refreshed."
     } catch {
       statusMessage = "Failed to refresh game: \(debugDescription(for: error))"
@@ -85,10 +92,23 @@ final class AppModel {
 
     do {
       currentGame = try await apiClient.updateGameStatus(id: gameID, status: "active")
+      if let currentGame {
+        gameRoomModel?.updateGame(currentGame)
+      }
       statusMessage = "Game started."
     } catch {
       statusMessage = "Failed to start game: \(debugDescription(for: error))"
     }
+  }
+
+  func enterGame() {
+    guard let currentGame else { return }
+    if gameRoomModel == nil {
+      gameRoomModel = GameRoomModel(game: currentGame, apiClient: apiClient)
+    } else {
+      gameRoomModel?.updateGame(currentGame)
+    }
+    navigationPath.append(AppRoute.game)
   }
 
   func dismissInviteSheet() {

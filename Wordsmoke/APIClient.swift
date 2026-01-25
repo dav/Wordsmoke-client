@@ -104,6 +104,42 @@ struct APIClient {
     return try decode(GameResponse.self, from: data, response: response)
   }
 
+  func fetchRound(gameID: String, roundID: String) async throws -> RoundResponse {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)"))
+    request.httpMethod = "GET"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(RoundResponse.self, from: data, response: response)
+  }
+
+  func submitGuess(gameID: String, roundID: String, guessWord: String, phrase: String) async throws -> RoundSubmission {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)/submissions"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    let body = ["submission": ["guess_word": guessWord, "phrase": phrase]]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(RoundSubmission.self, from: data, response: response)
+  }
+
   func updateGameStatus(id: String, status: String) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
     request.httpMethod = "PATCH"

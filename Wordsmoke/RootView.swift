@@ -5,7 +5,7 @@ struct RootView: View {
   @Bindable var model: AppModel
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $model.navigationPath) {
       VStack(alignment: .leading) {
         Text("Wordsmoke")
           .font(.largeTitle)
@@ -62,6 +62,13 @@ struct RootView: View {
           .buttonStyle(.borderedProminent)
         }
 
+        if let game = model.currentGame, game.status == "active" {
+          Button("Enter Game") {
+            model.enterGame()
+          }
+          .buttonStyle(.borderedProminent)
+        }
+
         Spacer()
       }
       .padding()
@@ -80,6 +87,16 @@ struct RootView: View {
           maxPlayers: sheet.maxPlayers
         ) {
           model.dismissInviteSheet()
+        }
+      }
+      .navigationDestination(for: AppRoute.self) { route in
+        switch route {
+        case .game:
+          if let gameRoomModel = model.gameRoomModel {
+            GameRoomView(model: gameRoomModel)
+          } else {
+            Text("Game unavailable")
+          }
         }
       }
     }
