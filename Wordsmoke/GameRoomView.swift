@@ -96,6 +96,7 @@ struct GameRoomView: View {
     TextField("Guess word", text: $model.guessWord)
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
+      .textContentType(.oneTimeCode)
       .onChange(of: model.guessWord) { _, _ in
         Task {
           await model.validateGuessWord()
@@ -106,6 +107,9 @@ struct GameRoomView: View {
       .onChange(of: model.phrase) { _, _ in
         model.validatePhrase()
       }
+    Text("\(model.phrase.count)/\(model.game.goalLength * 4)")
+      .font(.caption)
+      .foregroundStyle(.secondary)
     Button("Submit Guess") {
       Task {
         await model.submitGuess()
@@ -138,7 +142,7 @@ struct GameRoomView: View {
         .foregroundStyle(.secondary)
       if let own = model.ownSubmission(in: round) {
         VStack(alignment: .leading, spacing: 6) {
-          Text("Your report")
+          Text("Your played")
             .font(.headline)
           if let phrase = own.phrase {
             Text(phrase)
