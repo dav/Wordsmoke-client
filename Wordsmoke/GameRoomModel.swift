@@ -8,7 +8,7 @@ final class GameRoomModel {
   private let apiClient: APIClient
   let localPlayerID: String
   var round: RoundPayload?
-  var completedRound: RoundPayload?
+  var completedRounds: [RoundPayload] = []
   var guessWord = ""
   var phrase = ""
   var errorMessage: String?
@@ -38,36 +38,36 @@ final class GameRoomModel {
 
     do {
       let updatedGame = try await apiClient.fetchGame(id: game.id)
-      let previousRoundID = round?.id
       game = updatedGame
+      let currentRoundID = game.currentRoundID
+      let roundSummaries = game.rounds ?? []
+      let closedRoundIDs = roundSummaries.filter { $0.status == "closed" }.map(\.id)
 
-      guard let currentRoundID = game.currentRoundID else {
-        if let previousRoundID {
-          let previousResponse = try await apiClient.fetchRound(gameID: game.id, roundID: previousRoundID)
-          completedRound = previousResponse.round
-          round = nil
+      if !closedRoundIDs.isEmpty {
+        var fetchedRounds = completedRounds
+        for roundID in closedRoundIDs where fetchedRounds.first(where: { $0.id == roundID }) == nil {
+          let response = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
+          fetchedRounds.append(response.round)
         }
-        resetRoundStateIfNeeded(roundID: nil)
-        errorMessage = nil
-        return
+        completedRounds = fetchedRounds.sorted { $0.number < $1.number }
       }
 
-      if let previousRoundID, previousRoundID != currentRoundID {
-        let completedResponse = try await apiClient.fetchRound(gameID: game.id, roundID: previousRoundID)
-        completedRound = completedResponse.round
-
-        let currentResponse = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID)
-        round = currentResponse.round
-        resetRoundStateIfNeeded(roundID: currentRoundID)
-      } else {
+      if let currentRoundID {
         let response = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID)
-        round = response.round
-        if response.round.stage == "reveal" {
-          completedRound = response.round
-        } else if completedRound?.id != response.round.id {
-          completedRound = nil
+        if response.round.status == "closed" {
+          if completedRounds.first(where: { $0.id == response.round.id }) == nil {
+            completedRounds.append(response.round)
+            completedRounds.sort { $0.number < $1.number }
+          }
+          round = nil
+          resetRoundStateIfNeeded(roundID: nil)
+        } else {
+          round = response.round
+          resetRoundStateIfNeeded(roundID: currentRoundID)
         }
-        resetRoundStateIfNeeded(roundID: currentRoundID)
+      } else {
+        round = nil
+        resetRoundStateIfNeeded(roundID: nil)
       }
       errorMessage = nil
     } catch {
@@ -107,10 +107,10 @@ final class GameRoomModel {
       let response = try await apiClient.submitPhraseVote(gameID: game.id, roundID: roundID, favoriteID: favoriteID, leastID: leastID)
       voteSubmitted = true
       round = response.round
-      if response.round.stage == "reveal" {
-        completedRound = response.round
-      }
       errorMessage = nil
+      if response.round.status == "closed" {
+        await refreshRound()
+      }
     } catch {
       errorMessage = error.localizedDescription
     }

@@ -450,6 +450,7 @@ struct GameResponse: Decodable, Sendable {
   let goalLength: Int
   let currentRoundID: String?
   let playersCount: Int?
+  let rounds: [GameRoundSummary]?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -458,11 +459,30 @@ struct GameResponse: Decodable, Sendable {
     case goalLength = "goal_length"
     case currentRoundID = "current_round_id"
     case playersCount = "players_count"
+    case rounds
   }
 }
 
 struct GamesListResponse: Decodable, Sendable {
   let games: [GameResponse]
+}
+
+struct GameRoundSummary: Decodable, Sendable, Identifiable {
+  let id: String
+  let number: Int
+  let status: String
+  let startedAt: String?
+  let endedAt: String?
+  let submissionsCount: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case number
+    case status
+    case startedAt = "started_at"
+    case endedAt = "ended_at"
+    case submissionsCount = "submissions_count"
+  }
 }
 
 struct WordValidationResponse: Decodable, Sendable {

@@ -1,6 +1,6 @@
 import Foundation
 
-struct RoundPayload: Decodable, Sendable {
+struct RoundPayload: Decodable, Sendable, Identifiable {
   let id: String
   let number: Int
   let status: String

@@ -24,14 +24,16 @@ struct GameRoomView: View {
         }
       }
 
-      if let completedRound = model.completedRound {
-        Section("Round Report") {
-          roundReport(for: completedRound)
+      if !model.completedRounds.isEmpty {
+        ForEach(model.completedRounds) { completedRound in
+          Section("Round \(completedRound.number)") {
+            roundReport(for: completedRound)
+          }
         }
       }
 
       if let round = model.round {
-        Section(model.completedRound == nil ? "Round Report" : "Next Round") {
+        Section(model.completedRounds.isEmpty ? "Round Report" : "Next Round") {
           if shouldShowSubmissionForm(for: round) {
             submissionForm()
             if round.stage == "waiting_submissions" {
@@ -41,7 +43,7 @@ struct GameRoomView: View {
             roundReport(for: round)
           }
         }
-      } else if model.completedRound == nil {
+      } else if model.completedRounds.isEmpty {
         Section("Round Report") {
           Text("No round data yet.")
             .foregroundStyle(.secondary)
@@ -57,7 +59,7 @@ struct GameRoomView: View {
   }
 
   private var shouldShowRefreshButton: Bool {
-    model.completedRound == nil
+    model.round != nil
   }
 
   private func shouldShowSubmissionForm(for round: RoundPayload) -> Bool {
