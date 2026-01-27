@@ -5,14 +5,7 @@ struct GameRoomView: View {
 
   var body: some View {
     Form {
-      Section("Current Round") {
-        if let round = model.round {
-          Text("Round \(round.number) — \(round.status)")
-          Text("Votes: \(round.phraseVotesCount)")
-        } else {
-          Text("No round loaded")
-            .foregroundStyle(.secondary)
-        }
+      Section("Status") {
         Text("Status: \(model.game.status)")
         if model.game.status == "waiting" {
           Button("Start Game") {
@@ -22,14 +15,6 @@ struct GameRoomView: View {
           }
           .buttonStyle(.borderedProminent)
           .disabled((model.game.playersCount ?? 0) < 2 || model.isBusy)
-        }
-        if shouldShowRefreshButton {
-          Button("Refresh Round") {
-            Task {
-              await model.refreshRound()
-            }
-          }
-          .buttonStyle(.bordered)
         }
       }
 
@@ -70,6 +55,17 @@ struct GameRoomView: View {
         Section("Round Report") {
           Text("No round data yet.")
             .foregroundStyle(.secondary)
+        }
+      }
+
+      if shouldShowRefreshButton {
+        Section {
+          Button("Refresh Round") {
+            Task {
+              await model.refreshRound()
+            }
+          }
+          .buttonStyle(.bordered)
         }
       }
     }
