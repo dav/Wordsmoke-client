@@ -8,6 +8,7 @@ final class GameRoomModel {
   private let apiClient: APIClient
   let localPlayerID: String
   var round: RoundPayload?
+  var completedRound: RoundPayload?
   var guessWord = ""
   var phrase = ""
   var errorMessage: String?
@@ -31,15 +32,43 @@ final class GameRoomModel {
   }
 
   func refreshRound() async {
-    guard let roundID = game.currentRoundID else { return }
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }
 
     do {
-      let response = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
-      round = response.round
-      resetVotingIfNeeded()
+      let updatedGame = try await apiClient.fetchGame(id: game.id)
+      let previousRoundID = round?.id
+      game = updatedGame
+
+      guard let currentRoundID = game.currentRoundID else {
+        if let previousRoundID {
+          let previousResponse = try await apiClient.fetchRound(gameID: game.id, roundID: previousRoundID)
+          completedRound = previousResponse.round
+          round = nil
+        }
+        resetRoundStateIfNeeded(roundID: nil)
+        errorMessage = nil
+        return
+      }
+
+      if let previousRoundID, previousRoundID != currentRoundID {
+        let completedResponse = try await apiClient.fetchRound(gameID: game.id, roundID: previousRoundID)
+        completedRound = completedResponse.round
+
+        let currentResponse = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID)
+        round = currentResponse.round
+        resetRoundStateIfNeeded(roundID: currentRoundID)
+      } else {
+        let response = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID)
+        round = response.round
+        if response.round.stage == "reveal" {
+          completedRound = response.round
+        } else if completedRound?.id != response.round.id {
+          completedRound = nil
+        }
+        resetRoundStateIfNeeded(roundID: currentRoundID)
+      }
       errorMessage = nil
     } catch {
       errorMessage = error.localizedDescription
@@ -57,6 +86,8 @@ final class GameRoomModel {
       _ = try await apiClient.submitGuess(gameID: game.id, roundID: roundID, guessWord: guessWord, phrase: phrase)
       guessWord = ""
       phrase = ""
+      isGuessValid = false
+      isPhraseValid = false
       errorMessage = nil
       await refreshRound()
     } catch {
@@ -73,10 +104,13 @@ final class GameRoomModel {
     defer { isBusy = false }
 
     do {
-      try await apiClient.submitPhraseVote(gameID: game.id, roundID: roundID, favoriteID: favoriteID, leastID: leastID)
+      let response = try await apiClient.submitPhraseVote(gameID: game.id, roundID: roundID, favoriteID: favoriteID, leastID: leastID)
       voteSubmitted = true
+      round = response.round
+      if response.round.stage == "reveal" {
+        completedRound = response.round
+      }
       errorMessage = nil
-      await refreshRound()
     } catch {
       errorMessage = error.localizedDescription
     }
@@ -93,16 +127,16 @@ final class GameRoomModel {
   }
 
   func hasSubmittedOwnGuess() -> Bool {
-    ownSubmission() != nil
+    guard let round else { return false }
+    return ownSubmission(in: round)?.createdAt != nil
   }
 
-  func ownSubmission() -> RoundSubmission? {
-    round?.submissions.first { $0.playerID == localPlayerID }
+  func ownSubmission(in round: RoundPayload) -> RoundSubmission? {
+    round.submissions.first { $0.playerID == localPlayerID }
   }
 
-  func otherSubmissions() -> [RoundSubmission] {
-    guard let round else { return [] }
-    return round.submissions.filter { $0.playerID != localPlayerID }
+  func otherSubmissions(in round: RoundPayload) -> [RoundSubmission] {
+    round.submissions.filter { $0.playerID != localPlayerID }
   }
 
   func toggleFavorite(for submission: RoundSubmission) {
@@ -159,13 +193,16 @@ final class GameRoomModel {
     return required.allSatisfy { phraseLower.contains($0) }
   }
 
-  private func resetVotingIfNeeded() {
-    guard let round else { return }
-    if lastRoundID != round.id {
-      selectedFavoriteID = nil
-      selectedLeastID = nil
-      voteSubmitted = false
-      lastRoundID = round.id
-    }
+  private func resetRoundStateIfNeeded(roundID: String?) {
+    guard roundID != lastRoundID else { return }
+
+    selectedFavoriteID = nil
+    selectedLeastID = nil
+    voteSubmitted = false
+    guessWord = ""
+    phrase = ""
+    isGuessValid = false
+    isPhraseValid = false
+    lastRoundID = roundID
   }
 }

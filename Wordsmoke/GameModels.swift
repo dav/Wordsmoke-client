@@ -37,7 +37,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
   let marks: [String]?
   let correctGuess: Bool?
   let createdAt: String?
-  let feedback: [String: String]?
+  let feedback: SubmissionFeedback?
   let scoreDelta: Int?
 
   enum CodingKeys: String, CodingKey {
@@ -52,4 +52,10 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
     case feedback
     case scoreDelta = "score_delta"
   }
+}
+
+struct SubmissionFeedback: Decodable, Sendable {
+  let goal: String?
+  let guess: String?
+  let marks: [String]?
 }

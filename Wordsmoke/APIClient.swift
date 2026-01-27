@@ -140,7 +140,7 @@ struct APIClient {
     return try decode(RoundSubmission.self, from: data, response: response)
   }
 
-  func submitPhraseVote(gameID: String, roundID: String, favoriteID: String, leastID: String) async throws {
+  func submitPhraseVote(gameID: String, roundID: String, favoriteID: String, leastID: String) async throws -> RoundResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)/phrase_votes"))
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -156,6 +156,8 @@ struct APIClient {
     let (data, response) = try await urlSession.data(for: request)
     logResponse(response, data: data)
     try validate(response: response, data: data)
+
+    return try decode(RoundResponse.self, from: data, response: response)
   }
 
   func updateGameStatus(id: String, status: String) async throws -> GameResponse {
