@@ -108,9 +108,7 @@ final class GameRoomModel {
       voteSubmitted = true
       round = response.round
       errorMessage = nil
-      if response.round.status == "closed" {
-        await refreshRound()
-      }
+      await refreshRound()
     } catch {
       errorMessage = error.localizedDescription
     }

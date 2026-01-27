@@ -61,12 +61,20 @@ struct RootView: View {
         }
 
         if model.session != nil {
-          ActiveGamesView(games: model.games) { game in
+          let activeGames = model.games.filter { $0.status != "completed" }
+          let completedGames = model.games.filter { $0.status == "completed" }
+            .sorted { ($0.endedAt ?? "") > ($1.endedAt ?? "") }
+
+          ActiveGamesView(games: activeGames, title: "Active Games") { game in
             model.selectGame(game)
           } onRefresh: {
             Task {
               await model.loadGames()
             }
+          }
+
+          CompletedGamesView(games: completedGames) { game in
+            model.selectGame(game)
           }
         }
 
@@ -169,13 +177,14 @@ struct GameSummaryView: View {
 
 struct ActiveGamesView: View {
   let games: [GameResponse]
+  let title: String
   let onSelect: (GameResponse) -> Void
   let onRefresh: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Text("Active Games")
+        Text(title)
           .font(.title3)
           .bold()
         Spacer()
@@ -201,6 +210,58 @@ struct ActiveGamesView: View {
                 Text("Status: \(game.status)")
                   .font(.caption)
                   .foregroundStyle(.secondary)
+              }
+              Spacer()
+              if let playersCount = game.playersCount {
+                Text("\(playersCount) players")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+            }
+          }
+          .buttonStyle(.bordered)
+        }
+      }
+    }
+  }
+}
+
+struct CompletedGamesView: View {
+  let games: [GameResponse]
+  let onSelect: (GameResponse) -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text("Completed Games")
+        .font(.title3)
+        .bold()
+
+      if games.isEmpty {
+        Text("No completed games yet.")
+          .foregroundStyle(.secondary)
+      } else {
+        ForEach(games, id: \.id) { game in
+          Button {
+            onSelect(game)
+          } label: {
+            HStack {
+              VStack(alignment: .leading) {
+                Text("Join Code: \(game.joinCode)")
+                  .font(.callout)
+                  .foregroundStyle(.primary)
+                if let winnerNames = game.winnerNames, let roundNumber = game.winningRoundNumber, !winnerNames.isEmpty {
+                  Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else if let roundNumber = game.winningRoundNumber {
+                  Text("Completed in round \(roundNumber)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else {
+                  Text("Completed")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
               }
               Spacer()
               if let playersCount = game.playersCount {

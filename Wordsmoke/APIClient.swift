@@ -452,6 +452,9 @@ struct GameResponse: Decodable, Sendable {
   let playersCount: Int?
   let rounds: [GameRoundSummary]?
   let participants: [GameParticipant]?
+  let endedAt: String?
+  let winnerNames: [String]?
+  let winningRoundNumber: Int?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -462,6 +465,9 @@ struct GameResponse: Decodable, Sendable {
     case playersCount = "players_count"
     case rounds
     case participants
+    case endedAt = "ended_at"
+    case winnerNames = "winner_names"
+    case winningRoundNumber = "winning_round_number"
   }
 }
 
