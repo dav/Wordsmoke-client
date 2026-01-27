@@ -14,6 +14,15 @@ struct GameRoomView: View {
             .foregroundStyle(.secondary)
         }
         Text("Status: \(model.game.status)")
+        if model.game.status == "waiting" {
+          Button("Start Game") {
+            Task {
+              await model.startGame()
+            }
+          }
+          .buttonStyle(.borderedProminent)
+          .disabled((model.game.playersCount ?? 0) < 2 || model.isBusy)
+        }
         if shouldShowRefreshButton {
           Button("Refresh Round") {
             Task {
@@ -21,6 +30,20 @@ struct GameRoomView: View {
             }
           }
           .buttonStyle(.bordered)
+        }
+      }
+
+      if model.game.status == "waiting", let participants = model.game.participants {
+        Section("Players") {
+          ForEach(participants, id: \.id) { participant in
+            HStack {
+              Text(participant.player.displayName)
+              Spacer()
+              Text(participant.role)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+          }
         }
       }
 
@@ -184,10 +207,31 @@ struct GameRoomView: View {
       }
     default:
       if !round.submissions.isEmpty {
-        ForEach(round.submissions) { submission in
+        let isFinalRound = model.game.status == "completed" && model.completedRounds.last?.id == round.id
+        let winnerIDs = isFinalRound ? model.winnerIDs(for: round) : []
+        let sortedSubmissions = round.submissions.sorted {
+          if isFinalRound {
+            let leftWinner = winnerIDs.contains($0.playerID)
+            let rightWinner = winnerIDs.contains($1.playerID)
+            if leftWinner != rightWinner {
+              return leftWinner && !rightWinner
+            }
+            let leftScore = model.playerScore(for: $0.playerID)
+            let rightScore = model.playerScore(for: $1.playerID)
+            if leftScore != rightScore {
+              return leftScore > rightScore
+            }
+          }
+          return $0.playerName < $1.playerName
+        }
+
+        ForEach(sortedSubmissions) { submission in
           VStack(alignment: .leading, spacing: 6) {
             let isLocal = submission.playerID == model.localPlayerID
             HStack {
+              if isFinalRound && winnerIDs.contains(submission.playerID) {
+                Text("🏆")
+              }
               Text(submission.playerName)
                 .bold()
               if submission.correctGuess == true {
@@ -234,4 +278,5 @@ struct GameRoomView: View {
       }
     }
   }
+
 }

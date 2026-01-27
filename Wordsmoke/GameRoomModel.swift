@@ -116,6 +116,21 @@ final class GameRoomModel {
     }
   }
 
+  func startGame() async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let updatedGame = try await apiClient.updateGameStatus(id: game.id, status: "active")
+      game = updatedGame
+      errorMessage = nil
+      await refreshRound()
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
   func isReadyToVote() -> Bool {
     guard let round else { return false }
     return round.stage == "voting" && !voteSubmitted
@@ -137,6 +152,22 @@ final class GameRoomModel {
 
   func otherSubmissions(in round: RoundPayload) -> [RoundSubmission] {
     round.submissions.filter { $0.playerID != localPlayerID }
+  }
+
+  func playerName(for playerID: String) -> String? {
+    game.participants?.first(where: { $0.player.id == playerID })?.player.displayName
+  }
+
+  func playerScore(for playerID: String) -> Int {
+    game.participants?.first(where: { $0.player.id == playerID })?.score ?? 0
+  }
+
+  func winnerIDs(for round: RoundPayload) -> [String] {
+    let correct = round.submissions.filter { $0.correctGuess == true }
+    guard !correct.isEmpty else { return [] }
+
+    let topScore = correct.map { playerScore(for: $0.playerID) }.max() ?? 0
+    return correct.filter { playerScore(for: $0.playerID) == topScore }.map { $0.playerID }
   }
 
   func toggleFavorite(for submission: RoundSubmission) {

@@ -57,15 +57,6 @@ struct RootView: View {
               }
             }
             .buttonStyle(.bordered)
-
-            if model.currentGame != nil {
-              Button("Refresh Game") {
-                Task {
-                  await model.refreshGame()
-                }
-              }
-              .buttonStyle(.bordered)
-            }
           }
         }
 
@@ -77,10 +68,6 @@ struct RootView: View {
               await model.loadGames()
             }
           }
-        }
-
-        if let game = model.currentGame {
-          GameSummaryView(game: game)
         }
 
         if let game = model.currentGame, game.status == "waiting" {

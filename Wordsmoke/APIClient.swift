@@ -451,6 +451,7 @@ struct GameResponse: Decodable, Sendable {
   let currentRoundID: String?
   let playersCount: Int?
   let rounds: [GameRoundSummary]?
+  let participants: [GameParticipant]?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -460,6 +461,7 @@ struct GameResponse: Decodable, Sendable {
     case currentRoundID = "current_round_id"
     case playersCount = "players_count"
     case rounds
+    case participants
   }
 }
 
@@ -482,6 +484,36 @@ struct GameRoundSummary: Decodable, Sendable, Identifiable {
     case startedAt = "started_at"
     case endedAt = "ended_at"
     case submissionsCount = "submissions_count"
+  }
+}
+
+struct GameParticipant: Decodable, Sendable, Identifiable {
+  let id: String
+  let role: String
+  let score: Int
+  let joinedAt: String?
+  let player: GameParticipantPlayer
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case role
+    case score
+    case joinedAt = "joined_at"
+    case player
+  }
+}
+
+struct GameParticipantPlayer: Decodable, Sendable {
+  let id: String
+  let displayName: String
+  let nickname: String?
+  let gameCenterPlayerID: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case displayName = "display_name"
+    case nickname
+    case gameCenterPlayerID = "game_center_player_id"
   }
 }
 
