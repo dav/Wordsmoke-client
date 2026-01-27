@@ -5,8 +5,7 @@ struct GameRoomView: View {
 
   var body: some View {
     Form {
-      Section("Round") {
-        Text("Status: \(model.game.status)")
+      Section("Current Round") {
         if let round = model.round {
           Text("Round \(round.number) — \(round.status)")
           Text("Votes: \(round.phraseVotesCount)")
@@ -14,6 +13,7 @@ struct GameRoomView: View {
           Text("No round loaded")
             .foregroundStyle(.secondary)
         }
+        Text("Status: \(model.game.status)")
         if shouldShowRefreshButton {
           Button("Refresh Round") {
             Task {
