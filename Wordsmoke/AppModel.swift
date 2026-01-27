@@ -22,6 +22,20 @@ final class AppModel {
     logBundleInfo()
   }
 
+  func handleAuthChange() {
+    if gameCenter.isAuthenticated {
+      if session != nil {
+        statusMessage = "Connected to server."
+      } else if statusMessage.hasPrefix("Waiting for Game Center") || statusMessage.hasPrefix("Game Center sign-in") {
+        statusMessage = "Game Center signed in."
+      }
+    } else {
+      if session == nil {
+        statusMessage = "Game Center sign-in required."
+      }
+    }
+  }
+
   func connectToServer() async {
     guard gameCenter.isAuthenticated else {
       statusMessage = "Game Center sign-in required."

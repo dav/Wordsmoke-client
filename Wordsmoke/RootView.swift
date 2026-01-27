@@ -22,9 +22,6 @@ struct RootView: View {
               }
             }
             .buttonStyle(.borderedProminent)
-          } else {
-            Text("Connected to server.")
-              .foregroundStyle(.secondary)
           }
         } else {
           Text("Sign in to Game Center to get started.")
@@ -91,6 +88,9 @@ struct RootView: View {
       .navigationBarHidden(true)
       .task {
         await model.start()
+      }
+      .onChange(of: model.gameCenter.isAuthenticated) { _, _ in
+        model.handleAuthChange()
       }
       .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
         GameCenterAuthView(viewController: item.viewController)
