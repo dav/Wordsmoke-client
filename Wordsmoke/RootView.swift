@@ -6,34 +6,52 @@ struct RootView: View {
 
   var body: some View {
     NavigationStack(path: $model.navigationPath) {
-      VStack(alignment: .leading) {
+      VStack(alignment: .leading, spacing: 16) {
         Text("Wordsmoke")
           .font(.largeTitle)
           .bold()
+          .frame(maxWidth: .infinity, alignment: .center)
 
-        Text(model.statusMessage)
-          .foregroundStyle(.secondary)
+        // Debug Status
+        VStack(alignment: .leading, spacing: 12) {
+          Text("Status")
+            .font(.headline)
 
-        if model.gameCenter.isAuthenticated {
-          if model.session == nil {
-            Button("Connect to Server") {
-              Task {
-                await model.connectToServer()
+          Text(model.statusMessage)
+            .foregroundStyle(.secondary)
+
+          if model.gameCenter.isAuthenticated {
+            if model.session == nil {
+              Button("Connect to Server") {
+                Task {
+                  await model.connectToServer()
+                }
               }
+              .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
+          } else {
+            Text("Sign in to Game Center to get started.")
           }
-        } else {
-          Text("Sign in to Game Center to get started.")
-        }
 
-        if let session = model.session {
-          SessionSummaryView(session: session)
+          if let session = model.session {
+            SessionSummaryView(session: session)
+          }
         }
+        .padding()
+        .frame(maxWidth: 520)
+        .background(
+          RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(Color(.secondarySystemBackground))
+        )
+        .overlay(
+          RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .stroke(Color(.separator), lineWidth: 1)
+        )
+        .frame(maxWidth: .infinity, alignment: .center)
 
         if model.session != nil {
           HStack(spacing: 12) {
-            Button("Create Game") {
+            Button("New Game") {
               Task {
                 await model.createGameAndInvite(goalLength: 5)
               }
@@ -92,6 +110,13 @@ struct RootView: View {
       .onChange(of: model.gameCenter.isAuthenticated) { _, _ in
         model.handleAuthChange()
       }
+      .onChange(of: model.session?.token) { _, _ in
+        if model.session != nil {
+          Task {
+            await model.loadGames()
+          }
+        }
+      }
       .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
         GameCenterAuthView(viewController: item.viewController)
       }
@@ -126,10 +151,11 @@ struct SessionSummaryView: View {
       Text("Session")
         .font(.title2)
         .bold()
-      Text("Player: \(session.playerID)")
+      Text("Player: \(session.playerName ?? "Unknown")")
         .font(.callout)
-      Text("Account: \(session.accountID)")
-        .font(.callout)
+      Text(session.playerID)
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
   }
 }

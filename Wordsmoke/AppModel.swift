@@ -26,8 +26,11 @@ final class AppModel {
     if gameCenter.isAuthenticated {
       if session != nil {
         statusMessage = "Connected to server."
-      } else if statusMessage.hasPrefix("Waiting for Game Center") || statusMessage.hasPrefix("Game Center sign-in") {
+      } else {
         statusMessage = "Game Center signed in."
+        Task {
+          await connectToServer()
+        }
       }
     } else {
       if session == nil {

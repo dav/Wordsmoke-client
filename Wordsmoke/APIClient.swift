@@ -4,11 +4,13 @@ struct SessionResponse: Decodable, Sendable {
   let token: String
   let playerID: String
   let accountID: String
+  let playerName: String?
 
   enum CodingKeys: String, CodingKey {
     case token
     case playerID = "player_id"
     case accountID = "account_id"
+    case playerName = "player_name"
   }
 }
 
