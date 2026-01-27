@@ -56,7 +56,7 @@ struct GameRoomView: View {
       }
 
       if let round = model.round {
-        Section(model.completedRounds.isEmpty ? "Round Report" : "Next Round") {
+        Section("Round \(round.number)") {
           if shouldShowSubmissionForm(for: round) {
             submissionForm()
             if round.stage == "waiting_submissions" {
@@ -78,6 +78,12 @@ struct GameRoomView: View {
       if model.round == nil {
         await model.refreshRound()
       }
+    }
+    .onAppear {
+      model.startPolling()
+    }
+    .onDisappear {
+      model.stopPolling()
     }
   }
 
@@ -157,6 +163,27 @@ struct GameRoomView: View {
         Text("Waiting on your submission.")
           .foregroundStyle(.secondary)
       } else {
+        if model.game.playersCount ?? 0 >= 3 {
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Votes")
+              .font(.headline)
+            ForEach(round.submissions) { submission in
+              HStack {
+                Text(submission.playerName)
+                Spacer()
+                if submission.voted == true {
+                  Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                } else {
+                  Image(systemName: "clock")
+                    .foregroundStyle(.orange)
+                }
+              }
+            }
+          }
+          Divider()
+        }
+
         if let own = model.ownSubmission(in: round) {
           VStack(alignment: .leading, spacing: 6) {
             Text("Your report")
@@ -234,6 +261,18 @@ struct GameRoomView: View {
               }
               Text(submission.playerName)
                 .bold()
+              Spacer()
+              if round.status == "voting" {
+                if submission.voted == true {
+                  Text("voted")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                } else {
+                  Text("voting")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                }
+              }
               if submission.correctGuess == true {
                 Text("Correct")
                   .foregroundStyle(.green)

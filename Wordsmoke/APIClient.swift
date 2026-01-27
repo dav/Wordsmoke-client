@@ -14,11 +14,19 @@ struct SessionResponse: Decodable, Sendable {
   }
 }
 
+@MainActor
 struct APIClient {
   let baseURL: URL
   var accountID: String?
   var urlSession: URLSession = .shared
   var authToken: String?
+  private let logState = LogState()
+
+  enum LogStrategy {
+    case always
+    case changesOnly
+    case silent
+  }
 
   func createSession(signature: GameCenterSignature, displayName: String?, nickname: String?) async throws -> SessionResponse {
     let requestBody = CreateSessionRequest(
@@ -90,33 +98,35 @@ struct APIClient {
     return try decode(GameResponse.self, from: data, response: response)
   }
 
-  func fetchGame(id: String) async throws -> GameResponse {
+  func fetchGame(id: String, logStrategy: LogStrategy = .always) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
     request.httpMethod = "GET"
+    request.cachePolicy = .reloadRevalidatingCacheData
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     if let authToken {
       request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
     }
 
-    logRequest(request)
+    logRequest(request, strategy: logStrategy)
     let (data, response) = try await urlSession.data(for: request)
-    logResponse(response, data: data)
+    logResponse(response, data: data, strategy: logStrategy)
     try validate(response: response, data: data)
 
     return try decode(GameResponse.self, from: data, response: response)
   }
 
-  func fetchRound(gameID: String, roundID: String) async throws -> RoundResponse {
+  func fetchRound(gameID: String, roundID: String, logStrategy: LogStrategy = .always) async throws -> RoundResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)"))
     request.httpMethod = "GET"
+    request.cachePolicy = .reloadRevalidatingCacheData
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     if let authToken {
       request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
     }
 
-    logRequest(request)
+    logRequest(request, strategy: logStrategy)
     let (data, response) = try await urlSession.data(for: request)
-    logResponse(response, data: data)
+    logResponse(response, data: data, strategy: logStrategy)
     try validate(response: response, data: data)
 
     return try decode(RoundResponse.self, from: data, response: response)
@@ -325,8 +335,9 @@ struct APIClient {
     }
   }
 
-  private func logRequest(_ request: URLRequest) {
+  private func logRequest(_ request: URLRequest, strategy: LogStrategy = .always) {
     #if DEBUG
+    guard strategy == .always else { return }
     let method = request.httpMethod ?? "GET"
     let urlString = request.url?.absoluteString ?? "unknown"
     let headers = request.allHTTPHeaderFields ?? [:]
@@ -348,7 +359,7 @@ struct APIClient {
     #endif
   }
 
-  private func logResponse(_ response: URLResponse, data: Data) {
+  private func logResponse(_ response: URLResponse, data: Data, strategy: LogStrategy = .always) {
     #if DEBUG
     guard let httpResponse = response as? HTTPURLResponse else {
       print("[API] ⬅️😵 invalid response")
@@ -361,6 +372,23 @@ struct APIClient {
       }
       return String(data: data, encoding: .utf8) ?? ""
     }()
+
+    if httpResponse.statusCode == 304 {
+      return
+    }
+    if strategy == .silent {
+      return
+    }
+    if strategy == .changesOnly {
+      let signature = responseSignature(for: httpResponse, body: data)
+      let key = httpResponse.url?.absoluteString ?? ""
+      if let signature, logState.signatures[key] == signature {
+        return
+      }
+      if let signature {
+        logState.signatures[key] = signature
+      }
+    }
 
     let symbol: String
     switch httpResponse.statusCode {
@@ -380,6 +408,24 @@ struct APIClient {
     }
     #endif
   }
+
+  private func responseSignature(for response: HTTPURLResponse, body: Data) -> String? {
+    if let etag = response.value(forHTTPHeaderField: "ETag") {
+      return "etag:\(etag)"
+    }
+    if let lastModified = response.value(forHTTPHeaderField: "Last-Modified") {
+      return "last:\(lastModified)"
+    }
+    if body.isEmpty {
+      return nil
+    }
+    return "len:\(body.count)-hash:\(body.hashValue)"
+  }
+}
+
+@MainActor
+final class LogState {
+  var signatures: [String: String] = [:]
 }
 
 enum APIError: Error, CustomNSError, LocalizedError {

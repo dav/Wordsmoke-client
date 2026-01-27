@@ -20,6 +20,7 @@ final class GameRoomModel {
   var selectedLeastID: String?
   var voteSubmitted = false
   var isBusy = false
+  private var pollingTask: Task<Void, Never>?
 
   init(game: GameResponse, apiClient: APIClient, localPlayerID: String) {
     self.game = game
@@ -27,17 +28,33 @@ final class GameRoomModel {
     self.localPlayerID = localPlayerID
   }
 
+  func startPolling() {
+    pollingTask?.cancel()
+    pollingTask = Task { [weak self] in
+      guard let self else { return }
+      while !Task.isCancelled {
+        await self.refreshRound(logStrategy: .changesOnly)
+        try? await Task.sleep(for: .seconds(3))
+      }
+    }
+  }
+
+  func stopPolling() {
+    pollingTask?.cancel()
+    pollingTask = nil
+  }
+
   func updateGame(_ game: GameResponse) {
     self.game = game
   }
 
-  func refreshRound() async {
+  func refreshRound(logStrategy: APIClient.LogStrategy = .always) async {
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }
 
     do {
-      let updatedGame = try await apiClient.fetchGame(id: game.id)
+      let updatedGame = try await apiClient.fetchGame(id: game.id, logStrategy: logStrategy)
       game = updatedGame
       let currentRoundID = game.currentRoundID
       let roundSummaries = game.rounds ?? []
@@ -46,14 +63,14 @@ final class GameRoomModel {
       if !closedRoundIDs.isEmpty {
         var fetchedRounds = completedRounds
         for roundID in closedRoundIDs where fetchedRounds.first(where: { $0.id == roundID }) == nil {
-          let response = try await apiClient.fetchRound(gameID: game.id, roundID: roundID)
+          let response = try await apiClient.fetchRound(gameID: game.id, roundID: roundID, logStrategy: logStrategy)
           fetchedRounds.append(response.round)
         }
         completedRounds = fetchedRounds.sorted { $0.number < $1.number }
       }
 
       if let currentRoundID {
-        let response = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID)
+        let response = try await apiClient.fetchRound(gameID: game.id, roundID: currentRoundID, logStrategy: logStrategy)
         if response.round.status == "closed" {
           if completedRounds.first(where: { $0.id == response.round.id }) == nil {
             completedRounds.append(response.round)

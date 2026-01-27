@@ -39,6 +39,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
   let createdAt: String?
   let feedback: SubmissionFeedback?
   let scoreDelta: Int?
+  let voted: Bool?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -51,6 +52,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
     case createdAt = "created_at"
     case feedback
     case scoreDelta = "score_delta"
+    case voted
   }
 }
 
