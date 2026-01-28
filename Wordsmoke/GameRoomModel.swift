@@ -33,7 +33,7 @@ final class GameRoomModel {
     pollingTask = Task { [weak self] in
       guard let self else { return }
       while !Task.isCancelled {
-        await self.refreshRound(logStrategy: .changesOnly)
+        await self.refreshRound(logStrategy: .changesOnly, setBusy: false)
         try? await Task.sleep(for: .seconds(3))
       }
     }
@@ -48,10 +48,16 @@ final class GameRoomModel {
     self.game = game
   }
 
-  func refreshRound(logStrategy: APIClient.LogStrategy = .always) async {
-    guard !isBusy else { return }
-    isBusy = true
-    defer { isBusy = false }
+  func refreshRound(logStrategy: APIClient.LogStrategy = .always, setBusy: Bool = true) async {
+    if setBusy {
+      guard !isBusy else { return }
+      isBusy = true
+    }
+    defer {
+      if setBusy {
+        isBusy = false
+      }
+    }
 
     do {
       let updatedGame = try await apiClient.fetchGame(id: game.id, logStrategy: logStrategy)
@@ -106,7 +112,7 @@ final class GameRoomModel {
       isGuessValid = false
       isPhraseValid = false
       errorMessage = nil
-      await refreshRound()
+      await refreshRound(logStrategy: .always, setBusy: false)
     } catch {
       errorMessage = error.localizedDescription
     }
@@ -125,7 +131,7 @@ final class GameRoomModel {
       voteSubmitted = true
       round = response.round
       errorMessage = nil
-      await refreshRound()
+      await refreshRound(logStrategy: .always, setBusy: false)
     } catch {
       errorMessage = error.localizedDescription
     }
@@ -140,7 +146,7 @@ final class GameRoomModel {
       let updatedGame = try await apiClient.updateGameStatus(id: game.id, status: "active")
       game = updatedGame
       errorMessage = nil
-      await refreshRound()
+      await refreshRound(logStrategy: .always, setBusy: false)
     } catch {
       errorMessage = error.localizedDescription
     }
