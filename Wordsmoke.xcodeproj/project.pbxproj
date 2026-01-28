@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C8A2B7A1B4A0C9A5C9F51D1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */; };
 		0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5172F0844CBC8E960B066C4 /* GameModels.swift */; };
 		0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */; };
+		10A69B7B08E03E3A1F5C7E3D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A69B7A08E03E3A1F5C7E3D /* Theme.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
 		1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */; };
 		1FE969C3EF10A917CEE87E39 /* WordsmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */; };
@@ -42,7 +44,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterAuthView.swift; sourceTree = "<group>"; };
+		10A69B7A08E03E3A1F5C7E3D /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		489F85041C711924670A1610 /* GameRoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomModel.swift; sourceTree = "<group>"; };
 		4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakerView.swift; sourceTree = "<group>"; };
@@ -116,6 +120,8 @@
 				D0B6E0D99AEACE3C415847FF /* MarksView.swift */,
 				4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
+				0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */,
+				10A69B7A08E03E3A1F5C7E3D /* Theme.swift */,
 				DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */,
 				D2268AC85CFB211AA5943BC4 /* Wordsmoke.entitlements */,
 				24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */,
@@ -245,6 +251,8 @@
 				46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */,
 				201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
+				0C8A2B7A1B4A0C9A5C9F51D1 /* SettingsView.swift in Sources */,
+				10A69B7B08E03E3A1F5C7E3D /* Theme.swift in Sources */,
 				36C93A0143C83613DA2D80B8 /* WordleFeedback.swift in Sources */,
 				188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */,
 			);

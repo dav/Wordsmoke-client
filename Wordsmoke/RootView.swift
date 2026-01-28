@@ -3,25 +3,40 @@ import SwiftUI
 
 struct RootView: View {
   @Bindable var model: AppModel
+  @AppStorage("theme.selection") private var themeSelectionRaw = ThemeSelection.system.rawValue
   @State private var showDebug = false
+  @State private var showingSettings = false
+
+  private var theme: AppTheme {
+    ThemeSelection(rawValue: themeSelectionRaw)?.theme ?? .system
+  }
 
   var body: some View {
     NavigationStack(path: $model.navigationPath) {
-      VStack(alignment: .leading, spacing: 16) {
+      VStack(alignment: .leading, spacing: theme.sectionSpacing) {
         ZStack {
           Text("Wordsmoke")
             .font(.largeTitle)
             .bold()
+            .foregroundStyle(theme.textPrimary)
             .frame(maxWidth: .infinity, alignment: .center)
 
-          HStack {
+          HStack(spacing: 12) {
             Spacer()
+            Button {
+              showingSettings = true
+            } label: {
+              Image(systemName: "gearshape")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.bordered)
+            .tint(theme.accent)
+
             Toggle(isOn: $showDebug) {
-              Text("Debug")
-                .font(.caption)
-                .fontWeight(.semibold)
             }
             .toggleStyle(.switch)
+            .tint(theme.accent)
           }
         }
 
@@ -30,9 +45,10 @@ struct RootView: View {
           VStack(alignment: .leading, spacing: 12) {
             Text("Status")
               .font(.headline)
+              .foregroundStyle(theme.textPrimary)
 
             Text(model.statusMessage)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(theme.textSecondary)
 
             if model.gameCenter.isAuthenticated {
               if model.session == nil {
@@ -51,15 +67,15 @@ struct RootView: View {
               SessionSummaryView(session: session)
             }
           }
-          .padding()
+          .padding(theme.cellPadding)
           .frame(maxWidth: 520)
           .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+              .fill(theme.cardBackground)
           )
           .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .stroke(Color(.separator), lineWidth: 1)
+            RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+              .stroke(theme.border, lineWidth: theme.borderWidth)
           )
           .frame(maxWidth: .infinity, alignment: .center)
         }
@@ -71,7 +87,7 @@ struct RootView: View {
                 await model.createGameAndInvite(goalLength: 5)
               }
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(AccentPillButtonStyle(theme: theme))
           }
         }
 
@@ -84,7 +100,8 @@ struct RootView: View {
             games: activeGames,
             title: "Active Games",
             showDebug: showDebug,
-            currentPlayerName: model.session?.playerName
+            currentPlayerName: model.session?.playerName,
+            theme: theme
           ) { game in
             model.selectGame(game)
           }
@@ -92,7 +109,8 @@ struct RootView: View {
           CompletedGamesView(
             games: completedGames,
             showDebug: showDebug,
-            currentPlayerName: model.session?.playerName
+            currentPlayerName: model.session?.playerName,
+            theme: theme
           ) { game in
             model.selectGame(game)
           }
@@ -104,14 +122,14 @@ struct RootView: View {
               await model.startGame()
             }
           }
-          .buttonStyle(.borderedProminent)
+          .buttonStyle(AccentPillButtonStyle(theme: theme))
         }
 
         if let game = model.currentGame, game.status == "active" {
           Button("Enter Game") {
             model.enterGame()
           }
-          .buttonStyle(.borderedProminent)
+          .buttonStyle(AccentPillButtonStyle(theme: theme))
         }
 
         Spacer()
@@ -119,6 +137,10 @@ struct RootView: View {
       .padding()
       .navigationTitle("")
       .navigationBarHidden(true)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(theme.background)
+      .tint(theme.accent)
+      .environment(\.appTheme, theme)
       .task {
         await model.start()
       }
@@ -143,6 +165,9 @@ struct RootView: View {
         ) {
           model.dismissInviteSheet()
         }
+      }
+      .sheet(isPresented: $showingSettings) {
+        SettingsView(themeSelectionRaw: $themeSelectionRaw)
       }
       .navigationDestination(for: AppRoute.self) { route in
         switch route {
@@ -200,6 +225,7 @@ struct ActiveGamesView: View {
   let title: String
   let showDebug: Bool
   let currentPlayerName: String?
+  let theme: AppTheme
   let onSelect: (GameResponse) -> Void
 
   var body: some View {
@@ -207,10 +233,11 @@ struct ActiveGamesView: View {
       Text(title)
         .font(.title3)
         .bold()
+        .foregroundStyle(theme.textPrimary)
 
       if games.isEmpty {
         Text("No games yet.")
-          .foregroundStyle(.secondary)
+          .foregroundStyle(theme.textSecondary)
       } else {
         ForEach(games, id: \.id) { game in
           Button {
@@ -223,35 +250,35 @@ struct ActiveGamesView: View {
                   if !participantNames.isEmpty {
                     Text(participantNames.joined(separator: ", "))
                       .font(.caption)
-                      .foregroundStyle(.secondary)
+                      .foregroundStyle(theme.textSecondary)
                   }
                   Text("Join Code: \(game.joinCode)")
                     .font(.callout)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(theme.textPrimary)
                   Text("Status: \(game.status)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
                 }
                 Spacer()
                 if let playersCount = game.playersCount {
                   Text("\(playersCount) players")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
                 }
               }
             } else {
               VStack(alignment: .leading, spacing: 4) {
                 playerNamesLine(for: game)
                   .font(.callout)
-                  .foregroundStyle(.primary)
+                  .foregroundStyle(theme.textPrimary)
                 Text(statusLine(for: game))
                   .font(.caption)
-                  .foregroundStyle(.secondary)
+                  .foregroundStyle(theme.textSecondary)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
-          .buttonStyle(.bordered)
+          .buttonStyle(CardButtonStyle(theme: theme))
         }
       }
     }
@@ -318,6 +345,7 @@ struct CompletedGamesView: View {
   let games: [GameResponse]
   let showDebug: Bool
   let currentPlayerName: String?
+  let theme: AppTheme
   let onSelect: (GameResponse) -> Void
 
   var body: some View {
@@ -325,10 +353,11 @@ struct CompletedGamesView: View {
       Text("Completed Games")
         .font(.title3)
         .bold()
+        .foregroundStyle(theme.textPrimary)
 
       if games.isEmpty {
         Text("No completed games yet.")
-          .foregroundStyle(.secondary)
+          .foregroundStyle(theme.textSecondary)
       } else {
         ForEach(games, id: \.id) { game in
           Button {
@@ -341,45 +370,45 @@ struct CompletedGamesView: View {
                   if !participantNames.isEmpty {
                     Text(participantNames.joined(separator: ", "))
                       .font(.caption)
-                      .foregroundStyle(.secondary)
+                      .foregroundStyle(theme.textSecondary)
                   }
                   Text("Join Code: \(game.joinCode)")
                     .font(.callout)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(theme.textPrimary)
                   if let winnerNames = game.winnerNames, let roundNumber = game.winningRoundNumber, !winnerNames.isEmpty {
                     Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
                       .font(.caption)
-                      .foregroundStyle(.secondary)
+                      .foregroundStyle(theme.textSecondary)
                   } else if let roundNumber = game.winningRoundNumber {
                     Text("Completed in round \(roundNumber)")
                       .font(.caption)
-                      .foregroundStyle(.secondary)
+                      .foregroundStyle(theme.textSecondary)
                   } else {
                     Text("Completed")
                       .font(.caption)
-                      .foregroundStyle(.secondary)
+                      .foregroundStyle(theme.textSecondary)
                   }
                 }
                 Spacer()
                 if let playersCount = game.playersCount {
                   Text("\(playersCount) players")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.textSecondary)
                 }
               }
             } else {
               VStack(alignment: .leading, spacing: 4) {
                 playerNamesLineWithTrophies(for: game)
                   .font(.callout)
-                  .foregroundStyle(.primary)
+                  .foregroundStyle(theme.textPrimary)
                 Text(completedRoundsLine(for: game))
                   .font(.caption)
-                  .foregroundStyle(.secondary)
+                  .foregroundStyle(theme.textSecondary)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
-          .buttonStyle(.bordered)
+          .buttonStyle(CardButtonStyle(theme: theme))
         }
       }
     }
@@ -399,7 +428,7 @@ struct CompletedGamesView: View {
           }
           if winners.contains(name) {
             Image(systemName: "trophy.fill")
-              .foregroundStyle(.yellow)
+              .foregroundStyle(theme.accent)
               .padding(.trailing, 4)
           }
           Text(name)
