@@ -19,6 +19,7 @@ final class AppModel {
   func start() async {
     gameCenter.configure()
     statusMessage = "Waiting for Game Center sign-in…"
+    handleAuthChange()
     logBundleInfo()
   }
 
