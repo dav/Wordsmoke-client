@@ -3,51 +3,66 @@ import SwiftUI
 
 struct RootView: View {
   @Bindable var model: AppModel
+  @State private var showDebug = false
 
   var body: some View {
     NavigationStack(path: $model.navigationPath) {
       VStack(alignment: .leading, spacing: 16) {
-        Text("Wordsmoke")
-          .font(.largeTitle)
-          .bold()
-          .frame(maxWidth: .infinity, alignment: .center)
+        ZStack {
+          Text("Wordsmoke")
+            .font(.largeTitle)
+            .bold()
+            .frame(maxWidth: .infinity, alignment: .center)
 
-        // Debug Status
-        VStack(alignment: .leading, spacing: 12) {
-          Text("Status")
-            .font(.headline)
-
-          Text(model.statusMessage)
-            .foregroundStyle(.secondary)
-
-          if model.gameCenter.isAuthenticated {
-            if model.session == nil {
-              Button("Connect to Server") {
-                Task {
-                  await model.connectToServer()
-                }
-              }
-              .buttonStyle(.borderedProminent)
+          HStack {
+            Spacer()
+            Toggle(isOn: $showDebug) {
+              Text("Debug")
+                .font(.caption)
+                .fontWeight(.semibold)
             }
-          } else {
-            Text("Sign in to Game Center to get started.")
-          }
-
-          if let session = model.session {
-            SessionSummaryView(session: session)
+            .toggleStyle(.switch)
           }
         }
-        .padding()
-        .frame(maxWidth: 520)
-        .background(
-          RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color(.secondarySystemBackground))
-        )
-        .overlay(
-          RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color(.separator), lineWidth: 1)
-        )
-        .frame(maxWidth: .infinity, alignment: .center)
+
+        if showDebug {
+          // Debug Status
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Status")
+              .font(.headline)
+
+            Text(model.statusMessage)
+              .foregroundStyle(.secondary)
+
+            if model.gameCenter.isAuthenticated {
+              if model.session == nil {
+                Button("Connect to Server") {
+                  Task {
+                    await model.connectToServer()
+                  }
+                }
+                .buttonStyle(.borderedProminent)
+              }
+            } else {
+              Text("Sign in to Game Center to get started.")
+            }
+
+            if let session = model.session {
+              SessionSummaryView(session: session)
+            }
+          }
+          .padding()
+          .frame(maxWidth: 520)
+          .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+              .fill(Color(.secondarySystemBackground))
+          )
+          .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+              .stroke(Color(.separator), lineWidth: 1)
+          )
+          .frame(maxWidth: .infinity, alignment: .center)
+        }
 
         if model.session != nil {
           HStack(spacing: 12) {
@@ -65,15 +80,20 @@ struct RootView: View {
           let completedGames = model.games.filter { $0.status == "completed" }
             .sorted { ($0.endedAt ?? "") > ($1.endedAt ?? "") }
 
-          ActiveGamesView(games: activeGames, title: "Active Games") { game in
+          ActiveGamesView(
+            games: activeGames,
+            title: "Active Games",
+            showDebug: showDebug,
+            currentPlayerName: model.session?.playerName
+          ) { game in
             model.selectGame(game)
-          } onRefresh: {
-            Task {
-              await model.loadGames()
-            }
           }
 
-          CompletedGamesView(games: completedGames) { game in
+          CompletedGamesView(
+            games: completedGames,
+            showDebug: showDebug,
+            currentPlayerName: model.session?.playerName
+          ) { game in
             model.selectGame(game)
           }
         }
@@ -178,21 +198,15 @@ struct GameSummaryView: View {
 struct ActiveGamesView: View {
   let games: [GameResponse]
   let title: String
+  let showDebug: Bool
+  let currentPlayerName: String?
   let onSelect: (GameResponse) -> Void
-  let onRefresh: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text(title)
-          .font(.title3)
-          .bold()
-        Spacer()
-        Button("Refresh") {
-          onRefresh()
-        }
-        .buttonStyle(.bordered)
-      }
+      Text(title)
+        .font(.title3)
+        .bold()
 
       if games.isEmpty {
         Text("No games yet.")
@@ -202,21 +216,39 @@ struct ActiveGamesView: View {
           Button {
             onSelect(game)
           } label: {
-            HStack {
-              VStack(alignment: .leading) {
-                Text("Join Code: \(game.joinCode)")
+            if showDebug {
+              HStack {
+                VStack(alignment: .leading) {
+                  let participantNames = playerNames(for: game, omittingCurrentPlayer: true)
+                  if !participantNames.isEmpty {
+                    Text(participantNames.joined(separator: ", "))
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                  }
+                  Text("Join Code: \(game.joinCode)")
+                    .font(.callout)
+                    .foregroundStyle(.primary)
+                  Text("Status: \(game.status)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if let playersCount = game.playersCount {
+                  Text("\(playersCount) players")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              }
+            } else {
+              VStack(alignment: .leading, spacing: 4) {
+                playerNamesLine(for: game)
                   .font(.callout)
                   .foregroundStyle(.primary)
-                Text("Status: \(game.status)")
+                Text(statusLine(for: game))
                   .font(.caption)
                   .foregroundStyle(.secondary)
               }
-              Spacer()
-              if let playersCount = game.playersCount {
-                Text("\(playersCount) players")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
+              .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
           .buttonStyle(.bordered)
@@ -224,10 +256,68 @@ struct ActiveGamesView: View {
       }
     }
   }
+
+  private func playerNamesLine(for game: GameResponse) -> Text {
+    let names = playerNames(for: game, omittingCurrentPlayer: true)
+    if names.isEmpty {
+      return Text("Players unavailable")
+    }
+    return Text(names.joined(separator: ", "))
+  }
+
+  private func playerNames(for game: GameResponse, omittingCurrentPlayer: Bool) -> [String] {
+    let currentName = currentPlayerName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    if let participantNames = game.participantNames {
+      return normalizedNames(
+        from: participantNames,
+        omittingCurrentPlayer: omittingCurrentPlayer,
+        currentName: currentName
+      )
+    }
+    if let participants = game.participants {
+      return normalizedNames(
+        from: participants.map { $0.player.displayName },
+        omittingCurrentPlayer: omittingCurrentPlayer,
+        currentName: currentName
+      )
+    }
+    if let winnerNames = game.winnerNames {
+      return normalizedNames(
+        from: winnerNames,
+        omittingCurrentPlayer: omittingCurrentPlayer,
+        currentName: currentName
+      )
+    }
+    return []
+  }
+
+  private func normalizedNames(from names: [String], omittingCurrentPlayer: Bool, currentName: String?) -> [String] {
+    let filtered = names.filter { name in
+      guard omittingCurrentPlayer, let currentName else { return true }
+      return name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() != currentName
+    }
+    return filtered.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+  }
+
+  private func statusLine(for game: GameResponse) -> String {
+    if game.status == "waiting" {
+      return "not started"
+    }
+
+    let currentRoundNumber = game.currentRoundNumber ?? game.rounds?
+      .first(where: { $0.id == game.currentRoundID })?
+      .number ?? game.rounds?.last?.number
+    if let currentRoundNumber {
+      return "round \(currentRoundNumber)"
+    }
+    return "round ?"
+  }
 }
 
 struct CompletedGamesView: View {
   let games: [GameResponse]
+  let showDebug: Bool
+  let currentPlayerName: String?
   let onSelect: (GameResponse) -> Void
 
   var body: some View {
@@ -244,36 +334,104 @@ struct CompletedGamesView: View {
           Button {
             onSelect(game)
           } label: {
-            HStack {
-              VStack(alignment: .leading) {
-                Text("Join Code: \(game.joinCode)")
-                  .font(.callout)
-                  .foregroundStyle(.primary)
-                if let winnerNames = game.winnerNames, let roundNumber = game.winningRoundNumber, !winnerNames.isEmpty {
-                  Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                } else if let roundNumber = game.winningRoundNumber {
-                  Text("Completed in round \(roundNumber)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                } else {
-                  Text("Completed")
+            if showDebug {
+              HStack {
+                VStack(alignment: .leading) {
+                  let participantNames = playerNames(for: game)
+                  if !participantNames.isEmpty {
+                    Text(participantNames.joined(separator: ", "))
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                  }
+                  Text("Join Code: \(game.joinCode)")
+                    .font(.callout)
+                    .foregroundStyle(.primary)
+                  if let winnerNames = game.winnerNames, let roundNumber = game.winningRoundNumber, !winnerNames.isEmpty {
+                    Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                  } else if let roundNumber = game.winningRoundNumber {
+                    Text("Completed in round \(roundNumber)")
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                  } else {
+                    Text("Completed")
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                  }
+                }
+                Spacer()
+                if let playersCount = game.playersCount {
+                  Text("\(playersCount) players")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 }
               }
-              Spacer()
-              if let playersCount = game.playersCount {
-                Text("\(playersCount) players")
+            } else {
+              VStack(alignment: .leading, spacing: 4) {
+                playerNamesLineWithTrophies(for: game)
+                  .font(.callout)
+                  .foregroundStyle(.primary)
+                Text(completedRoundsLine(for: game))
                   .font(.caption)
                   .foregroundStyle(.secondary)
               }
+              .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
           .buttonStyle(.bordered)
         }
       }
     }
+  }
+
+  private func playerNamesLineWithTrophies(for game: GameResponse) -> some View {
+    let names = playerNames(for: game)
+    let winners = Set(game.winnerNames ?? [])
+
+    return HStack(spacing: 0) {
+      if names.isEmpty {
+        Text("Players unavailable")
+      } else {
+        ForEach(Array(names.enumerated()), id: \.offset) { index, name in
+          if index > 0 {
+            Text(", ")
+          }
+          if winners.contains(name) {
+            Image(systemName: "trophy.fill")
+              .foregroundStyle(.yellow)
+              .padding(.trailing, 4)
+          }
+          Text(name)
+        }
+      }
+    }
+  }
+
+  private func playerNames(for game: GameResponse) -> [String] {
+    if let participantNames = game.participantNames {
+      return normalizedNames(from: participantNames)
+    }
+    if let participants = game.participants {
+      return normalizedNames(from: participants.map { $0.player.displayName })
+    }
+    if let winnerNames = game.winnerNames {
+      return normalizedNames(from: winnerNames)
+    }
+    return []
+  }
+
+  private func normalizedNames(from names: [String]) -> [String] {
+    return names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+  }
+
+  private func completedRoundsLine(for game: GameResponse) -> String {
+    if let roundNumber = game.winningRoundNumber {
+      return "\(roundNumber) rounds"
+    }
+    if let roundsCount = game.rounds?.count {
+      return "\(roundsCount) rounds"
+    }
+    return "rounds ?"
   }
 }

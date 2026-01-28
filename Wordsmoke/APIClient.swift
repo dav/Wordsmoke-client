@@ -495,7 +495,9 @@ struct GameResponse: Decodable, Sendable {
   let joinCode: String
   let goalLength: Int
   let currentRoundID: String?
+  let currentRoundNumber: Int?
   let playersCount: Int?
+  let participantNames: [String]?
   let rounds: [GameRoundSummary]?
   let participants: [GameParticipant]?
   let endedAt: String?
@@ -508,7 +510,9 @@ struct GameResponse: Decodable, Sendable {
     case joinCode = "join_code"
     case goalLength = "goal_length"
     case currentRoundID = "current_round_id"
+    case currentRoundNumber = "current_round_number"
     case playersCount = "players_count"
+    case participantNames = "participant_names"
     case rounds
     case participants
     case endedAt = "ended_at"
