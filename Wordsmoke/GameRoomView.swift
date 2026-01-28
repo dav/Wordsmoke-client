@@ -178,6 +178,17 @@ struct GameRoomView: View {
               HStack {
                 Text(submission.playerName)
                 Spacer()
+                if showDebug,
+                   (submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID)),
+                   submission.voted != true {
+                  Button("Vote") {
+                    Task {
+                      await model.submitVirtualVote(for: submission.playerID)
+                    }
+                  }
+                  .buttonStyle(.bordered)
+                  .tint(theme.accent)
+                }
                 if submission.voted == true {
                   Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
@@ -227,6 +238,18 @@ struct GameRoomView: View {
                 model.toggleLeast(for: submission)
               }
               .buttonStyle(.bordered)
+
+              if showDebug,
+                 (submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID)),
+                 submission.voted != true {
+                Button("Vote") {
+                  Task {
+                    await model.submitVirtualVote(for: submission.playerID)
+                  }
+                }
+                .buttonStyle(.bordered)
+                .tint(theme.accent)
+              }
             }
           }
         }
@@ -269,6 +292,18 @@ struct GameRoomView: View {
               Text(submission.playerName)
                 .bold()
               Spacer()
+              if round.status == "voting",
+                 showDebug,
+                 (submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID)),
+                 submission.voted != true {
+                Button("Vote") {
+                  Task {
+                    await model.submitVirtualVote(for: submission.playerID)
+                  }
+                }
+                .buttonStyle(.bordered)
+                .tint(theme.accent)
+              }
               if round.status == "voting" {
                 if submission.voted == true {
                   Text("voted")
@@ -313,6 +348,17 @@ struct GameRoomView: View {
         HStack {
           Text(submission.playerName)
           Spacer()
+          if showDebug,
+             (submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID)),
+             submission.createdAt == nil {
+            Button("Guess") {
+              Task {
+                await model.submitVirtualGuess(for: submission.playerID)
+              }
+            }
+            .buttonStyle(.bordered)
+            .tint(theme.accent)
+          }
           if submission.createdAt != nil {
             Image(systemName: "checkmark.circle.fill")
               .foregroundStyle(.green)

@@ -169,6 +169,8 @@ struct RootView: View {
         }
       }
     }
+    .environment(\.appTheme, theme)
+    .environment(\.debugEnabled, showDebug)
   }
 }
 

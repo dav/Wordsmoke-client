@@ -34,6 +34,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
   let phrase: String?
   let playerID: String
   let playerName: String
+  let playerVirtual: Bool?
   let marks: [String]?
   let correctGuess: Bool?
   let createdAt: String?
@@ -47,6 +48,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
     case phrase
     case playerID = "player_id"
     case playerName = "player_name"
+    case playerVirtual = "player_virtual"
     case marks
     case correctGuess = "correct_guess"
     case createdAt = "created_at"

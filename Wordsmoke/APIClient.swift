@@ -172,6 +172,38 @@ struct APIClient {
     return try decode(RoundResponse.self, from: data, response: response)
   }
 
+  func submitVirtualGuess(gameID: String, playerID: String) async throws -> RoundResponse {
+    var request = URLRequest(url: baseURL.appending(path: "dev/games/\(gameID)/virtual_players/\(playerID)/guess"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(RoundResponse.self, from: data, response: response)
+  }
+
+  func submitVirtualVote(gameID: String, playerID: String) async throws -> RoundResponse {
+    var request = URLRequest(url: baseURL.appending(path: "dev/games/\(gameID)/virtual_players/\(playerID)/vote"))
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let authToken {
+      request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(RoundResponse.self, from: data, response: response)
+  }
+
   func updateGameStatus(id: String, status: String) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
     request.httpMethod = "PATCH"
@@ -564,12 +596,14 @@ struct GameParticipantPlayer: Decodable, Sendable {
   let displayName: String
   let nickname: String?
   let gameCenterPlayerID: String
+  let virtual: Bool?
 
   enum CodingKeys: String, CodingKey {
     case id
     case displayName = "display_name"
     case nickname
     case gameCenterPlayerID = "game_center_player_id"
+    case virtual
   }
 }
 

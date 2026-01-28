@@ -152,6 +152,36 @@ final class GameRoomModel {
     }
   }
 
+  func submitVirtualGuess(for playerID: String) async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let response = try await apiClient.submitVirtualGuess(gameID: game.id, playerID: playerID)
+      round = response.round
+      errorMessage = nil
+      await refreshRound(logStrategy: .always, setBusy: false)
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  func submitVirtualVote(for playerID: String) async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let response = try await apiClient.submitVirtualVote(gameID: game.id, playerID: playerID)
+      round = response.round
+      errorMessage = nil
+      await refreshRound(logStrategy: .always, setBusy: false)
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
   func isReadyToVote() -> Bool {
     guard let round else { return false }
     return round.stage == "voting" && !voteSubmitted
@@ -181,6 +211,16 @@ final class GameRoomModel {
 
   func playerScore(for playerID: String) -> Int {
     game.participants?.first(where: { $0.player.id == playerID })?.score ?? 0
+  }
+
+  func isVirtualPlayer(_ playerID: String) -> Bool {
+    guard let player = game.participants?.first(where: { $0.player.id == playerID })?.player else {
+      return false
+    }
+    if let isVirtual = player.virtual {
+      return isVirtual
+    }
+    return player.gameCenterPlayerID.hasPrefix("VIRTUAL-")
   }
 
   func winnerIDs(for round: RoundPayload) -> [String] {
