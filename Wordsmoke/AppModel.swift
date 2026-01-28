@@ -15,12 +15,25 @@ final class AppModel {
   var statusMessage = "Initializing Game Center…"
   var isBusy = false
   var navigationPath = NavigationPath()
+  var clientPolicy: ClientPolicyResponse?
 
   func start() async {
     gameCenter.configure()
     statusMessage = "Waiting for Game Center sign-in…"
     handleAuthChange()
+    await refreshClientPolicy()
     logBundleInfo()
+  }
+
+  func refreshClientPolicy() async {
+    do {
+      clientPolicy = try await apiClient.fetchClientPolicy()
+      if clientPolicy?.forceUpdate == true {
+        statusMessage = clientPolicy?.message ?? "Update required."
+      }
+    } catch {
+      // Keep silent; policy fetch shouldn't block app usage.
+    }
   }
 
   func handleAuthChange() {
