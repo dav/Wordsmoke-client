@@ -4,7 +4,7 @@ import SwiftUI
 struct RootView: View {
   @Bindable var model: AppModel
   @AppStorage("theme.selection") private var themeSelectionRaw = ThemeSelection.system.rawValue
-  @State private var showDebug = false
+  @AppStorage("debug.enabled") private var showDebug = false
   @State private var showingSettings = false
 
   private var theme: AppTheme {
@@ -31,11 +31,6 @@ struct RootView: View {
                 .frame(width: 32, height: 32)
             }
             .buttonStyle(.bordered)
-            .tint(theme.accent)
-
-            Toggle(isOn: $showDebug) {
-            }
-            .toggleStyle(.switch)
             .tint(theme.accent)
           }
         }
@@ -125,13 +120,6 @@ struct RootView: View {
           .buttonStyle(AccentPillButtonStyle(theme: theme))
         }
 
-        if let game = model.currentGame, game.status == "active" {
-          Button("Enter Game") {
-            model.enterGame()
-          }
-          .buttonStyle(AccentPillButtonStyle(theme: theme))
-        }
-
         Spacer()
       }
       .padding()
@@ -141,6 +129,7 @@ struct RootView: View {
       .background(theme.background)
       .tint(theme.accent)
       .environment(\.appTheme, theme)
+      .environment(\.debugEnabled, showDebug)
       .task {
         await model.start()
       }

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct GameRoomView: View {
   @Bindable var model: GameRoomModel
+  @Environment(\.appTheme) private var theme
+  @Environment(\.debugEnabled) private var showDebug
 
   var body: some View {
     Form {
@@ -58,7 +60,7 @@ struct GameRoomView: View {
         }
       }
 
-      if shouldShowRefreshButton {
+      if shouldShowRefreshButton && showDebug {
         Section {
           Button("Refresh Round") {
             Task {
@@ -70,6 +72,11 @@ struct GameRoomView: View {
       }
     }
     .navigationTitle("Game \(model.game.joinCode)")
+    .scrollContentBackground(.hidden)
+    .listStyle(.insetGrouped)
+    .listRowBackground(theme.cardBackground)
+    .background(theme.background)
+    .tint(theme.accent)
     .task {
       if model.round == nil {
         await model.refreshRound()

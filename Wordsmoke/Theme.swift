@@ -124,6 +124,17 @@ extension EnvironmentValues {
   }
 }
 
+private struct DebugEnabledKey: EnvironmentKey {
+  static let defaultValue = false
+}
+
+extension EnvironmentValues {
+  var debugEnabled: Bool {
+    get { self[DebugEnabledKey.self] }
+    set { self[DebugEnabledKey.self] = newValue }
+  }
+}
+
 struct CardButtonStyle: ButtonStyle {
   let theme: AppTheme
 
