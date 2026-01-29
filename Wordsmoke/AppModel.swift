@@ -25,6 +25,21 @@ final class AppModel {
     logBundleInfo()
   }
 
+  func updateServerEnvironment(_ environment: ServerEnvironment) {
+    if apiClient.baseURL == environment.baseURL {
+      return
+    }
+
+    apiClient = APIClient(baseURL: environment.baseURL)
+    session = nil
+    currentGame = nil
+    games = []
+    gameRoomModel = nil
+    navigationPath = NavigationPath()
+    statusMessage = "Server set to \(environment.title)."
+    handleAuthChange()
+  }
+
   func refreshClientPolicy() async {
     do {
       clientPolicy = try await apiClient.fetchClientPolicy()
@@ -193,21 +208,4 @@ final class AppModel {
       print("[Bundle][Warning] Missing CFBundleShortVersionString (Marketing Version) and/or CFBundleVersion (Build). Set MARKETING_VERSION and CURRENT_PROJECT_VERSION in Build Settings or .xcconfig.")
     }
   }
-}
-
-enum AppEnvironment {
-  static var baseURL: URL {
-    #if DEBUG
-    return URL(string: "https://karoline-unconsulted-oversensibly.ngrok-free.dev")!
-    #else
-    return URL(string: "https://www.akuaku.org")!
-    #endif
-  }
-}
-
-struct InviteSheet: Identifiable {
-  let id = UUID()
-  let joinCode: String
-  let minPlayers: Int
-  let maxPlayers: Int
 }

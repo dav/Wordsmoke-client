@@ -4,11 +4,18 @@ import SwiftUI
 struct RootView: View {
   @Bindable var model: AppModel
   @AppStorage("theme.selection") private var themeSelectionRaw = ThemeSelection.system.rawValue
+  @AppStorage(AppEnvironment.serverEnvironmentKey) private var serverEnvironmentRaw = AppEnvironment.defaultServerEnvironment.rawValue
   @AppStorage("debug.enabled") private var showDebug = false
   @State private var showingSettings = false
 
   private var theme: AppTheme {
     ThemeSelection(rawValue: themeSelectionRaw)?.theme ?? .system
+  }
+
+  private var serverStatusText: String {
+    let environment = AppEnvironment.serverEnvironment(from: serverEnvironmentRaw)
+    let label = environment == .production ? "prod" : "dev"
+    return "Connected to \(label) server"
   }
 
   var body: some View {
@@ -42,7 +49,7 @@ struct RootView: View {
               .font(.headline)
               .foregroundStyle(theme.textPrimary)
 
-            Text(model.statusMessage)
+            Text(serverStatusText)
               .foregroundStyle(theme.textSecondary)
 
             if model.gameCenter.isAuthenticated {
@@ -143,6 +150,9 @@ struct RootView: View {
           }
         }
       }
+      .onChange(of: serverEnvironmentRaw) { _, newValue in
+        model.updateServerEnvironment(AppEnvironment.serverEnvironment(from: newValue))
+      }
       .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
         GameCenterAuthView(viewController: item.viewController)
       }
@@ -156,7 +166,10 @@ struct RootView: View {
         }
       }
       .sheet(isPresented: $showingSettings) {
-        SettingsView(themeSelectionRaw: $themeSelectionRaw)
+        SettingsView(
+          themeSelectionRaw: $themeSelectionRaw,
+          serverEnvironmentRaw: $serverEnvironmentRaw
+        )
       }
       .navigationDestination(for: AppRoute.self) { route in
         switch route {
