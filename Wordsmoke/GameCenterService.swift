@@ -27,6 +27,30 @@ final class GameCenterService {
   var lastErrorDescription: String?
   var lastError: Error?
 
+#if targetEnvironment(simulator)
+  func configure() {
+    authenticationViewControllerItem = nil
+    isAuthenticated = true
+    playerDisplayName = "Simulator"
+    playerID = "SIMULATOR-LOCAL"
+    lastErrorDescription = nil
+    lastError = nil
+  }
+
+  func fetchIdentitySignature() async throws -> GameCenterSignature {
+    let bundleID = Bundle.main.bundleIdentifier ?? ""
+    let timestamp = UInt64(Date().timeIntervalSince1970 * 1000)
+
+    return GameCenterSignature(
+      publicKeyURL: URL(string: "https://example.com")!,
+      signature: Data(),
+      salt: Data(),
+      timestamp: timestamp,
+      teamPlayerID: playerID ?? "SIMULATOR-LOCAL",
+      bundleID: bundleID
+    )
+  }
+#else
   func configure() {
     GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
       guard let self else { return }
@@ -75,4 +99,5 @@ final class GameCenterService {
       throw error
     }
   }
+#endif
 }
