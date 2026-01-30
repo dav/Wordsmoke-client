@@ -30,6 +30,7 @@
 		E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489F85041C711924670A1610 /* GameRoomModel.swift */; };
 		6903F627CFC14AC78AA11BF1 /* RootSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5186B711BD74D4DB8C68C62 /* RootSubviews.swift */; };
 		F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E692155893C5379625E35 /* RootView.swift */; };
+		F1A2B3C4D5E6F708192A3B4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +79,7 @@
 		E9945E9A4B85356A3EAEB6AC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterService.swift; sourceTree = "<group>"; };
 		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -120,6 +122,7 @@
 		9EF0DD21729CA587BCDD4145 /* Wordsmoke */ = {
 			isa = PBXGroup;
 			children = (
+				F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
 				7C5C01B29F6849E69FBCE765 /* APIClient+Logging.swift */,
 				AE9F3912FEA8429ABAF7F4A7 /* APIModels.swift */,
@@ -173,6 +176,7 @@
 			buildConfigurationList = 2ECE161EDCDB3AFED239125F /* Build configuration list for PBXNativeTarget "Wordsmoke" */;
 			buildPhases = (
 				4D3121F84CA6F10967AAF055 /* Sources */,
+				F1A2B3C4D5E6F708192A3B4E /* Resources */,
 			);
 			buildRules = (
 			);
@@ -244,6 +248,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F1A2B3C4D5E6F708192A3B4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1A2B3C4D5E6F708192A3B4D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		293AA4B8A486B0E34E96AE58 /* Sources */ = {
