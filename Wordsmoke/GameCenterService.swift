@@ -57,7 +57,8 @@ final class GameCenterService {
   func fetchIdentitySignature() async throws -> GameCenterSignature {
     let localPlayer = GKLocalPlayer.local
     do {
-      let (publicKeyURL, signature, salt, timestamp) = try await localPlayer.fetchItemsForIdentityVerificationSignature()
+      let (publicKeyURL, signature, salt, timestamp) =
+        try await localPlayer.fetchItemsForIdentityVerificationSignature()
       let bundleID = Bundle.main.bundleIdentifier ?? ""
 
       return GameCenterSignature(

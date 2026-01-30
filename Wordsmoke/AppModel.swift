@@ -205,7 +205,10 @@ final class AppModel {
     print("[Bundle] id=\(bundleID) version=\(shortVersion ?? "nil") build=\(build ?? "nil")")
 
     if shortVersion == nil || build == nil {
-      print("[Bundle][Warning] Missing CFBundleShortVersionString (Marketing Version) and/or CFBundleVersion (Build). Set MARKETING_VERSION and CURRENT_PROJECT_VERSION in Build Settings or .xcconfig.")
+      print(
+        "[Bundle][Warning] Missing CFBundleShortVersionString (Marketing Version) and/or CFBundleVersion (Build). "
+        + "Set MARKETING_VERSION and CURRENT_PROJECT_VERSION in Build Settings or .xcconfig."
+      )
     }
   }
 }
