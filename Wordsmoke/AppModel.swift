@@ -124,7 +124,9 @@ final class AppModel {
         gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
       }
       statusMessage = "Game created."
-      inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
+      if !AppEnvironment.isUITest {
+        inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
+      }
     } catch {
       statusMessage = "Failed to create game: \(debugDescription(for: error))"
     }

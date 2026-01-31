@@ -17,6 +17,7 @@ struct GameRoomView: View {
           }
           .buttonStyle(.borderedProminent)
           .disabled((model.game.playersCount ?? 0) < 2 || model.isBusy)
+          .accessibilityIdentifier("game-room-start-button")
         }
       }
 
@@ -68,6 +69,7 @@ struct GameRoomView: View {
             }
           }
           .buttonStyle(.bordered)
+          .accessibilityIdentifier("refresh-round-button")
         }
       }
     }

@@ -6,6 +6,9 @@ options:
 settings:
   SWIFT_VERSION: "6.2"
   DEVELOPMENT_TEAM: "8U7J5S7RGC"
+  ENABLE_USER_SCRIPT_SANDBOXING: YES
+  ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+  SWIFT_GENERATE_STRINGS_FILE: YES
 packages: {}
 targets:
   Wordsmoke:
@@ -21,6 +24,16 @@ targets:
         CFBundleDisplayName: Wordsmoke
         CFBundleIdentifier: org.akuaku.playwordsmoke
         UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     scheme:
       testTargets:
         - WordsmokeTests
@@ -41,3 +54,22 @@ targets:
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Wordsmoke
+  WordsmokeLocalUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [WordsmokeLocalUITests]
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Wordsmoke
+
+schemes:
+  WordsmokeLocalUITests:
+    build:
+      targets:
+        Wordsmoke: all
+    test:
+      targets:
+        - WordsmokeLocalUITests
+      environmentVariables:
+        WORDSMOKE_TEST_ADMIN_TOKEN: "__TEST_ADMIN_TOKEN__"

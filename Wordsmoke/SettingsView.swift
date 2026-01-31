@@ -29,6 +29,7 @@ struct SettingsView: View {
             }
           }
           .pickerStyle(.inline)
+          .accessibilityIdentifier("theme-picker")
         } header: {
           SwiftUI.Text("Theme")
         } footer: {
@@ -48,6 +49,7 @@ struct SettingsView: View {
             }
           }
           .pickerStyle(.inline)
+          .accessibilityIdentifier("server-picker")
 
           Text(AppEnvironment.serverEnvironment(from: serverEnvironmentRaw).baseURL.absoluteString)
             .font(.caption)
@@ -68,6 +70,7 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
             }
           }
+          .accessibilityIdentifier("debug-toggle")
         } header: {
           Text("Developer")
         }
@@ -78,6 +81,7 @@ struct SettingsView: View {
           Button("Done") {
             dismiss()
           }
+          .accessibilityIdentifier("settings-done-button")
         }
       }
     }

@@ -40,6 +40,7 @@ struct RootView: View {
             }
             .buttonStyle(.bordered)
             .tint(theme.accent)
+            .accessibilityIdentifier("settings-button")
           }
         }
 
@@ -61,6 +62,7 @@ struct RootView: View {
                   }
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("connect-server-button")
               }
             } else {
               Text("Sign in to Game Center to get started.")
@@ -91,6 +93,7 @@ struct RootView: View {
               }
             }
             .buttonStyle(AccentPillButtonStyle(theme: theme))
+            .accessibilityIdentifier("new-game-button")
           }
         }
 
@@ -126,6 +129,7 @@ struct RootView: View {
             }
           }
           .buttonStyle(AccentPillButtonStyle(theme: theme))
+          .accessibilityIdentifier("start-game-root-button")
         }
 
         Spacer()

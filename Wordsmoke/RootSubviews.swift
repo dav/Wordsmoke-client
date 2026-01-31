@@ -96,6 +96,7 @@ struct ActiveGamesView: View {
             }
           }
           .buttonStyle(CardButtonStyle(theme: theme))
+          .accessibilityIdentifier("active-game-\(game.id)")
         }
       }
     }
@@ -232,6 +233,7 @@ struct CompletedGamesView: View {
             }
           }
           .buttonStyle(CardButtonStyle(theme: theme))
+          .accessibilityIdentifier("completed-game-\(game.id)")
         }
       }
     }

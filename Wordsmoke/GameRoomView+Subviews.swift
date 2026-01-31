@@ -15,6 +15,7 @@ extension GameRoomView {
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
       .textContentType(.oneTimeCode)
+      .accessibilityIdentifier("guess-word-field")
       .onChange(of: model.guessWord) { _, _ in
         Task {
           await model.validateGuessWord()
@@ -22,6 +23,7 @@ extension GameRoomView {
       }
     TextField("Phrase", text: $model.phrase)
       .textInputAutocapitalization(.sentences)
+      .accessibilityIdentifier("phrase-field")
       .onChange(of: model.phrase) { _, _ in
         model.validatePhrase()
       }
@@ -35,6 +37,7 @@ extension GameRoomView {
     }
     .buttonStyle(.borderedProminent)
     .disabled(model.isBusy || !model.isGuessValid || !model.isPhraseValid)
+    .accessibilityIdentifier("submit-guess-button")
 
     if let errorMessage = model.errorMessage {
       Text(errorMessage)
@@ -121,6 +124,7 @@ extension GameRoomView {
               }
               .buttonStyle(.bordered)
               .tint(theme.accent)
+              .accessibilityIdentifier("virtual-vote-status-\(submission.playerID)")
             }
             if submission.voted == true {
               Image(systemName: "checkmark.circle.fill")
@@ -178,6 +182,8 @@ extension GameRoomView {
             model.toggleFavorite(for: submission)
           }
           .buttonStyle(.bordered)
+          .accessibilityLabel("Favorite phrase")
+          .accessibilityIdentifier("vote-favorite-\(submission.id)")
 
           Button(
             "",
@@ -188,6 +194,8 @@ extension GameRoomView {
             model.toggleLeast(for: submission)
           }
           .buttonStyle(.bordered)
+          .accessibilityLabel("Least favorite phrase")
+          .accessibilityIdentifier("vote-least-\(submission.id)")
 
           if showDebug,
              submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID),
@@ -199,6 +207,7 @@ extension GameRoomView {
             }
             .buttonStyle(.bordered)
             .tint(theme.accent)
+            .accessibilityIdentifier("virtual-vote-list-\(submission.playerID)")
           }
         }
       }
@@ -213,6 +222,7 @@ extension GameRoomView {
     }
     .buttonStyle(.borderedProminent)
     .disabled(!model.canSubmitVotes() || model.isBusy)
+    .accessibilityIdentifier("submit-votes-button")
   }
 
   @ViewBuilder
@@ -285,6 +295,7 @@ extension GameRoomView {
           }
           .buttonStyle(.bordered)
           .tint(theme.accent)
+          .accessibilityIdentifier("virtual-vote-completed-\(submission.playerID)")
         }
         if round.status == "voting" {
           if submission.voted == true {
@@ -313,6 +324,16 @@ extension GameRoomView {
         )
       }
     }
+    .accessibilityElement(children: .contain)
+    .background(
+      Color.clear
+        .accessibilityElement()
+        .accessibilityIdentifier("submission-row-\(round.number)-\(submission.playerName)")
+        .accessibilityLabel("Submission row \(submission.playerName)")
+        .accessibilityValue(
+          (isFinalRound && winnerIDs.contains(submission.playerID)) ? "winner" : "participant"
+        )
+    )
   }
 
   @ViewBuilder
@@ -334,6 +355,7 @@ extension GameRoomView {
             }
             .buttonStyle(.bordered)
             .tint(theme.accent)
+            .accessibilityIdentifier("virtual-guess-\(submission.playerID)")
           }
           if submission.createdAt != nil {
             Image(systemName: "checkmark.circle.fill")

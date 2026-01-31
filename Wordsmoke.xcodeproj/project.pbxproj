@@ -3,37 +3,46 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0C8A2B7A1B4A0C9A5C9F51D1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */; };
+		090E44A5F9E4B6617CB750B3 /* TestAdminClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90934B6A3E365C30CC3876EF /* TestAdminClient.swift */; };
 		0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5172F0844CBC8E960B066C4 /* GameModels.swift */; };
 		0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */; };
-		10A69B7B08E03E3A1F5C7E3D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A69B7A08E03E3A1F5C7E3D /* Theme.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
 		1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */; };
 		1FE969C3EF10A917CEE87E39 /* WordsmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */; };
 		201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */; };
 		237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9945E9A4B85356A3EAEB6AC /* AppModel.swift */; };
-		35C23143C2BE43D59A0AE47B /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9F3912FEA8429ABAF7F4A7 /* APIModels.swift */; };
 		36C93A0143C83613DA2D80B8 /* WordleFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */; };
+		384BDE316C50D7003DDA51D0 /* GameRoomView+Subviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */; };
+		3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */; };
+		3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFFA6EC0528E362CF64E209D /* InviteSheet.swift */; };
 		4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5944935A35D4EDE774A15C /* APIClient.swift */; };
 		46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6E0D99AEACE3C415847FF /* MarksView.swift */; };
-		6903F627CFC14AC78AA11BF1 /* RootSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5186B711BD74D4DB8C68C62 /* RootSubviews.swift */; };
 		6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */; };
 		88E55F4F66D839892678D95E /* WordleFeedbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */; };
+		990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F10D9B3B967F68F1C71A4EB /* APIModels.swift */; };
+		992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4878A06FDDA991B74D275E35 /* AppEnvironment.swift */; };
 		9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6552EA626DE57F91C1ADB24 /* AppRoute.swift */; };
-		B1C2D3E4F5061728394A5B6C /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* AppEnvironment.swift */; };
-		B1C2D3E4F5061728394A5B6D /* InviteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* InviteSheet.swift */; };
-		BC960119621D4DBEAB15AF97 /* GameRoomView+Subviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEE1E15DE1240D483535595 /* GameRoomView+Subviews.swift */; };
-		D595571197F5452C994755C0 /* APIClient+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5C01B29F6849E69FBCE765 /* APIClient+Logging.swift */; };
+		9E24AE866B79A935B8FC9C86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 173209AFEBBDE6466400BA6A /* Assets.xcassets */; };
+		A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */; };
+		A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */; };
+		CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6884B6216C35B5F2CD87500 /* RootSubviews.swift */; };
 		E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489F85041C711924670A1610 /* GameRoomModel.swift */; };
-		F1A2B3C4D5E6F708192A3B4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */; };
 		F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E692155893C5379625E35 /* RootView.swift */; };
+		FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1E8CE05AD56B348B39CA7264 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D1E79912D3D074F18DA7C0D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C50177A69B7D56CADDB51E91;
+			remoteInfo = Wordsmoke;
+		};
 		B750DE3D49886C0ABC16D321 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8D1E79912D3D074F18DA7C0D /* Project object */;
@@ -52,34 +61,37 @@
 
 /* Begin PBXFileReference section */
 		06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterAuthView.swift; sourceTree = "<group>"; };
-		0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		10A69B7A08E03E3A1F5C7E3D /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		173209AFEBBDE6466400BA6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
-		2DEE1E15DE1240D483535595 /* GameRoomView+Subviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameRoomView+Subviews.swift"; sourceTree = "<group>"; };
+		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
+		3F10D9B3B967F68F1C71A4EB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		4878A06FDDA991B74D275E35 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		489F85041C711924670A1610 /* GameRoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomModel.swift; sourceTree = "<group>"; };
 		4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakerView.swift; sourceTree = "<group>"; };
 		5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedbackTests.swift; sourceTree = "<group>"; };
+		639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameRoomView+Subviews.swift"; sourceTree = "<group>"; };
+		6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		6E8299751BDE633CA83FB3A9 /* WordsmokeLocalUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeLocalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F213A3024987A913C1104C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		7C5C01B29F6849E69FBCE765 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
+		80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeLocalUITests.swift; sourceTree = "<group>"; };
 		850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeUITests.swift; sourceTree = "<group>"; };
+		90934B6A3E365C30CC3876EF /* TestAdminClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAdminClient.swift; sourceTree = "<group>"; };
 		9E5944935A35D4EDE774A15C /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wordsmoke.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1B2C3D4E5F60718293A4B5C /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5D /* InviteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteSheet.swift; sourceTree = "<group>"; };
-		A5186B711BD74D4DB8C68C62 /* RootSubviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootSubviews.swift; sourceTree = "<group>"; };
-		AE9F3912FEA8429ABAF7F4A7 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Wordsmoke.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomView.swift; sourceTree = "<group>"; };
+		BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C6552EA626DE57F91C1ADB24 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 		D0B6E0D99AEACE3C415847FF /* MarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarksView.swift; sourceTree = "<group>"; };
 		D2268AC85CFB211AA5943BC4 /* Wordsmoke.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Wordsmoke.entitlements; sourceTree = "<group>"; };
 		D5172F0844CBC8E960B066C4 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
 		DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedback.swift; sourceTree = "<group>"; };
 		DB7E692155893C5379625E35 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		E18EECCF935B314EB7072740 /* WordsmokeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WordsmokeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E18EECCF935B314EB7072740 /* WordsmokeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6884B6216C35B5F2CD87500 /* RootSubviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootSubviews.swift; sourceTree = "<group>"; };
 		E9945E9A4B85356A3EAEB6AC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterService.swift; sourceTree = "<group>"; };
-		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFFA6EC0528E362CF64E209D /* InviteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -103,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */,
+				6E8299751BDE633CA83FB3A9 /* WordsmokeLocalUITests.xctest */,
 				F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */,
 				E18EECCF935B314EB7072740 /* WordsmokeUITests.xctest */,
 			);
@@ -113,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				9EF0DD21729CA587BCDD4145 /* Wordsmoke */,
+				B274030058D5EF8255393D27 /* WordsmokeLocalUITests */,
 				3B4B724B4E59D538C7F7F4DC /* WordsmokeTests */,
 				54BEAD3B30831F49C46E4A8C /* WordsmokeUITests */,
 				79CB2606C9A31201A532F100 /* Products */,
@@ -122,32 +136,41 @@
 		9EF0DD21729CA587BCDD4145 /* Wordsmoke */ = {
 			isa = PBXGroup;
 			children = (
-				F1A2B3C4D5E6F708192A3B4C /* Assets.xcassets */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
-				7C5C01B29F6849E69FBCE765 /* APIClient+Logging.swift */,
-				AE9F3912FEA8429ABAF7F4A7 /* APIModels.swift */,
-				A1B2C3D4E5F60718293A4B5C /* AppEnvironment.swift */,
+				26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */,
+				3F10D9B3B967F68F1C71A4EB /* APIModels.swift */,
+				4878A06FDDA991B74D275E35 /* AppEnvironment.swift */,
 				E9945E9A4B85356A3EAEB6AC /* AppModel.swift */,
 				C6552EA626DE57F91C1ADB24 /* AppRoute.swift */,
+				173209AFEBBDE6466400BA6A /* Assets.xcassets */,
 				06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */,
 				EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */,
 				D5172F0844CBC8E960B066C4 /* GameModels.swift */,
 				489F85041C711924670A1610 /* GameRoomModel.swift */,
 				B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */,
-				2DEE1E15DE1240D483535595 /* GameRoomView+Subviews.swift */,
+				639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */,
 				6F213A3024987A913C1104C8 /* Info.plist */,
-				A1B2C3D4E5F60718293A4B5D /* InviteSheet.swift */,
+				FFFA6EC0528E362CF64E209D /* InviteSheet.swift */,
 				D0B6E0D99AEACE3C415847FF /* MarksView.swift */,
 				4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */,
+				E6884B6216C35B5F2CD87500 /* RootSubviews.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
-				A5186B711BD74D4DB8C68C62 /* RootSubviews.swift */,
-				0C8A2B791B4A0C9A5C9F51D1 /* SettingsView.swift */,
-				10A69B7A08E03E3A1F5C7E3D /* Theme.swift */,
+				6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */,
+				BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */,
 				DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */,
 				D2268AC85CFB211AA5943BC4 /* Wordsmoke.entitlements */,
 				24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */,
 			);
 			path = Wordsmoke;
+			sourceTree = "<group>";
+		};
+		B274030058D5EF8255393D27 /* WordsmokeLocalUITests */ = {
+			isa = PBXGroup;
+			children = (
+				90934B6A3E365C30CC3876EF /* TestAdminClient.swift */,
+				80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */,
+			);
+			path = WordsmokeLocalUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -171,12 +194,30 @@
 			productReference = F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		83CC4FE0A67DF8008349AC08 /* WordsmokeLocalUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A24241D8F392D985820A25EF /* Build configuration list for PBXNativeTarget "WordsmokeLocalUITests" */;
+			buildPhases = (
+				1C0CDDC33727BDB0F206888B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9A16D19883EA248CC082A1D5 /* PBXTargetDependency */,
+			);
+			name = WordsmokeLocalUITests;
+			packageProductDependencies = (
+			);
+			productName = WordsmokeLocalUITests;
+			productReference = 6E8299751BDE633CA83FB3A9 /* WordsmokeLocalUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		C50177A69B7D56CADDB51E91 /* Wordsmoke */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2ECE161EDCDB3AFED239125F /* Build configuration list for PBXNativeTarget "Wordsmoke" */;
 			buildPhases = (
 				4D3121F84CA6F10967AAF055 /* Sources */,
-				F1A2B3C4D5E6F708192A3B4E /* Resources */,
+				DA6EF2746D81177992D20A1F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -214,10 +255,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					0F1F67D274D227AB300FAF26 = {
 						DevelopmentTeam = 8U7J5S7RGC;
+					};
+					83CC4FE0A67DF8008349AC08 = {
+						DevelopmentTeam = 8U7J5S7RGC;
+						TestTargetID = C50177A69B7D56CADDB51E91;
 					};
 					C50177A69B7D56CADDB51E91 = {
 						DevelopmentTeam = 8U7J5S7RGC;
@@ -238,10 +283,12 @@
 			);
 			mainGroup = 8476BED03AB2AAA56F314A4B;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				C50177A69B7D56CADDB51E91 /* Wordsmoke */,
+				83CC4FE0A67DF8008349AC08 /* WordsmokeLocalUITests */,
 				0F1F67D274D227AB300FAF26 /* WordsmokeTests */,
 				D2AECC7DB299263469924508 /* WordsmokeUITests */,
 			);
@@ -249,17 +296,26 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		F1A2B3C4D5E6F708192A3B4E /* Resources */ = {
+		DA6EF2746D81177992D20A1F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F1A2B3C4D5E6F708192A3B4D /* Assets.xcassets in Resources */,
+				9E24AE866B79A935B8FC9C86 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1C0CDDC33727BDB0F206888B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				090E44A5F9E4B6617CB750B3 /* TestAdminClient.swift in Sources */,
+				A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		293AA4B8A486B0E34E96AE58 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -272,25 +328,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */,
 				4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */,
-				D595571197F5452C994755C0 /* APIClient+Logging.swift in Sources */,
-				35C23143C2BE43D59A0AE47B /* APIModels.swift in Sources */,
-				B1C2D3E4F5061728394A5B6C /* AppEnvironment.swift in Sources */,
+				990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */,
+				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,
 				0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */,
 				6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */,
 				0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */,
 				E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */,
+				384BDE316C50D7003DDA51D0 /* GameRoomView+Subviews.swift in Sources */,
 				1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */,
-				BC960119621D4DBEAB15AF97 /* GameRoomView+Subviews.swift in Sources */,
-				B1C2D3E4F5061728394A5B6D /* InviteSheet.swift in Sources */,
+				3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */,
 				46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */,
 				201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */,
+				CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
-				6903F627CFC14AC78AA11BF1 /* RootSubviews.swift in Sources */,
-				0C8A2B7A1B4A0C9A5C9F51D1 /* SettingsView.swift in Sources */,
-				10A69B7B08E03E3A1F5C7E3D /* Theme.swift in Sources */,
+				3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */,
+				FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */,
 				36C93A0143C83613DA2D80B8 /* WordleFeedback.swift in Sources */,
 				188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */,
 			);
@@ -311,6 +367,11 @@
 			isa = PBXTargetDependency;
 			target = C50177A69B7D56CADDB51E91 /* Wordsmoke */;
 			targetProxy = B750DE3D49886C0ABC16D321 /* PBXContainerItemProxy */;
+		};
+		9A16D19883EA248CC082A1D5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C50177A69B7D56CADDB51E91 /* Wordsmoke */;
+			targetProxy = 1E8CE05AD56B348B39CA7264 /* PBXContainerItemProxy */;
 		};
 		AA4DB55DA2F3A5BB39F017B4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -380,8 +441,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_GENERATE_STRINGS_FILE = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.2;
 			};
@@ -457,8 +518,8 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_GENERATE_STRINGS_FILE = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.2;
 			};
@@ -515,6 +576,23 @@
 			};
 			name = Release;
 		};
+		AEFEB07F9DE15C9A114B05D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.WordsmokeLocalUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Wordsmoke;
+			};
+			name = Release;
+		};
 		DB953D939D1329858F1A40B7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -529,6 +607,23 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wordsmoke.app/Wordsmoke";
+			};
+			name = Debug;
+		};
+		ECE706F6CA0945F24ABD1CB5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.WordsmokeLocalUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Wordsmoke;
 			};
 			name = Debug;
 		};
@@ -566,6 +661,15 @@
 			buildConfigurations = (
 				45BC7D34CAA2F62DBD9D0105 /* Debug */,
 				7C2DD68258A17D42F9C1CEA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A24241D8F392D985820A25EF /* Build configuration list for PBXNativeTarget "WordsmokeLocalUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECE706F6CA0945F24ABD1CB5 /* Debug */,
+				AEFEB07F9DE15C9A114B05D8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -36,6 +36,8 @@ enum ServerEnvironment: String, CaseIterable, Identifiable {
 
 enum AppEnvironment {
   static let serverEnvironmentKey = "server.environment"
+  static let uiTestFlagKey = "WORDSMOKE_UI_TESTS"
+  static let baseURLOverrideKey = "WORDSMOKE_BASE_URL"
 
   static var defaultServerEnvironment: ServerEnvironment {
     #if DEBUG
@@ -57,6 +59,14 @@ enum AppEnvironment {
   }
 
   static var baseURL: URL {
-    serverEnvironment.baseURL
+    if let override = ProcessInfo.processInfo.environment[baseURLOverrideKey],
+       let url = URL(string: override) {
+      return url
+    }
+    return serverEnvironment.baseURL
+  }
+
+  static var isUITest: Bool {
+    ProcessInfo.processInfo.environment[uiTestFlagKey] == "1"
   }
 }
