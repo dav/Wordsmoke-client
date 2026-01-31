@@ -56,108 +56,154 @@ extension GameRoomView {
   }
 
   @ViewBuilder
-  func roundReport(for round: RoundPayload) -> some View {
-    switch round.stage {
-    case "waiting_submissions":
-      waitingSubmissionsReport(for: round)
-    case "voting":
-      votingReport(for: round)
-    default:
-      completedRoundReport(for: round)
-    }
-  }
+  func playerReportContent(for playerID: String, rounds: [RoundPayload]) -> some View {
+    let orderedRounds = rounds.sorted { $0.number < $1.number }
+    let name = model.playerName(for: playerID, in: orderedRounds) ?? "Player"
 
-  @ViewBuilder
-  private func waitingSubmissionsReport(for round: RoundPayload) -> some View {
-    Text("Waiting for all submissions.")
-      .foregroundStyle(.secondary)
-    if let own = model.ownSubmission(in: round) {
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Your played")
-          .font(.headline)
-        if let phrase = own.phrase {
-          Text(phrase)
-        }
-        if let marks = own.marks, let guessWord = own.guessWord {
-          MarksView(
-            marks: marks,
-            letters: guessWord.map { String($0) },
-            size: 36
-          )
+    ForEach(orderedRounds.indices, id: \.self) { index in
+      let round = orderedRounds[index]
+      VStack(alignment: .leading, spacing: 8) {
+        playerRoundSection(for: round, playerID: playerID, name: name)
+        if index != orderedRounds.indices.last {
+          Divider()
         }
       }
+      .listRowSeparator(.hidden)
     }
-
-    playerStatusList(for: round)
   }
 
   @ViewBuilder
-  private func votingReport(for round: RoundPayload) -> some View {
+  func gameOverContent() -> some View {
+    let goal = model.goalWord()
+    if let goal {
+      goalTiles(for: goal)
+        .accessibilityIdentifier("game-over-goal-word")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(goal.uppercased())
+    } else {
+      Text("Goal word unavailable.")
+        .foregroundStyle(.secondary)
+    }
+
+    if let winningRound = model.winningRound() {
+      gameOverWinners(for: winningRound)
+    } else {
+      Text("No winning round data yet.")
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  @ViewBuilder
+  private func gameOverWinners(for round: RoundPayload) -> some View {
+    let winners = model.winnerIDs(for: round)
+    let correctSubmissions = round.submissions.filter { $0.correctGuess == true }
+    let shouldShowScores = !correctSubmissions.isEmpty && winners.count < correctSubmissions.count
+
+    if correctSubmissions.isEmpty {
+      Text("No winners yet.")
+        .foregroundStyle(.secondary)
+    } else {
+      let orderedIDs = model.orderedPlayerIDsForReport(in: [round])
+      let correctIDs = orderedIDs.filter { id in
+        correctSubmissions.contains(where: { $0.playerID == id })
+      }
+
+      ForEach(correctIDs, id: \.self) { playerID in
+        let name = model.playerName(for: playerID, in: [round]) ?? "Player"
+        HStack {
+          if winners.contains(playerID) {
+            Text("🏆")
+          }
+          Text(name)
+          if shouldShowScores {
+            Spacer()
+            Text("\(model.playerScore(for: playerID))")
+              .foregroundStyle(.secondary)
+          }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier("game-over-player-\(accessibilitySafePlayerName(name))")
+        .accessibilityLabel(winners.contains(playerID) ? "Winner \(name)" : "Correct \(name)")
+      }
+    }
+  }
+
+  private func accessibilitySafePlayerName(_ name: String) -> String {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let parts = trimmed.split { !$0.isLetter && !$0.isNumber }
+    let joined = parts.joined(separator: "-")
+    return joined.isEmpty ? "player" : joined
+  }
+
+  @ViewBuilder
+  private func goalTiles(for goalWord: String) -> some View {
+    let letters = goalWord.map { String($0) }
+    let marks = Array(repeating: "🟩", count: letters.count)
+    MarksView(marks: marks, letters: letters, size: 36)
+  }
+
+  @ViewBuilder
+  private func playerRoundSection(for round: RoundPayload, playerID: String, name: String) -> some View {
+    VStack(alignment: .leading) {
+      roundReportContent(for: round, playerID: playerID)
+    }
+    .accessibilityElement(children: .contain)
+    .background(
+      Color.clear
+        .accessibilityElement()
+        .accessibilityIdentifier("player-round-row-\(round.number)-\(playerID)")
+        .accessibilityLabel("Player round row \(name)")
+    )
+  }
+
+  @ViewBuilder
+  private func roundReportContent(for round: RoundPayload, playerID: String) -> some View {
+    let submission = round.submissions.first { $0.playerID == playerID }
+    let isLocal = playerID == model.localPlayerID
+
+    if round.status == "closed" {
+      if let submission {
+        completedSubmissionContent(for: submission)
+      } else {
+        roundStatusRow(text: "waiting...", symbol: "clock", style: .secondary)
+      }
+    } else if let submission, submission.createdAt != nil {
+      if round.status == "voting", submission.voted != true {
+        roundStatusRow(text: "waiting for vote", symbol: "clock", style: .secondary)
+      } else if isLocal {
+        localInProgressSubmissionContent(for: submission)
+      } else {
+        roundStatusRow(text: "played", symbol: "checkmark.circle.fill", style: .success)
+      }
+    } else {
+      roundStatusRow(
+        text: "waiting...",
+        symbol: "clock",
+        style: .secondary
+      ) {
+        debugAction(for: playerID, submission: submission, round: round)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func localInProgressSubmissionContent(for submission: RoundSubmission) -> some View {
+    if let guessWord = submission.guessWord {
+      neutralGuessTiles(for: guessWord, size: 36)
+    }
+    if let phrase = submission.phrase {
+      Text(phrase)
+    }
+  }
+
+  @ViewBuilder
+  func votingActionSection(for round: RoundPayload) -> some View {
     if !model.hasSubmittedOwnGuess() {
       Text("Waiting on your submission.")
         .foregroundStyle(.secondary)
     } else {
-      votingStatusSection(for: round)
-      votingOwnReportSection(for: round)
       votingOtherPhrasesSection(for: round)
       submitVotesButton
-    }
-  }
-
-  @ViewBuilder
-  private func votingStatusSection(for round: RoundPayload) -> some View {
-    if model.game.playersCount ?? 0 >= 3 {
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Votes")
-          .font(.headline)
-        ForEach(round.submissions) { submission in
-          HStack {
-            Text(submission.playerName)
-            Spacer()
-            if showDebug,
-               submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID),
-               submission.voted != true {
-              Button("Vote") {
-                Task {
-                  await model.submitVirtualVote(for: submission.playerID)
-                }
-              }
-              .buttonStyle(.bordered)
-              .tint(theme.accent)
-              .accessibilityIdentifier("virtual-vote-status-\(submission.playerID)")
-            }
-            if submission.voted == true {
-              Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-            } else {
-              Image(systemName: "clock")
-                .foregroundStyle(.orange)
-            }
-          }
-        }
-      }
-
-      Divider()
-    }
-  }
-
-  @ViewBuilder
-  private func votingOwnReportSection(for round: RoundPayload) -> some View {
-    if let own = model.ownSubmission(in: round) {
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Your report")
-          .font(.headline)
-        if let phrase = own.phrase {
-          Text(phrase)
-        }
-        if let marks = own.marks, let guessWord = own.guessWord {
-          MarksView(
-            marks: marks,
-            letters: guessWord.map { String($0) },
-            size: 36
-          )
-        }
-      }
     }
   }
 
@@ -226,145 +272,109 @@ extension GameRoomView {
   }
 
   @ViewBuilder
-  private func completedRoundReport(for round: RoundPayload) -> some View {
-    if round.submissions.isEmpty {
-      Text("No submissions yet.")
-        .foregroundStyle(.secondary)
-    } else {
-      let isFinalRound = model.game.status == "completed" && model.completedRounds.last?.id == round.id
-      let winnerIDs = isFinalRound ? model.winnerIDs(for: round) : []
-      let sortedSubmissions = sortedSubmissions(for: round, isFinalRound: isFinalRound, winnerIDs: winnerIDs)
-
-      ForEach(sortedSubmissions) { submission in
-        completedSubmissionRow(
-          submission,
-          in: round,
-          isFinalRound: isFinalRound,
-          winnerIDs: winnerIDs
-        )
-      }
+  private func completedSubmissionContent(for submission: RoundSubmission) -> some View {
+    let isLocal = submission.playerID == model.localPlayerID
+    if let marks = submission.marks {
+      MarksView(
+        marks: marks,
+        letters: isLocal ? submission.guessWord?.map { String($0) } : nil,
+        size: 36
+      )
     }
-  }
-
-  private func sortedSubmissions(
-    for round: RoundPayload,
-    isFinalRound: Bool,
-    winnerIDs: [String]
-  ) -> [RoundSubmission] {
-    round.submissions.sorted {
-      if isFinalRound {
-        let leftWinner = winnerIDs.contains($0.playerID)
-        let rightWinner = winnerIDs.contains($1.playerID)
-        if leftWinner != rightWinner {
-          return leftWinner && !rightWinner
-        }
-        let leftScore = model.playerScore(for: $0.playerID)
-        let rightScore = model.playerScore(for: $1.playerID)
-        if leftScore != rightScore {
-          return leftScore > rightScore
-        }
-      }
-      return $0.playerName < $1.playerName
+    if let phrase = submission.phrase {
+      Text(phrase)
     }
   }
 
   @ViewBuilder
-  private func completedSubmissionRow(
-    _ submission: RoundSubmission,
-    in round: RoundPayload,
-    isFinalRound: Bool,
-    winnerIDs: [String]
-  ) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      let isLocal = submission.playerID == model.localPlayerID
-      HStack {
-        if isFinalRound && winnerIDs.contains(submission.playerID) {
-          Text("🏆")
-        }
-        Text(submission.playerName)
+  private func neutralGuessTiles(for guessWord: String, size: CGFloat) -> some View {
+    let letters = Array(guessWord)
+    HStack(spacing: 6) {
+      ForEach(letters.indices, id: \.self) { index in
+        Text(String(letters[index]).uppercased())
+          .font(.caption)
           .bold()
-        Spacer()
-        if round.status == "voting",
-           showDebug,
-           submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID),
-           submission.voted != true {
-          Button("Vote") {
-            Task {
-              await model.submitVirtualVote(for: submission.playerID)
-            }
-          }
-          .buttonStyle(.bordered)
-          .tint(theme.accent)
-          .accessibilityIdentifier("virtual-vote-completed-\(submission.playerID)")
-        }
-        if round.status == "voting" {
-          if submission.voted == true {
-            Text("voted")
-              .font(.caption)
-              .foregroundStyle(.green)
-          } else {
-            Text("voting")
-              .font(.caption)
-              .foregroundStyle(.red)
-          }
-        }
-        if submission.correctGuess == true {
-          Text("Correct")
-            .foregroundStyle(.green)
-        }
-      }
-      if let phrase = submission.phrase {
-        Text(phrase)
-      }
-      if let marks = submission.marks {
-        MarksView(
-          marks: marks,
-          letters: isLocal ? submission.guessWord?.map { String($0) } : nil,
-          size: 36
-        )
+          .frame(width: size, height: size)
+          .background(Color.white)
+          .foregroundStyle(.black)
+          .clipShape(.rect(cornerRadius: 6))
+          .overlay(
+            RoundedRectangle(cornerRadius: 6)
+              .stroke(Color.black, lineWidth: 1)
+          )
       }
     }
-    .accessibilityElement(children: .contain)
-    .background(
-      Color.clear
-        .accessibilityElement()
-        .accessibilityIdentifier("submission-row-\(round.number)-\(submission.playerName)")
-        .accessibilityLabel("Submission row \(submission.playerName)")
-        .accessibilityValue(
-          (isFinalRound && winnerIDs.contains(submission.playerID)) ? "winner" : "participant"
-        )
-    )
   }
 
   @ViewBuilder
-  func playerStatusList(for round: RoundPayload) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text("Players")
-        .font(.headline)
-      ForEach(round.submissions) { submission in
-        HStack {
-          Text(submission.playerName)
-          Spacer()
-          if showDebug,
-             submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID),
-             submission.createdAt == nil {
-            Button("Guess") {
-              Task {
-                await model.submitVirtualGuess(for: submission.playerID)
-              }
-            }
-            .buttonStyle(.bordered)
-            .tint(theme.accent)
-            .accessibilityIdentifier("virtual-guess-\(submission.playerID)")
-          }
-          if submission.createdAt != nil {
-            Image(systemName: "checkmark.circle.fill")
-              .foregroundStyle(.green)
-          } else {
-            Image(systemName: "clock")
-              .foregroundStyle(.orange)
+  private func roundStatusRow<Accessory: View>(
+    text: String,
+    symbol: String,
+    style: StatusStyle,
+    @ViewBuilder trailingAction: () -> Accessory = { EmptyView() }
+  ) -> some View {
+    HStack(spacing: 8) {
+      Image(systemName: symbol)
+        .foregroundStyle(style.color)
+      Text(text)
+        .foregroundStyle(style.textColor)
+      Spacer()
+      trailingAction()
+    }
+  }
+
+  @ViewBuilder
+  private func debugAction(
+    for playerID: String,
+    submission: RoundSubmission?,
+    round: RoundPayload
+  ) -> some View {
+    if showDebug, submission?.playerVirtual ?? model.isVirtualPlayer(playerID) {
+      if round.status == "waiting", submission?.createdAt == nil {
+        Button("Guess") {
+          Task {
+            await model.submitVirtualGuess(for: playerID)
           }
         }
+        .buttonStyle(.bordered)
+        .tint(theme.accent)
+        .accessibilityIdentifier("virtual-guess-\(playerID)")
+      } else if round.status == "voting", submission?.voted != true {
+        Button("Vote") {
+          Task {
+            await model.submitVirtualVote(for: playerID)
+          }
+        }
+        .buttonStyle(.bordered)
+        .tint(theme.accent)
+        .accessibilityIdentifier("virtual-vote-status-\(playerID)")
+      } else {
+        EmptyView()
+      }
+    } else {
+      EmptyView()
+    }
+  }
+
+  private enum StatusStyle {
+    case secondary
+    case success
+
+    var color: Color {
+      switch self {
+      case .secondary:
+        return .orange
+      case .success:
+        return .green
+      }
+    }
+
+    var textColor: Color {
+      switch self {
+      case .secondary:
+        return .secondary
+      case .success:
+        return .secondary
       }
     }
   }

@@ -201,6 +201,78 @@ extension GameRoomModel {
     game.participants?.first(where: { $0.player.id == playerID })?.score ?? 0
   }
 
+  func reportRounds() -> [RoundPayload] {
+    var rounds = completedRounds
+    if let round {
+      rounds.append(round)
+    }
+    var seen = Set<String>()
+    let unique = rounds.filter { seen.insert($0.id).inserted }
+    return unique.sorted { $0.number < $1.number }
+  }
+
+  func orderedPlayerIDsForReport(in rounds: [RoundPayload]) -> [String] {
+    if let participants = game.participants, !participants.isEmpty {
+      var otherParticipants = participants.filter { $0.player.id != localPlayerID }
+      otherParticipants.sort {
+        $0.player.displayName.localizedStandardCompare($1.player.displayName) == .orderedAscending
+      }
+      var ordered = otherParticipants.map(\.player.id)
+      if participants.contains(where: { $0.player.id == localPlayerID }) {
+        ordered.append(localPlayerID)
+      }
+      return ordered
+    }
+
+    var nameLookup: [String: String] = [:]
+    for round in rounds {
+      for submission in round.submissions {
+        nameLookup[submission.playerID] = submission.playerName
+      }
+    }
+
+    var otherIDs = nameLookup.keys.filter { $0 != localPlayerID }
+    otherIDs.sort {
+      let leftName = nameLookup[$0] ?? $0
+      let rightName = nameLookup[$1] ?? $1
+      return leftName.localizedStandardCompare(rightName) == .orderedAscending
+    }
+    var ordered = otherIDs
+    ordered.append(localPlayerID)
+    return ordered
+  }
+
+  func winningRound() -> RoundPayload? {
+    if let winningRoundNumber = game.winningRoundNumber {
+      return completedRounds.first { $0.number == winningRoundNumber } ?? round
+    }
+    return completedRounds.last ?? round
+  }
+
+  func goalWord() -> String? {
+    let rounds = reportRounds()
+    for round in rounds {
+      for submission in round.submissions {
+        if let goal = submission.feedback?.goal, !goal.isEmpty {
+          return goal
+        }
+      }
+    }
+    return nil
+  }
+
+  func playerName(for playerID: String, in rounds: [RoundPayload]) -> String? {
+    if let name = playerName(for: playerID) {
+      return name
+    }
+    for round in rounds {
+      if let submission = round.submissions.first(where: { $0.playerID == playerID }) {
+        return submission.playerName
+      }
+    }
+    return nil
+  }
+
   func isVirtualPlayer(_ playerID: String) -> Bool {
     guard let player = game.participants?.first(where: { $0.player.id == playerID })?.player else {
       return false

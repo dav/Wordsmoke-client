@@ -83,11 +83,12 @@ final class WordsmokeLocalUITests: XCTestCase {
 
     let roundTwoState = try await admin.waitForRound(gameID: game.id, number: 2, timeout: 30)
     let roundTwoID = try requireRoundID(from: roundTwoState)
-    let roundTwoNumber = try requireRoundNumber(from: roundTwoState)
     let wordsRoundTwo = try await admin.fetchWords(gameID: game.id, excludeGoal: false)
     let localPlayerName = try requirePlayerName(from: roundTwoState, playerID: localPlayerID)
 
-    try submitGuess(word: wordsRoundTwo.goalWord, phrasePrefix: "winner")
+    let goalWord = wordsRoundTwo.goalWord
+
+    try submitGuess(word: goalWord, phrasePrefix: "winner with")
 
     for playerID in virtualPlayerIDs {
       _ = try await admin.createSubmission(
@@ -117,26 +118,33 @@ final class WordsmokeLocalUITests: XCTestCase {
       )
     }
 
-    let winnerRow = app.otherElements["submission-row-\(roundTwoNumber)-\(localPlayerName)"]
+//    let goalTiles = app.otherElements["game-over-goal-word"]
+//    XCTAssertTrue(scrollToElement(goalTiles, timeout: 20))
+
+    let gameOverSection = app.staticTexts["game-over-section"]
+    XCTAssertTrue(scrollToElement(gameOverSection, timeout: 20))
+
+      let goalWordElement = app.otherElements[goalWord.uppercased()]
+    XCTAssertTrue(scrollToElement(goalWordElement, timeout: 20))
+
+    let winnerIdentifier = "game-over-player-\(Self.accessibilitySafePlayerName(localPlayerName))"
+    let winnerRow = app.otherElements[winnerIdentifier]
     XCTAssertTrue(scrollToElement(winnerRow, timeout: 20))
-    let didReachWinner = await waitForValue(winnerRow, equals: "winner", timeout: 20)
-    XCTAssertTrue(didReachWinner)
-    XCTAssertEqual(winnerRow.value as? String, "winner")
   }
 
   private func submitGuess(word: String, phrasePrefix: String) throws {
     let guessField = app.textFields["guess-word-field"]
-    XCTAssertTrue(guessField.waitForExistence(timeout: 15))
+    XCTAssertTrue(scrollToElement(guessField, timeout: 20))
     guessField.tap()
     guessField.typeText(word)
 
     let phraseField = app.textFields["phrase-field"]
-    XCTAssertTrue(phraseField.waitForExistence(timeout: 10))
+    XCTAssertTrue(scrollToElement(phraseField, timeout: 10))
     phraseField.tap()
     phraseField.typeText("\(phrasePrefix) \(word)")
 
     let submitButton = app.buttons["submit-guess-button"]
-    XCTAssertTrue(submitButton.waitForExistence(timeout: 10))
+    XCTAssertTrue(scrollToElement(submitButton, timeout: 10))
     submitButton.tap()
   }
 
@@ -159,7 +167,14 @@ final class WordsmokeLocalUITests: XCTestCase {
       return true
     }
 
-    let container = app.tables.firstMatch.exists ? app.tables.firstMatch : app.scrollViews.firstMatch
+    let container: XCUIElement
+    if app.collectionViews.firstMatch.exists {
+      container = app.collectionViews.firstMatch
+    } else if app.tables.firstMatch.exists {
+      container = app.tables.firstMatch
+    } else {
+      container = app.scrollViews.firstMatch
+    }
     let scrollTarget = container.exists ? container : app
 
     let maxSwipes = 10
@@ -188,6 +203,13 @@ final class WordsmokeLocalUITests: XCTestCase {
       try? await Task.sleep(for: pollInterval)
     }
     return element.value as? String == expectedValue
+  }
+
+  private static func accessibilitySafePlayerName(_ name: String) -> String {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let parts = trimmed.split { !($0.isLetter || $0.isNumber) }
+    let joined = parts.joined(separator: "-")
+    return joined.isEmpty ? "player" : joined
   }
 
   private static func captureFailureArtifacts(app: XCUIApplication, testName: String) {

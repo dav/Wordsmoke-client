@@ -6,89 +6,120 @@ struct GameRoomView: View {
   @Environment(\.debugEnabled) var showDebug
 
   var body: some View {
-    Form {
-      Section("Status") {
-        Text("Status: \(model.game.status)")
-        if model.game.status == "waiting" {
-          Button("Start Game") {
-            Task {
-              await model.startGame()
-            }
+    ScrollViewReader { proxy in
+      Form {
+        if showDebug {
+          Section("Status") {
+            Text("Status: \(model.game.status)")
           }
-          .buttonStyle(.borderedProminent)
-          .disabled((model.game.playersCount ?? 0) < 2 || model.isBusy)
-          .accessibilityIdentifier("game-room-start-button")
         }
-      }
 
-      if model.game.status == "waiting", let participants = model.game.participants {
-        Section("Players") {
-          ForEach(participants, id: \.id) { participant in
+        if model.game.status == "waiting", let participants = model.game.participants {
+          Section {
+            ForEach(participants, id: \.id) { participant in
+              HStack {
+                Text(participant.player.displayName)
+                Spacer()
+                Text(participant.role)
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+            }
+          } header: {
             HStack {
-              Text(participant.player.displayName)
+              Text("Players")
               Spacer()
-              Text(participant.role)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+              Button("Start Game") {
+                Task {
+                  await model.startGame()
+                }
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled((model.game.playersCount ?? 0) < 2 || model.isBusy)
+              .accessibilityIdentifier("game-room-start-button")
             }
           }
         }
-      }
 
-      if !model.completedRounds.isEmpty {
-        ForEach(model.completedRounds) { completedRound in
-          Section("Round \(completedRound.number)") {
-            roundReport(for: completedRound)
+        let reportRounds = model.reportRounds()
+        if !reportRounds.isEmpty {
+          let orderedIDs = model.orderedPlayerIDsForReport(in: reportRounds)
+          ForEach(orderedIDs, id: \.self) { playerID in
+            Section {
+              playerReportContent(for: playerID, rounds: reportRounds)
+            } header: {
+              Text(model.playerName(for: playerID, in: reportRounds) ?? "Player")
+            }
+          }
+        } else if model.game.status != "waiting" {
+          Section("Game Report") {
+            Text("No round data yet.")
+              .foregroundStyle(.secondary)
           }
         }
-      }
 
-      if let round = model.round {
-        Section("Round \(round.number)") {
+        if model.game.status == "completed", model.round == nil {
+          Section {
+            gameOverContent()
+          } header: {
+            Text("Game Over")
+              .accessibilityIdentifier("game-over-section")
+          }
+          .id("game-over-section")
+        } else if let round = model.round {
           if shouldShowSubmissionForm(for: round) {
-            submissionForm()
-            if round.stage == "waiting_submissions" {
-              playerStatusList(for: round)
+            Section("Your Round \(round.number) Guess") {
+              submissionForm()
             }
-          } else {
-            roundReport(for: round)
+          } else if round.status == "voting" {
+            Section("Your Vote") {
+              votingActionSection(for: round)
+            }
           }
         }
-      } else if model.completedRounds.isEmpty {
-        Section("Round Report") {
-          Text("No round data yet.")
-            .foregroundStyle(.secondary)
-        }
-      }
 
-      if shouldShowRefreshButton && showDebug {
-        Section {
-          Button("Refresh Round") {
-            Task {
-              await model.refreshRound()
+        if shouldShowRefreshButton && showDebug {
+          Section {
+            Button("Refresh Round") {
+              Task {
+                await model.refreshRound()
+              }
             }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("refresh-round-button")
           }
-          .buttonStyle(.bordered)
-          .accessibilityIdentifier("refresh-round-button")
         }
       }
-    }
-    .navigationTitle("Game \(model.game.joinCode)")
-    .scrollContentBackground(.hidden)
-    .listStyle(.insetGrouped)
-    .listRowBackground(theme.cardBackground)
-    .background(theme.background)
-    .tint(theme.accent)
-    .task {
-      if model.round == nil {
-        await model.refreshRound()
+      .navigationTitle("Game \(model.game.joinCode)")
+      .scrollContentBackground(.hidden)
+      .listStyle(.insetGrouped)
+      .listRowBackground(theme.cardBackground)
+      .background(theme.background)
+      .tint(theme.accent)
+      .task {
+        if model.round == nil {
+          await model.refreshRound()
+        }
       }
-    }
-    .onAppear {
-      model.startPolling()
-    }
-    .onDisappear {
-      model.stopPolling()
+      .onAppear {
+        model.startPolling()
+        if model.game.status == "completed", model.round == nil {
+          Task { @MainActor in
+            withAnimation {
+              proxy.scrollTo("game-over-section", anchor: .bottom)
+            }
+          }
+        }
+      }
+      .onDisappear {
+        model.stopPolling()
+      }
+      .onChange(of: model.game.status) { _, newValue in
+        guard newValue == "completed", model.round == nil else { return }
+        withAnimation {
+          proxy.scrollTo("game-over-section", anchor: .bottom)
+        }
+      }
     }
   }
 }
