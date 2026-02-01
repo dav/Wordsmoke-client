@@ -35,9 +35,11 @@ enum ServerEnvironment: String, CaseIterable, Identifiable {
 }
 
 enum AppEnvironment {
-  static let serverEnvironmentKey = "server.environment"
+  static let useDevelopmentKey = "server.useDevelopment"
+  static let developmentURLKey = "server.developmentURL"
   static let uiTestFlagKey = "WORDSMOKE_UI_TESTS"
   static let baseURLOverrideKey = "WORDSMOKE_BASE_URL"
+  static let defaultDevelopmentURL = URL(string: "https://karoline-unconsulted-oversensibly.ngrok-free.dev")!
 
   static var defaultServerEnvironment: ServerEnvironment {
     #if DEBUG
@@ -47,15 +49,19 @@ enum AppEnvironment {
     #endif
   }
 
-  static func serverEnvironment(from rawValue: String?) -> ServerEnvironment {
-    guard let rawValue, let environment = ServerEnvironment(rawValue: rawValue) else {
-      return defaultServerEnvironment
+  static var useDevelopment: Bool {
+    if let stored = UserDefaults.standard.object(forKey: useDevelopmentKey) as? Bool {
+      return stored
     }
-    return environment
+    return defaultServerEnvironment == .development
   }
 
-  static var serverEnvironment: ServerEnvironment {
-    serverEnvironment(from: UserDefaults.standard.string(forKey: serverEnvironmentKey))
+  static var developmentURL: URL {
+    if let rawValue = UserDefaults.standard.string(forKey: developmentURLKey),
+       let url = URL(string: rawValue) {
+      return url
+    }
+    return defaultDevelopmentURL
   }
 
   static var baseURL: URL {
@@ -63,7 +69,7 @@ enum AppEnvironment {
        let url = URL(string: override) {
       return url
     }
-    return serverEnvironment.baseURL
+    return useDevelopment ? developmentURL : ServerEnvironment.production.baseURL
   }
 
   static var isUITest: Bool {

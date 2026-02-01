@@ -4,8 +4,10 @@ import SwiftUI
 struct RootView: View {
   @Bindable var model: AppModel
   @AppStorage("theme.selection") private var themeSelectionRaw = ThemeSelection.system.rawValue
-  @AppStorage(AppEnvironment.serverEnvironmentKey) private var serverEnvironmentRaw =
-    AppEnvironment.defaultServerEnvironment.rawValue
+  @AppStorage(AppEnvironment.useDevelopmentKey) private var useDevelopment =
+    AppEnvironment.defaultServerEnvironment == .development
+  @AppStorage(AppEnvironment.developmentURLKey) private var developmentURLRaw =
+    AppEnvironment.defaultDevelopmentURL.absoluteString
   @AppStorage("debug.enabled") private var showDebug = false
   @State private var showingSettings = false
   @State private var onboardingStore = OnboardingStore()
@@ -15,8 +17,7 @@ struct RootView: View {
   }
 
   private var serverStatusText: String {
-    let environment = AppEnvironment.serverEnvironment(from: serverEnvironmentRaw)
-    let label = environment == .production ? "prod" : "dev"
+    let label = useDevelopment ? "dev" : "prod"
     return "Connected to \(label) server"
   }
 
@@ -153,8 +154,11 @@ struct RootView: View {
           model.stopLobbyPolling()
         }
       }
-      .onChange(of: serverEnvironmentRaw) { _, newValue in
-        model.updateServerEnvironment(AppEnvironment.serverEnvironment(from: newValue))
+      .onChange(of: useDevelopment) { _, _ in
+        model.updateBaseURLIfNeeded()
+      }
+      .onChange(of: developmentURLRaw) { _, _ in
+        model.updateBaseURLIfNeeded()
       }
       .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
         GameCenterAuthView(viewController: item.viewController)
@@ -171,7 +175,6 @@ struct RootView: View {
       .sheet(isPresented: $showingSettings) {
         SettingsView(
           themeSelectionRaw: $themeSelectionRaw,
-          serverEnvironmentRaw: $serverEnvironmentRaw,
           onboarding: onboardingStore,
           analytics: model.analytics
         )

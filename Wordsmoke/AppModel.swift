@@ -27,18 +27,19 @@ final class AppModel {
     logBundleInfo()
   }
 
-  func updateServerEnvironment(_ environment: ServerEnvironment) {
-    if apiClient.baseURL == environment.baseURL {
+  func updateBaseURLIfNeeded() {
+    let baseURL = AppEnvironment.baseURL
+    if apiClient.baseURL == baseURL {
       return
     }
 
-    apiClient = APIClient(baseURL: environment.baseURL)
+    apiClient = APIClient(baseURL: baseURL)
     session = nil
     currentGame = nil
     games = []
     gameRoomModel = nil
     navigationPath = NavigationPath()
-    statusMessage = "Server set to \(environment.title)."
+    statusMessage = "Server set to \(baseURL.absoluteString)."
     handleAuthChange()
   }
 
