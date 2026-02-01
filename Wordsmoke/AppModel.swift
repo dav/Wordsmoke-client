@@ -17,6 +17,7 @@ final class AppModel {
   var isBusy = false
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
+  private var lobbyPollingTask: Task<Void, Never>?
 
   func start() async {
     gameCenter.configure()
@@ -153,6 +154,24 @@ final class AppModel {
     }
   }
 
+  func startLobbyPolling() {
+    lobbyPollingTask?.cancel()
+    lobbyPollingTask = Task { [weak self] in
+      guard let self else { return }
+      while !Task.isCancelled {
+        if self.session != nil {
+          await self.loadGames()
+        }
+        try? await Task.sleep(for: .seconds(12))
+      }
+    }
+  }
+
+  func stopLobbyPolling() {
+    lobbyPollingTask?.cancel()
+    lobbyPollingTask = nil
+  }
+
   func startGame() async {
     guard let gameID = currentGame?.id else { return }
     guard !isBusy else { return }
@@ -214,4 +233,5 @@ final class AppModel {
       )
     }
   }
+
 }

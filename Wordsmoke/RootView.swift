@@ -123,16 +123,6 @@ struct RootView: View {
           }
         }
 
-        if let game = model.currentGame, game.status == "waiting" {
-          Button("Start Game") {
-            Task {
-              await model.startGame()
-            }
-          }
-          .buttonStyle(AccentPillButtonStyle(theme: theme))
-          .accessibilityIdentifier("start-game-root-button")
-        }
-
         Spacer()
       }
       .padding()
@@ -145,6 +135,10 @@ struct RootView: View {
       .environment(\.debugEnabled, showDebug)
       .task {
         await model.start()
+        model.startLobbyPolling()
+      }
+      .onDisappear {
+        model.stopLobbyPolling()
       }
       .onChange(of: model.gameCenter.isAuthenticated) { _, _ in
         model.handleAuthChange()
@@ -154,6 +148,9 @@ struct RootView: View {
           Task {
             await model.loadGames()
           }
+          model.startLobbyPolling()
+        } else {
+          model.stopLobbyPolling()
         }
       }
       .onChange(of: serverEnvironmentRaw) { _, newValue in
