@@ -88,7 +88,15 @@ struct TestAdminClient {
       let phraseVotesCount: Int
     }
 
+    struct Submission: Decodable, Sendable {
+      let id: String
+      let playerId: String
+      let guessWord: String?
+      let phrase: String?
+    }
+
     let round: Round
+    let submission: Submission?
   }
 
   let baseURL: URL

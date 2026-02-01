@@ -98,13 +98,19 @@ struct APIClient {
   func fetchRound(
     gameID: String,
     roundID: String,
-    logStrategy: LogStrategy = .always
+    logStrategy: LogStrategy = .always,
+    forceRefresh: Bool = false
   ) async throws -> RoundResponse {
     var request = URLRequest(
       url: baseURL.appending(path: "games/\(gameID)/rounds/\(roundID)")
     )
     request.httpMethod = "GET"
-    request.cachePolicy = .reloadRevalidatingCacheData
+    if forceRefresh {
+      request.cachePolicy = .reloadIgnoringLocalCacheData
+      request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+    } else {
+      request.cachePolicy = .reloadRevalidatingCacheData
+    }
     applyStandardHeaders(&request)
 
     logRequest(request, strategy: logStrategy)

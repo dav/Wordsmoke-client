@@ -80,17 +80,6 @@ extension GameRoomView {
 
   @ViewBuilder
   func gameOverContent() -> some View {
-    let goal = model.goalWord()
-    if let goal {
-      goalTiles(for: goal)
-        .accessibilityIdentifier("game-over-goal-word")
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(goal.uppercased())
-    } else {
-      Text("Goal word unavailable.")
-        .foregroundStyle(.secondary)
-    }
-
     if let winningRound = model.winningRound() {
       gameOverWinners(for: winningRound)
     } else {
@@ -102,35 +91,42 @@ extension GameRoomView {
   @ViewBuilder
   private func gameOverWinners(for round: RoundPayload) -> some View {
     let winners = model.winnerIDs(for: round)
-    let correctSubmissions = round.submissions.filter { $0.correctGuess == true }
-    let shouldShowScores = !correctSubmissions.isEmpty && winners.count < correctSubmissions.count
+    let orderedIDs = model.orderedPlayerIDsForReport(in: [round])
 
-    if correctSubmissions.isEmpty {
-      Text("No winners yet.")
-        .foregroundStyle(.secondary)
-    } else {
-      let orderedIDs = model.orderedPlayerIDsForReport(in: [round])
-      let correctIDs = orderedIDs.filter { id in
-        correctSubmissions.contains(where: { $0.playerID == id })
-      }
-
-      ForEach(correctIDs, id: \.self) { playerID in
-        let name = model.playerName(for: playerID, in: [round]) ?? "Player"
-        HStack {
-          if winners.contains(playerID) {
-            Text("🏆")
-          }
-          Text(name)
-          if shouldShowScores {
-            Spacer()
-            Text("\(model.playerScore(for: playerID))")
-              .foregroundStyle(.secondary)
-          }
+    ForEach(orderedIDs, id: \.self) { playerID in
+      let name = model.playerName(for: playerID, in: [round]) ?? "Player"
+      let submission = round.submissions.first { $0.playerID == playerID }
+      let guessWord = submission?.guessWord?.uppercased()
+      HStack(spacing: 12) {
+        if let submission, let marks = submission.marks {
+          MarksView(
+            marks: marks,
+            letters: submission.guessWord?.map { String($0) },
+            size: 28
+          )
+        } else {
+          Text("—")
+            .foregroundStyle(.secondary)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityIdentifier("game-over-player-\(accessibilitySafePlayerName(name))")
-        .accessibilityLabel(winners.contains(playerID) ? "Winner \(name)" : "Correct \(name)")
+
+        if winners.contains(playerID) {
+          Text("🏆")
+        }
+
+        Text(name)
+        Spacer()
+        Text("\(model.playerScore(for: playerID))")
+          .foregroundStyle(.secondary)
       }
+      .accessibilityElement(children: .ignore)
+      .accessibilityIdentifier("game-over-player-\(accessibilitySafePlayerName(name))")
+      .accessibilityLabel(winners.contains(playerID) ? "Winner \(name)" : "Player \(name)")
+      .accessibilityValue(guessWord ?? "")
+      .background(
+        Color.clear
+          .accessibilityElement()
+          .accessibilityIdentifier("game-over-player-id-\(playerID)")
+      )
     }
   }
 
@@ -142,14 +138,11 @@ extension GameRoomView {
   }
 
   @ViewBuilder
-  private func goalTiles(for goalWord: String) -> some View {
-    let letters = goalWord.map { String($0) }
-    let marks = Array(repeating: "🟩", count: letters.count)
-    MarksView(marks: marks, letters: letters, size: 36)
-  }
-
-  @ViewBuilder
   private func playerRoundSection(for round: RoundPayload, playerID: String, name: String) -> some View {
+    let revealAll = model.game.status == "completed"
+    let isLocal = playerID == model.localPlayerID
+    let submission = round.submissions.first { $0.playerID == playerID }
+    let guessWord = (revealAll || isLocal) ? submission?.guessWord?.uppercased() : nil
     VStack(alignment: .leading) {
       roundReportContent(for: round, playerID: playerID)
     }
@@ -159,6 +152,7 @@ extension GameRoomView {
         .accessibilityElement()
         .accessibilityIdentifier("player-round-row-\(round.number)-\(playerID)")
         .accessibilityLabel("Player round row \(name)")
+        .accessibilityValue(guessWord ?? "")
     )
   }
 
@@ -317,10 +311,11 @@ extension GameRoomView {
   @ViewBuilder
   private func completedSubmissionContent(for submission: RoundSubmission) -> some View {
     let isLocal = submission.playerID == model.localPlayerID
+    let revealAll = model.game.status == "completed"
     if let marks = submission.marks {
       MarksView(
         marks: marks,
-        letters: isLocal ? submission.guessWord?.map { String($0) } : nil,
+        letters: (revealAll || isLocal) ? submission.guessWord?.map { String($0) } : nil,
         size: 36
       )
     }

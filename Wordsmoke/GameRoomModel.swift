@@ -64,6 +64,9 @@ extension GameRoomModel {
     do {
       let updatedGame = try await apiClient.fetchGame(id: game.id, logStrategy: logStrategy)
       game = updatedGame
+      if game.status == "completed" {
+        completedRounds = []
+      }
       let currentRoundID = game.currentRoundID
       let roundSummaries = game.rounds ?? []
       try await updateCompletedRounds(from: roundSummaries, logStrategy: logStrategy)
@@ -372,13 +375,22 @@ extension GameRoomModel {
     guard !closedRoundIDs.isEmpty else { return }
 
     var fetchedRounds = completedRounds
-    for roundID in closedRoundIDs where fetchedRounds.first(where: { $0.id == roundID }) == nil {
+    let shouldRefreshAll = game.status == "completed"
+    for roundID in closedRoundIDs {
+      if !shouldRefreshAll, fetchedRounds.first(where: { $0.id == roundID }) != nil {
+        continue
+      }
       let response = try await apiClient.fetchRound(
         gameID: game.id,
         roundID: roundID,
-        logStrategy: logStrategy
+        logStrategy: logStrategy,
+        forceRefresh: shouldRefreshAll
       )
-      fetchedRounds.append(response.round)
+      if let index = fetchedRounds.firstIndex(where: { $0.id == roundID }) {
+        fetchedRounds[index] = response.round
+      } else {
+        fetchedRounds.append(response.round)
+      }
     }
     completedRounds = fetchedRounds.sorted { $0.number < $1.number }
   }

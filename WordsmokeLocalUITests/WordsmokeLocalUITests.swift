@@ -52,17 +52,27 @@ final class WordsmokeLocalUITests: XCTestCase {
 
     let localPlayerID = try requireLocalPlayerID(from: roundOneState)
     let virtualPlayerIDs = roundOneState.participants.filter { $0.virtual }.map { $0.id }
+    let participantNames = roundOneState.participants.reduce(into: [String: String]()) { result, participant in
+      result[participant.id] = participant.displayName
+    }
+    var expectedGuessesByRound: [Int: [String: String]] = [:]
 
     try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "test")
+    expectedGuessesByRound[1] = [
+      localPlayerID: wordsRoundOne.randomGuessWord.uppercased()
+    ]
 
     for playerID in virtualPlayerIDs {
-      _ = try await admin.createSubmission(
+      let response = try await admin.createSubmission(
         gameID: game.id,
         roundID: roundOneID,
         playerID: playerID,
         auto: true,
         excludeGoal: true
       )
+      if let guessWord = response.submission?.guessWord {
+        expectedGuessesByRound[1, default: [:]][playerID] = guessWord.uppercased()
+      }
     }
 
     let roundOneVoting = try await admin.waitForRoundStatus(gameID: game.id, status: "voting", timeout: 20)
@@ -91,15 +101,21 @@ final class WordsmokeLocalUITests: XCTestCase {
     let goalWord = wordsRoundTwo.goalWord
 
     try submitGuess(word: goalWord, phrasePrefix: "winner with")
+    expectedGuessesByRound[2] = [
+      localPlayerID: goalWord.uppercased()
+    ]
 
     for playerID in virtualPlayerIDs {
-      _ = try await admin.createSubmission(
+      let response = try await admin.createSubmission(
         gameID: game.id,
         roundID: roundTwoID,
         playerID: playerID,
         auto: true,
         excludeGoal: true
       )
+      if let guessWord = response.submission?.guessWord {
+        expectedGuessesByRound[2, default: [:]][playerID] = guessWord.uppercased()
+      }
     }
 
     let roundTwoVoting = try await admin.waitForRoundStatus(gameID: game.id, status: "voting", timeout: 20)
@@ -108,6 +124,13 @@ final class WordsmokeLocalUITests: XCTestCase {
       .filter { $0.playerId != localPlayerID }
       .map { $0.id }
     XCTAssertGreaterThanOrEqual(otherSubmissionIDsRoundTwo.count, 2)
+
+    let roundTwoStateForGuesses = try await admin.fetchState(gameID: game.id)
+    let expectedGuesses = roundTwoStateForGuesses.submissions.reduce(into: [String: String]()) { result, submission in
+      if let guessWord = submission.guessWord {
+        result[submission.playerName] = guessWord.uppercased()
+      }
+    }
 
     try submitVotes(favoriteID: otherSubmissionIDsRoundTwo[0], leastID: otherSubmissionIDsRoundTwo[1])
 
@@ -126,12 +149,19 @@ final class WordsmokeLocalUITests: XCTestCase {
     let gameOverSection = app.staticTexts["game-over-section"]
     XCTAssertTrue(scrollToElement(gameOverSection, timeout: 20))
 
-      let goalWordElement = app.otherElements[goalWord.uppercased()]
-    XCTAssertTrue(scrollToElement(goalWordElement, timeout: 20))
-
-    let winnerIdentifier = "game-over-player-\(Self.accessibilitySafePlayerName(localPlayerName))"
+    let winnerIdentifier = "game-over-player-id-\(localPlayerID)"
     let winnerRow = app.otherElements[winnerIdentifier]
     XCTAssertTrue(scrollToElement(winnerRow, timeout: 20))
+
+    for (roundNumber, guesses) in expectedGuessesByRound {
+      for (playerID, guessWord) in guesses {
+        let identifier = "player-round-row-\(roundNumber)-\(playerID)"
+        let row = app.otherElements[identifier]
+        XCTAssertTrue(scrollToElement(row, timeout: 20))
+        let didMatch = await waitForValue(row, equals: guessWord, timeout: 10)
+        XCTAssertTrue(didMatch)
+      }
+    }
   }
 
   private func submitGuess(word: String, phrasePrefix: String) throws {
