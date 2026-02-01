@@ -6,6 +6,7 @@ struct GameRoomView: View {
   let analytics: AnalyticsService
   @Environment(\.appTheme) var theme
   @Environment(\.debugEnabled) var showDebug
+  @Environment(\.scenePhase) private var scenePhase
   @State private var onboardingIndex = 0
   @State private var onboardingIsActive = false
   @State private var onboardingVisibleTargets = Set<OnboardingTarget>()
@@ -117,7 +118,9 @@ struct GameRoomView: View {
           }
         }
         .onAppear {
-          model.startPolling()
+          if scenePhase == .active {
+            model.startPolling()
+          }
           startOnboardingIfNeeded()
           if model.game.status == "completed", model.round == nil {
             Task { @MainActor in
@@ -129,6 +132,13 @@ struct GameRoomView: View {
         }
         .onDisappear {
           model.stopPolling()
+        }
+        .onChange(of: scenePhase) { _, newValue in
+          if newValue == .active {
+            model.startPolling()
+          } else {
+            model.stopPolling()
+          }
         }
         .onChange(of: model.game.status) { _, newValue in
           guard newValue == "completed", model.round == nil else { return }

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RootView: View {
   @Bindable var model: AppModel
+  @Environment(\.scenePhase) private var scenePhase
   @AppStorage("theme.selection") private var themeSelectionRaw = ThemeSelection.system.rawValue
   @AppStorage(AppEnvironment.useDevelopmentKey) private var useDevelopment =
     AppEnvironment.defaultServerEnvironment == .development
@@ -19,6 +20,15 @@ struct RootView: View {
   private var serverStatusText: String {
     let label = useDevelopment ? "dev" : "prod"
     return "Connected to \(label) server"
+  }
+
+  private func updateLobbyPolling(for scenePhase: ScenePhase) {
+    let isOnRootScreen = model.navigationPath.count == 0
+    if scenePhase == .active, model.session != nil, isOnRootScreen {
+      model.startLobbyPolling()
+    } else {
+      model.stopLobbyPolling()
+    }
   }
 
   var body: some View {
@@ -136,7 +146,7 @@ struct RootView: View {
       .environment(\.debugEnabled, showDebug)
       .task {
         await model.start()
-        model.startLobbyPolling()
+        updateLobbyPolling(for: scenePhase)
       }
       .onDisappear {
         model.stopLobbyPolling()
@@ -149,10 +159,16 @@ struct RootView: View {
           Task {
             await model.loadGames()
           }
-          model.startLobbyPolling()
+          updateLobbyPolling(for: scenePhase)
         } else {
           model.stopLobbyPolling()
         }
+      }
+      .onChange(of: model.navigationPath.count) { _, _ in
+        updateLobbyPolling(for: scenePhase)
+      }
+      .onChange(of: scenePhase) { _, newValue in
+        updateLobbyPolling(for: newValue)
       }
       .onChange(of: useDevelopment) { _, _ in
         model.updateBaseURLIfNeeded()
