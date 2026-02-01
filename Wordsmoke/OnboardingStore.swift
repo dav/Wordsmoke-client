@@ -22,8 +22,13 @@ final class OnboardingStore {
 
   init(userDefaults: UserDefaults = .standard) {
     self.userDefaults = userDefaults
-    hasCompleted = userDefaults.bool(forKey: hasCompletedKey)
-    pendingStart = userDefaults.bool(forKey: pendingStartKey)
+    let completed = userDefaults.bool(forKey: hasCompletedKey)
+    hasCompleted = completed
+    if let storedValue = userDefaults.object(forKey: pendingStartKey) as? Bool {
+      pendingStart = storedValue
+    } else {
+      pendingStart = !completed
+    }
   }
 
   var shouldStart: Bool {

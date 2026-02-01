@@ -12,6 +12,20 @@ struct SettingsView: View {
     ThemeSelection(rawValue: themeSelectionRaw) ?? .system
   }
 
+  private var onboardingToggleBinding: Binding<Bool> {
+    Binding(
+      get: { onboarding.pendingStart },
+      set: { newValue in
+        if newValue {
+          onboarding.requestStart()
+          analytics.track(.onboardingRerunRequested, properties: ["source": "settings"])
+        } else {
+          onboarding.markCompleted()
+        }
+      }
+    )
+  }
+
   var body: some View {
     let selectionBinding = Binding<ThemeSelection>(
       get: { ThemeSelection(rawValue: themeSelectionRaw) ?? .system },
@@ -39,19 +53,20 @@ struct SettingsView: View {
         }
 
         SwiftUI.Section {
-          Button("Run Introduction Flow") {
-            onboarding.requestStart()
-            analytics.track(.onboardingRerunRequested, properties: ["source": "settings"])
+          Toggle(isOn: onboardingToggleBinding) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Introduction Flow")
+                .font(.callout.weight(.semibold))
+              Text("Run the guided tutorial when you enter a game.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
           }
-          .accessibilityIdentifier("onboarding-run-button")
-
-          Text(onboarding.hasCompleted ? "Introduction completed." : "Introduction will run the next time you enter a game.")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+          .accessibilityIdentifier("onboarding-toggle")
         } header: {
           Text("Onboarding")
         } footer: {
-          Text("Reset the introduction tour so you can replay it later.")
+          Text("Turn this on to rerun the introduction when entering a game.")
         }
 
           SwiftUI.Section {
