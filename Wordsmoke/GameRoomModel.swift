@@ -101,8 +101,14 @@ extension GameRoomModel {
 
   func submitVotes() async {
     guard let roundID = game.currentRoundID else { return }
-    guard let favoriteID = selectedFavoriteID, let leastID = selectedLeastID else { return }
-    guard favoriteID != leastID else { return }
+    guard let favoriteID = selectedFavoriteID, let leastID = selectedLeastID else {
+      errorMessage = "Select a favorite and a least favorite phrase."
+      return
+    }
+    guard favoriteID != leastID else {
+      errorMessage = "Favorite and least favorite must be different."
+      return
+    }
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }

@@ -16,6 +16,7 @@ extension GameRoomView {
       .autocorrectionDisabled()
       .textContentType(.oneTimeCode)
       .accessibilityIdentifier("guess-word-field")
+      .onboardingTarget(.guessWordField)
       .onChange(of: model.guessWord) { _, _ in
         Task {
           await model.validateGuessWord()
@@ -24,6 +25,7 @@ extension GameRoomView {
     TextField("Phrase", text: $model.phrase)
       .textInputAutocapitalization(.sentences)
       .accessibilityIdentifier("phrase-field")
+      .onboardingTarget(.phraseField)
       .onChange(of: model.phrase) { _, _ in
         model.validatePhrase()
       }
@@ -38,6 +40,7 @@ extension GameRoomView {
     .buttonStyle(.borderedProminent)
     .disabled(model.isBusy || !model.isGuessValid || !model.isPhraseValid)
     .accessibilityIdentifier("submit-guess-button")
+    .onboardingTarget(.submitGuessButton)
 
     if let errorMessage = model.errorMessage {
       Text(errorMessage)
@@ -213,35 +216,68 @@ extension GameRoomView {
 
     Text("Other players’ phrases")
       .font(.headline)
-    ForEach(model.otherSubmissions(in: round)) { submission in
+    let submissions = model.otherSubmissions(in: round)
+    let firstSubmissionID = submissions.first?.id
+    ForEach(submissions) { submission in
+      let isFirst = submission.id == firstSubmissionID
       VStack(alignment: .leading, spacing: 8) {
         if let phrase = submission.phrase {
           Text(phrase)
         }
         HStack(spacing: 12) {
-          Button(
-            "",
-            systemImage: model.selectedFavoriteID == submission.id
-              ? "hand.thumbsup.fill"
-              : "hand.thumbsup"
-          ) {
-            model.toggleFavorite(for: submission)
+          if isFirst {
+            Button(
+              "",
+              systemImage: model.selectedFavoriteID == submission.id
+                ? "hand.thumbsup.fill"
+                : "hand.thumbsup"
+            ) {
+              model.toggleFavorite(for: submission)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel("Favorite phrase")
+            .accessibilityIdentifier("vote-favorite-\(submission.id)")
+            .onboardingTarget(.favoriteVoteButton)
+          } else {
+            Button(
+              "",
+              systemImage: model.selectedFavoriteID == submission.id
+                ? "hand.thumbsup.fill"
+                : "hand.thumbsup"
+            ) {
+              model.toggleFavorite(for: submission)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel("Favorite phrase")
+            .accessibilityIdentifier("vote-favorite-\(submission.id)")
           }
-          .buttonStyle(.bordered)
-          .accessibilityLabel("Favorite phrase")
-          .accessibilityIdentifier("vote-favorite-\(submission.id)")
 
-          Button(
-            "",
-            systemImage: model.selectedLeastID == submission.id
-              ? "hand.thumbsdown.fill"
-              : "hand.thumbsdown"
-          ) {
-            model.toggleLeast(for: submission)
+          if isFirst {
+            Button(
+              "",
+              systemImage: model.selectedLeastID == submission.id
+                ? "hand.thumbsdown.fill"
+                : "hand.thumbsdown"
+            ) {
+              model.toggleLeast(for: submission)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel("Least favorite phrase")
+            .accessibilityIdentifier("vote-least-\(submission.id)")
+            .onboardingTarget(.leastVoteButton)
+          } else {
+            Button(
+              "",
+              systemImage: model.selectedLeastID == submission.id
+                ? "hand.thumbsdown.fill"
+                : "hand.thumbsdown"
+            ) {
+              model.toggleLeast(for: submission)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel("Least favorite phrase")
+            .accessibilityIdentifier("vote-least-\(submission.id)")
           }
-          .buttonStyle(.bordered)
-          .accessibilityLabel("Least favorite phrase")
-          .accessibilityIdentifier("vote-least-\(submission.id)")
 
           if showDebug,
              submission.playerVirtual ?? model.isVirtualPlayer(submission.playerID),
@@ -269,6 +305,7 @@ extension GameRoomView {
     .buttonStyle(.borderedProminent)
     .disabled(!model.canSubmitVotes() || model.isBusy)
     .accessibilityIdentifier("submit-votes-button")
+    .onboardingTarget(.submitVotesButton)
   }
 
   @ViewBuilder

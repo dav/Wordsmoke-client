@@ -4,6 +4,8 @@ struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @Binding var themeSelectionRaw: String
   @Binding var serverEnvironmentRaw: String
+  @Bindable var onboarding: OnboardingStore
+  let analytics: AnalyticsService
   @AppStorage("debug.enabled") private var showDebug = false
 
   private var selection: ThemeSelection {
@@ -37,28 +39,44 @@ struct SettingsView: View {
         }
 
         SwiftUI.Section {
-          SwiftUI.Picker("Server", selection: serverEnvironmentBinding) {
-            ForEach(ServerEnvironment.allCases) { environment in
-              VStack(alignment: .leading, spacing: 4) {
-                Text(environment.title)
-                Text(environment.detail)
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-              }
-              .tag(environment)
-            }
+          Button("Run Introduction Flow") {
+            onboarding.requestStart()
+            analytics.track(.onboardingRerunRequested, properties: ["source": "settings"])
           }
-          .pickerStyle(.inline)
-          .accessibilityIdentifier("server-picker")
+          .accessibilityIdentifier("onboarding-run-button")
 
-          Text(AppEnvironment.serverEnvironment(from: serverEnvironmentRaw).baseURL.absoluteString)
+          Text(onboarding.hasCompleted ? "Introduction completed." : "Introduction will run the next time you enter a game.")
             .font(.caption)
             .foregroundStyle(.secondary)
         } header: {
-          Text("Server")
+          Text("Onboarding")
         } footer: {
-          Text("Switching servers signs you out and reloads games.")
+          Text("Reset the introduction tour so you can replay it later.")
         }
+
+          SwiftUI.Section {
+            SwiftUI.Picker("Server", selection: serverEnvironmentBinding) {
+              ForEach(ServerEnvironment.allCases) { environment in
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(environment.title)
+                  Text(environment.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                .tag(environment)
+              }
+            }
+            .pickerStyle(.inline)
+            .accessibilityIdentifier("server-picker")
+
+            Text(AppEnvironment.serverEnvironment(from: serverEnvironmentRaw).baseURL.absoluteString)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          } header: {
+            Text("Server")
+          } footer: {
+            Text("Switching servers signs you out and reloads games.")
+          }
 
         SwiftUI.Section {
           Toggle(isOn: $showDebug) {

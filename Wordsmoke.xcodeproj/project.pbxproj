@@ -20,15 +20,21 @@
 		3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */; };
 		3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFFA6EC0528E362CF64E209D /* InviteSheet.swift */; };
 		4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5944935A35D4EDE774A15C /* APIClient.swift */; };
+		4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */; };
 		46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6E0D99AEACE3C415847FF /* MarksView.swift */; };
+		57179CB80ED5832F0A6F197B /* AmplitudeSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DCCA268A928787D873948531 /* AmplitudeSwift */; };
+		6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4128BA52E3428D244575448C /* OnboardingStore.swift */; };
 		6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */; };
+		7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5EE51A948C47A4B233495E /* OnboardingModels.swift */; };
 		88E55F4F66D839892678D95E /* WordleFeedbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */; };
+		91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15CF1284B4330AC01A425C64 /* AnalyticsService.swift */; };
 		990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F10D9B3B967F68F1C71A4EB /* APIModels.swift */; };
 		992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4878A06FDDA991B74D275E35 /* AppEnvironment.swift */; };
 		9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6552EA626DE57F91C1ADB24 /* AppRoute.swift */; };
 		9E24AE866B79A935B8FC9C86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 173209AFEBBDE6466400BA6A /* Assets.xcassets */; };
 		A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */; };
 		A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */; };
+		C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */; };
 		CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6884B6216C35B5F2CD87500 /* RootSubviews.swift */; };
 		E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489F85041C711924670A1610 /* GameRoomModel.swift */; };
 		F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E692155893C5379625E35 /* RootView.swift */; };
@@ -61,10 +67,13 @@
 
 /* Begin PBXFileReference section */
 		06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterAuthView.swift; sourceTree = "<group>"; };
+		15CF1284B4330AC01A425C64 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		173209AFEBBDE6466400BA6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
 		3F10D9B3B967F68F1C71A4EB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
+		4128BA52E3428D244575448C /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
 		4878A06FDDA991B74D275E35 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		489F85041C711924670A1610 /* GameRoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomModel.swift; sourceTree = "<group>"; };
 		4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakerView.swift; sourceTree = "<group>"; };
@@ -81,9 +90,11 @@
 		B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomView.swift; sourceTree = "<group>"; };
 		BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C6552EA626DE57F91C1ADB24 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingOverlay.swift; sourceTree = "<group>"; };
 		D0B6E0D99AEACE3C415847FF /* MarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarksView.swift; sourceTree = "<group>"; };
 		D2268AC85CFB211AA5943BC4 /* Wordsmoke.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Wordsmoke.entitlements; sourceTree = "<group>"; };
 		D5172F0844CBC8E960B066C4 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
+		DB5EE51A948C47A4B233495E /* OnboardingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingModels.swift; sourceTree = "<group>"; };
 		DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedback.swift; sourceTree = "<group>"; };
 		DB7E692155893C5379625E35 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		E18EECCF935B314EB7072740 /* WordsmokeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,6 +104,17 @@
 		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFFA6EC0528E362CF64E209D /* InviteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		77D4075EBF2AE98E7038DBAC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				57179CB80ED5832F0A6F197B /* AmplitudeSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		3B4B724B4E59D538C7F7F4DC /* WordsmokeTests */ = {
@@ -136,6 +158,8 @@
 		9EF0DD21729CA587BCDD4145 /* Wordsmoke */ = {
 			isa = PBXGroup;
 			children = (
+				3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */,
+				15CF1284B4330AC01A425C64 /* AnalyticsService.swift */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
 				26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */,
 				3F10D9B3B967F68F1C71A4EB /* APIModels.swift */,
@@ -153,6 +177,9 @@
 				FFFA6EC0528E362CF64E209D /* InviteSheet.swift */,
 				D0B6E0D99AEACE3C415847FF /* MarksView.swift */,
 				4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */,
+				DB5EE51A948C47A4B233495E /* OnboardingModels.swift */,
+				CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */,
+				4128BA52E3428D244575448C /* OnboardingStore.swift */,
 				E6884B6216C35B5F2CD87500 /* RootSubviews.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
 				6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */,
@@ -218,6 +245,7 @@
 			buildPhases = (
 				4D3121F84CA6F10967AAF055 /* Sources */,
 				DA6EF2746D81177992D20A1F /* Resources */,
+				77D4075EBF2AE98E7038DBAC /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -225,6 +253,7 @@
 			);
 			name = Wordsmoke;
 			packageProductDependencies = (
+				DCCA268A928787D873948531 /* AmplitudeSwift */,
 			);
 			productName = Wordsmoke;
 			productReference = 9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */;
@@ -283,6 +312,9 @@
 			);
 			mainGroup = 8476BED03AB2AAA56F314A4B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
@@ -331,6 +363,8 @@
 				A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */,
 				4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */,
 				990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */,
+				4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */,
+				91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */,
 				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,
@@ -343,6 +377,9 @@
 				3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */,
 				46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */,
 				201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */,
+				7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */,
+				C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */,
+				6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */,
 				CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
 				3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */,
@@ -693,6 +730,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amplitude/Amplitude-Swift";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DCCA268A928787D873948531 /* AmplitudeSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */;
+			productName = AmplitudeSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8D1E79912D3D074F18DA7C0D /* Project object */;
 }

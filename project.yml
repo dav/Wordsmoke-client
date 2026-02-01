@@ -9,7 +9,10 @@ settings:
   ENABLE_USER_SCRIPT_SANDBOXING: YES
   ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
   SWIFT_GENERATE_STRINGS_FILE: YES
-packages: {}
+packages:
+  Amplitude-Swift:
+    url: https://github.com/amplitude/Amplitude-Swift
+    branch: main
 targets:
   Wordsmoke:
     type: application
@@ -38,6 +41,9 @@ targets:
       testTargets:
         - WordsmokeTests
         - WordsmokeUITests
+    dependencies:
+      - package: Amplitude-Swift
+        product: AmplitudeSwift
   WordsmokeTests:
     type: bundle.unit-test
     platform: iOS

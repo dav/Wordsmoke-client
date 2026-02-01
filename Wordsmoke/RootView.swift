@@ -8,6 +8,7 @@ struct RootView: View {
     AppEnvironment.defaultServerEnvironment.rawValue
   @AppStorage("debug.enabled") private var showDebug = false
   @State private var showingSettings = false
+  @State private var onboardingStore = OnboardingStore()
 
   private var theme: AppTheme {
     ThemeSelection(rawValue: themeSelectionRaw)?.theme ?? .system
@@ -173,14 +174,16 @@ struct RootView: View {
       .sheet(isPresented: $showingSettings) {
         SettingsView(
           themeSelectionRaw: $themeSelectionRaw,
-          serverEnvironmentRaw: $serverEnvironmentRaw
+          serverEnvironmentRaw: $serverEnvironmentRaw,
+          onboarding: onboardingStore,
+          analytics: model.analytics
         )
       }
       .navigationDestination(for: AppRoute.self) { route in
         switch route {
         case .game:
           if let gameRoomModel = model.gameRoomModel {
-            GameRoomView(model: gameRoomModel)
+            GameRoomView(model: gameRoomModel, onboarding: onboardingStore, analytics: model.analytics)
           } else {
             Text("Game unavailable")
           }

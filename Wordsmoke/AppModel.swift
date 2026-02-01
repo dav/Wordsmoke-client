@@ -7,6 +7,7 @@ import SwiftUI
 final class AppModel {
   var gameCenter = GameCenterService()
   var apiClient = APIClient(baseURL: AppEnvironment.baseURL)
+  let analytics = AnalyticsService()
   var session: SessionResponse?
   var currentGame: GameResponse?
   var games: [GameResponse] = []
