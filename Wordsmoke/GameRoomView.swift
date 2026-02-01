@@ -145,7 +145,14 @@ struct GameRoomView: View {
           if let step = onboardingSteps.first(where: { $0.id == stepID }) {
             analytics.track(.onboardingStepViewed, properties: analyticsProperties(for: step))
             lastTrackedStepID = stepID
+            if let target = step.target {
+              scrollToOnboardingTarget(target, proxy: proxy)
+            }
           }
+        }
+        .onChange(of: onboardingVisibleTargets) { _, _ in
+          guard onboardingIsActive, let target = currentOnboardingStep?.target else { return }
+          scrollToOnboardingTarget(target, proxy: proxy)
         }
       }
       .overlayPreferenceValue(OnboardingTargetPreferenceKey.self) { anchors in
@@ -295,6 +302,17 @@ struct GameRoomView: View {
   private func analyticsProperties(for step: OnboardingStep) -> [String: Any] {
     step.analyticsProperties.merging(onboardingContextProperties) { current, _ in
       current
+    }
+  }
+
+  private func scrollToOnboardingTarget(_ target: OnboardingTarget, proxy: ScrollViewProxy) {
+    Task { @MainActor in
+      for _ in 0..<3 {
+        withAnimation {
+          proxy.scrollTo(target, anchor: .center)
+        }
+        try? await Task.sleep(for: .milliseconds(150))
+      }
     }
   }
 }

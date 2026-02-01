@@ -17,6 +17,7 @@ extension GameRoomView {
       .textContentType(.oneTimeCode)
       .accessibilityIdentifier("guess-word-field")
       .onboardingTarget(.guessWordField)
+      .id(OnboardingTarget.guessWordField)
       .onChange(of: model.guessWord) { _, _ in
         Task {
           await model.validateGuessWord()
@@ -26,6 +27,7 @@ extension GameRoomView {
       .textInputAutocapitalization(.sentences)
       .accessibilityIdentifier("phrase-field")
       .onboardingTarget(.phraseField)
+      .id(OnboardingTarget.phraseField)
       .onChange(of: model.phrase) { _, _ in
         model.validatePhrase()
       }
@@ -41,6 +43,7 @@ extension GameRoomView {
     .disabled(model.isBusy || !model.isGuessValid || !model.isPhraseValid)
     .accessibilityIdentifier("submit-guess-button")
     .onboardingTarget(.submitGuessButton)
+    .id(OnboardingTarget.submitGuessButton)
 
     if let errorMessage = model.errorMessage {
       Text(errorMessage)
@@ -238,6 +241,7 @@ extension GameRoomView {
             .accessibilityLabel("Favorite phrase")
             .accessibilityIdentifier("vote-favorite-\(submission.id)")
             .onboardingTarget(.favoriteVoteButton)
+            .id(OnboardingTarget.favoriteVoteButton)
           } else {
             Button(
               "",
@@ -265,6 +269,7 @@ extension GameRoomView {
             .accessibilityLabel("Least favorite phrase")
             .accessibilityIdentifier("vote-least-\(submission.id)")
             .onboardingTarget(.leastVoteButton)
+            .id(OnboardingTarget.leastVoteButton)
           } else {
             Button(
               "",
@@ -306,6 +311,7 @@ extension GameRoomView {
     .disabled(!model.canSubmitVotes() || model.isBusy)
     .accessibilityIdentifier("submit-votes-button")
     .onboardingTarget(.submitVotesButton)
+    .id(OnboardingTarget.submitVotesButton)
   }
 
   @ViewBuilder
