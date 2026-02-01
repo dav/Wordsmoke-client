@@ -77,41 +77,43 @@ struct SettingsView: View {
           Text("Turn this on to rerun the introduction when entering a game.")
         }
 
-        SwiftUI.Section {
-          Toggle(isOn: $useDevelopment) {
-            VStack(alignment: .leading, spacing: 4) {
-              Text("Developer server")
-                .font(.callout.weight(.semibold))
-              Text("Use a custom development URL.")
+        if AppEnvironment.allowsDeveloperSettings {
+          SwiftUI.Section {
+            Toggle(isOn: $useDevelopment) {
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Developer server")
+                  .font(.callout.weight(.semibold))
+                Text("Use a custom development URL.")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+            }
+            .accessibilityIdentifier("developer-server-toggle")
+
+            if useDevelopment {
+              TextField("Development URL", text: developerURLText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+                .accessibilityIdentifier("developer-server-url-field")
+              Text(developmentURLRaw)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
-          }
-          .accessibilityIdentifier("developer-server-toggle")
 
-          if useDevelopment {
-            TextField("Development URL", text: developerURLText)
-              .textInputAutocapitalization(.never)
-              .autocorrectionDisabled()
-              .keyboardType(.URL)
-              .accessibilityIdentifier("developer-server-url-field")
-            Text(developmentURLRaw)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-
-          Toggle(isOn: $showDebug) {
-            VStack(alignment: .leading, spacing: 4) {
-              Text("Debug mode")
-                .font(.callout.weight(.semibold))
-              Text("Show debug UI")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Toggle(isOn: $showDebug) {
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Debug mode")
+                  .font(.callout.weight(.semibold))
+                Text("Show debug UI")
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
             }
+            .accessibilityIdentifier("debug-toggle")
+          } header: {
+            Text("Developer")
           }
-          .accessibilityIdentifier("debug-toggle")
-        } header: {
-          Text("Developer")
         }
       }
       .navigationTitle("Settings")

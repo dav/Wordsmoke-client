@@ -49,11 +49,23 @@ enum AppEnvironment {
     #endif
   }
 
+  static var allowsDeveloperSettings: Bool {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+  }
+
   static var useDevelopment: Bool {
+    #if DEBUG
     if let stored = UserDefaults.standard.object(forKey: useDevelopmentKey) as? Bool {
       return stored
     }
     return defaultServerEnvironment == .development
+    #else
+    return false
+    #endif
   }
 
   static var developmentURL: URL {
@@ -65,11 +77,15 @@ enum AppEnvironment {
   }
 
   static var baseURL: URL {
+    #if DEBUG
     if let override = ProcessInfo.processInfo.environment[baseURLOverrideKey],
        let url = URL(string: override) {
       return url
     }
     return useDevelopment ? developmentURL : ServerEnvironment.production.baseURL
+    #else
+    return ServerEnvironment.production.baseURL
+    #endif
   }
 
   static var isUITest: Bool {
