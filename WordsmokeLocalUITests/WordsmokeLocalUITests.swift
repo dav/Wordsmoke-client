@@ -143,9 +143,6 @@ final class WordsmokeLocalUITests: XCTestCase {
       )
     }
 
-//    let goalTiles = app.otherElements["game-over-goal-word"]
-//    XCTAssertTrue(scrollToElement(goalTiles, timeout: 20))
-
     let gameOverSection = app.staticTexts["game-over-section"]
     XCTAssertTrue(scrollToElement(gameOverSection, timeout: 20))
 
