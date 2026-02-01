@@ -180,7 +180,7 @@ struct GameRoomView: View {
       OnboardingStep(
         id: .phrase,
         title: "Write a phrase",
-        message: "Create a phrase that includes every letter from your guess.",
+        message: "Create a phrase that includes every letter from your guess. For example if you guessed POISE, a valid phrase could be \"Antiseptic Koalas.\"",
         target: .phraseField,
         primaryActionTitle: "Next",
         requiresTarget: true
@@ -196,7 +196,7 @@ struct GameRoomView: View {
       OnboardingStep(
         id: .favoriteVote,
         title: "Pick a favorite",
-        message: "Vote for the most clever phrase from another player.",
+        message: "Vote for your favorite phrase from another player (whatever that means to you). Voting is used for tie breakers.",
         target: .favoriteVoteButton,
         primaryActionTitle: "Next",
         requiresTarget: true
@@ -204,7 +204,7 @@ struct GameRoomView: View {
       OnboardingStep(
         id: .leastVote,
         title: "Pick a least favorite",
-        message: "Vote for the phrase you liked least. You can't vote for your own.",
+        message: "Vote for the phrase you liked least.",
         target: .leastVoteButton,
         primaryActionTitle: "Next",
         requiresTarget: true

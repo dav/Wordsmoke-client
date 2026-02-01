@@ -13,13 +13,27 @@ struct OnboardingOverlay: View {
       let targetFrame = step.target.flatMap { target in
         anchors[target].map { proxy[$0] }
       }
+      let showAboveTarget = targetFrame.map { $0.midY > proxy.size.height * 0.6 } ?? false
 
       if step.requiresTarget && targetFrame == nil {
         EmptyView()
       } else {
         ZStack {
-          Color.black.opacity(0.55)
-            .ignoresSafeArea()
+          ZStack {
+            Color.black.opacity(0.55)
+              .ignoresSafeArea()
+
+            if let targetFrame {
+              RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+                .frame(
+                  width: targetFrame.width + theme.cellPadding,
+                  height: targetFrame.height + theme.cellPadding
+                )
+                .position(x: targetFrame.midX, y: targetFrame.midY)
+                .blendMode(.destinationOut)
+            }
+          }
+          .compositingGroup()
 
           if let targetFrame {
             RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
@@ -32,9 +46,15 @@ struct OnboardingOverlay: View {
           }
 
           VStack {
-            Spacer()
-            OnboardingCard(step: step, onNext: onNext, onSkip: onSkip)
-              .padding(theme.cellPadding)
+            if showAboveTarget {
+              OnboardingCard(step: step, onNext: onNext, onSkip: onSkip)
+                .padding(theme.cellPadding)
+              Spacer()
+            } else {
+              Spacer()
+              OnboardingCard(step: step, onNext: onNext, onSkip: onSkip)
+                .padding(theme.cellPadding)
+            }
           }
         }
       }
