@@ -32,6 +32,14 @@ struct GameRoomView: View {
                     .foregroundStyle(.secondary)
                 }
               }
+
+              if participants.count < 2 {
+                Text("Waiting for other players to join")
+                  .font(.callout)
+                  .foregroundStyle(.secondary)
+                  .frame(maxWidth: .infinity, alignment: .center)
+                  .accessibilityIdentifier("waiting-for-players-text")
+              }
             } header: {
               HStack {
                 Text("Players")
