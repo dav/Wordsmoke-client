@@ -40,6 +40,8 @@ final class WordsmokeLocalUITests: XCTestCase {
     XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
     gameCard.tap()
 
+    dismissOnboardingIfPresent()
+
     let startButton = app.buttons["game-room-start-button"]
     XCTAssertTrue(startButton.waitForExistence(timeout: 20))
     startButton.tap()
@@ -133,6 +135,7 @@ final class WordsmokeLocalUITests: XCTestCase {
   }
 
   private func submitGuess(word: String, phrasePrefix: String) throws {
+    dismissOnboardingIfPresent()
     let guessField = app.textFields["guess-word-field"]
     XCTAssertTrue(scrollToElement(guessField, timeout: 20))
     guessField.tap()
@@ -149,6 +152,7 @@ final class WordsmokeLocalUITests: XCTestCase {
   }
 
   private func submitVotes(favoriteID: String, leastID: String) throws {
+    dismissOnboardingIfPresent()
     let favoriteButton = app.buttons["vote-favorite-\(favoriteID)"]
     XCTAssertTrue(scrollToElement(favoriteButton, timeout: 20))
     favoriteButton.tap()
@@ -186,6 +190,13 @@ final class WordsmokeLocalUITests: XCTestCase {
       }
     }
     return element.waitForExistence(timeout: perSwipeTimeout)
+  }
+
+  private func dismissOnboardingIfPresent(timeout: TimeInterval = 2) {
+    let skipButton = app.buttons["Skip Tour"]
+    if skipButton.waitForExistence(timeout: timeout) {
+      skipButton.tap()
+    }
   }
 
   private func waitForValue(
