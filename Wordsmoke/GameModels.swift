@@ -1,6 +1,6 @@
 import Foundation
 
-struct RoundPayload: Decodable, Sendable, Identifiable {
+struct RoundPayload: Decodable, Sendable, Identifiable, Equatable {
   let id: String
   let number: Int
   let status: String
@@ -18,7 +18,7 @@ struct RoundPayload: Decodable, Sendable, Identifiable {
   }
 }
 
-struct RoundResponse: Decodable, Sendable {
+struct RoundResponse: Decodable, Sendable, Equatable {
   let gameID: String
   let round: RoundPayload
 
@@ -28,7 +28,7 @@ struct RoundResponse: Decodable, Sendable {
   }
 }
 
-struct RoundSubmission: Decodable, Identifiable, Sendable {
+struct RoundSubmission: Decodable, Identifiable, Sendable, Equatable {
   let id: String
   let guessWord: String?
   let phrase: String?
@@ -58,7 +58,7 @@ struct RoundSubmission: Decodable, Identifiable, Sendable {
   }
 }
 
-struct SubmissionFeedback: Decodable, Sendable {
+struct SubmissionFeedback: Decodable, Sendable, Equatable {
   let goal: String?
   let guess: String?
   let marks: [String]?

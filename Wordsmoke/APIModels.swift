@@ -1,6 +1,6 @@
 import Foundation
 
-struct SessionResponse: Decodable, Sendable {
+struct SessionResponse: Decodable, Sendable, Equatable {
   let token: String
   let playerID: String
   let accountID: String
@@ -46,7 +46,7 @@ struct SessionPayload: Encodable {
   }
 }
 
-struct GameResponse: Decodable, Sendable {
+struct GameResponse: Decodable, Sendable, Equatable {
   let id: String
   let status: String
   let joinCode: String
@@ -78,11 +78,11 @@ struct GameResponse: Decodable, Sendable {
   }
 }
 
-struct GamesListResponse: Decodable, Sendable {
+struct GamesListResponse: Decodable, Sendable, Equatable {
   let games: [GameResponse]
 }
 
-struct GameRoundSummary: Decodable, Sendable, Identifiable {
+struct GameRoundSummary: Decodable, Sendable, Identifiable, Equatable {
   let id: String
   let number: Int
   let status: String
@@ -100,7 +100,7 @@ struct GameRoundSummary: Decodable, Sendable, Identifiable {
   }
 }
 
-struct GameParticipant: Decodable, Sendable, Identifiable {
+struct GameParticipant: Decodable, Sendable, Identifiable, Equatable {
   let id: String
   let role: String
   let score: Int
@@ -116,7 +116,7 @@ struct GameParticipant: Decodable, Sendable, Identifiable {
   }
 }
 
-struct GameParticipantPlayer: Decodable, Sendable {
+struct GameParticipantPlayer: Decodable, Sendable, Equatable {
   let id: String
   let displayName: String
   let nickname: String?
@@ -132,11 +132,11 @@ struct GameParticipantPlayer: Decodable, Sendable {
   }
 }
 
-struct WordValidationResponse: Decodable, Sendable {
+struct WordValidationResponse: Decodable, Sendable, Equatable {
   let valid: Bool
 }
 
-struct ClientPolicyResponse: Decodable, Sendable {
+struct ClientPolicyResponse: Decodable, Sendable, Equatable {
   let apiVersion: String?
   let clientVersion: String?
   let supportedApiVersions: [String]?

@@ -47,7 +47,7 @@ extension GameRoomModel {
   }
 
   func updateGame(_ game: GameResponse) {
-    self.game = game
+    applyGameIfChanged(game)
   }
 
   func refreshRound(logStrategy: APIClient.LogStrategy = .always, setBusy: Bool = true) async {
@@ -63,17 +63,20 @@ extension GameRoomModel {
 
     do {
       let updatedGame = try await apiClient.fetchGame(id: game.id, logStrategy: logStrategy)
-      game = updatedGame
-      if game.status == "completed" {
-        completedRounds = []
-      }
+      applyGameIfChanged(updatedGame)
+      // Keep completed rounds cached while refreshing to avoid UI flashing.
       let currentRoundID = game.currentRoundID
       let roundSummaries = game.rounds ?? []
       try await updateCompletedRounds(from: roundSummaries, logStrategy: logStrategy)
       try await updateCurrentRound(currentRoundID: currentRoundID, logStrategy: logStrategy)
-      errorMessage = nil
+      if errorMessage != nil {
+        errorMessage = nil
+      }
     } catch {
-      errorMessage = error.localizedDescription
+      let message = error.localizedDescription
+      if errorMessage != message {
+        errorMessage = message
+      }
     }
   }
 
@@ -392,7 +395,10 @@ extension GameRoomModel {
         fetchedRounds.append(response.round)
       }
     }
-    completedRounds = fetchedRounds.sorted { $0.number < $1.number }
+    let sortedRounds = fetchedRounds.sorted { $0.number < $1.number }
+    if sortedRounds != completedRounds {
+      completedRounds = sortedRounds
+    }
   }
 
   private func updateCurrentRound(
@@ -400,7 +406,9 @@ extension GameRoomModel {
     logStrategy: APIClient.LogStrategy
   ) async throws {
     guard let currentRoundID else {
-      round = nil
+      if round != nil {
+        round = nil
+      }
       resetRoundStateIfNeeded(roundID: nil)
       return
     }
@@ -415,11 +423,21 @@ extension GameRoomModel {
         completedRounds.append(response.round)
         completedRounds.sort { $0.number < $1.number }
       }
-      round = nil
+      if round != nil {
+        round = nil
+      }
       resetRoundStateIfNeeded(roundID: nil)
     } else {
-      round = response.round
+      if round != response.round {
+        round = response.round
+      }
       resetRoundStateIfNeeded(roundID: currentRoundID)
+    }
+  }
+
+  private func applyGameIfChanged(_ updatedGame: GameResponse) {
+    if game != updatedGame {
+      game = updatedGame
     }
   }
 }
