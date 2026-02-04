@@ -11,6 +11,7 @@ struct RootView: View {
     AppEnvironment.defaultDevelopmentURL.absoluteString
   @AppStorage("debug.enabled") private var showDebug = false
   @State private var showingSettings = false
+  @State private var showingJoinSheet = false
   @State private var onboardingStore = OnboardingStore()
 
   private var theme: AppTheme {
@@ -56,8 +57,8 @@ struct RootView: View {
           }
         }
 
-        if showDebug {
-          // Debug Status
+        if showDebug || model.connectionErrorMessage != nil || !model.gameCenter.isAuthenticated {
+          // Status
           VStack(alignment: .leading, spacing: 12) {
             Text("Status")
               .font(.headline)
@@ -66,21 +67,30 @@ struct RootView: View {
             Text(serverStatusText)
               .foregroundStyle(theme.textSecondary)
 
+            if model.isBusy {
+              ProgressView()
+            }
+
             if model.gameCenter.isAuthenticated {
               if model.session == nil {
-                Button("Connect to Server") {
-                  Task {
-                    await model.connectToServer()
+                if showDebug {
+                  Button("Connect to Server") {
+                    Task {
+                      await model.connectToServer()
+                    }
                   }
+                  .buttonStyle(.borderedProminent)
+                  .accessibilityIdentifier("connect-server-button")
+                } else if let errorMessage = model.connectionErrorMessage {
+                  Text(errorMessage)
+                    .foregroundStyle(theme.textSecondary)
                 }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("connect-server-button")
               }
             } else {
               Text("Sign in to Game Center to get started.")
             }
 
-            if let session = model.session {
+            if showDebug, let session = model.session {
               SessionSummaryView(session: session)
             }
           }
@@ -106,6 +116,12 @@ struct RootView: View {
             }
             .buttonStyle(AccentPillButtonStyle(theme: theme))
             .accessibilityIdentifier("new-game-button")
+
+            Button("Join Game") {
+              showingJoinSheet = true
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("join-game-button")
           }
         }
 
@@ -180,12 +196,28 @@ struct RootView: View {
         GameCenterAuthView(viewController: item.viewController)
       }
       .sheet(item: $model.inviteSheet) { sheet in
-        MatchmakerView(
+        InviteShareSheetView(
           joinCode: sheet.joinCode,
-          minPlayers: sheet.minPlayers,
-          maxPlayers: sheet.maxPlayers
+          theme: theme
         ) {
           model.dismissInviteSheet()
+        }
+      }
+      .sheet(isPresented: $showingJoinSheet) {
+        JoinGameSheetView(theme: theme, isBusy: model.isBusy) { joinCode in
+          Task {
+            let joined = await model.joinGame(joinCode: joinCode)
+            if joined {
+              showingJoinSheet = false
+            }
+          }
+        } onCancel: {
+          showingJoinSheet = false
+        }
+      }
+      .sheet(item: $model.gameCenter.inviteMatchmakerItem) { item in
+        MatchmakerInviteView(invite: item.invite) {
+          model.gameCenter.inviteMatchmakerItem = nil
         }
       }
       .sheet(isPresented: $showingSettings) {

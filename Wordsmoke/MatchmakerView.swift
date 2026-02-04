@@ -34,6 +34,30 @@ struct MatchmakerView: UIViewControllerRepresentable {
   }
 }
 
+struct MatchmakerInviteView: UIViewControllerRepresentable {
+  let invite: GKInvite
+  let onFinish: () -> Void
+
+  func makeCoordinator() -> MatchmakerCoordinator {
+    MatchmakerCoordinator(onFinish: onFinish)
+  }
+
+  func makeUIViewController(context: Context) -> GKMatchmakerViewController {
+    guard let controller = GKMatchmakerViewController(invite: invite) else {
+      let empty = GKMatchmakerViewController()
+      Task { @MainActor in
+        onFinish()
+      }
+      return empty
+    }
+    controller.matchmakerDelegate = context.coordinator
+    return controller
+  }
+
+  func updateUIViewController(_ uiViewController: GKMatchmakerViewController, context: Context) {
+  }
+}
+
 final class MatchmakerCoordinator: NSObject, @MainActor GKMatchmakerViewControllerDelegate {
   private let onFinish: () -> Void
 

@@ -289,3 +289,104 @@ struct CompletedGamesView: View {
     return "rounds ?"
   }
 }
+
+struct InviteShareSheetView: View {
+  let joinCode: String
+  let theme: AppTheme
+  let onDone: () -> Void
+
+  var body: some View {
+    let shareMessage = "Join my Wordsmoke game with code \(joinCode)."
+    VStack(alignment: .leading, spacing: theme.sectionSpacing) {
+      Text("Invite Players")
+        .font(.title2)
+        .bold()
+        .foregroundStyle(theme.textPrimary)
+
+      VStack(alignment: .leading, spacing: theme.cellPadding) {
+        Text("Join Code")
+          .font(.headline)
+          .foregroundStyle(theme.textSecondary)
+        Text(joinCode)
+          .font(.largeTitle)
+          .bold()
+          .foregroundStyle(theme.textPrimary)
+          .textSelection(.enabled)
+      }
+      .padding(theme.cellPadding)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+          .fill(theme.cardBackground)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+          .stroke(theme.border, lineWidth: theme.borderWidth)
+      )
+
+      Text("Share this code so others can join from the Join Game screen.")
+        .foregroundStyle(theme.textSecondary)
+
+      ShareLink(item: shareMessage) {
+        Label("Share Invite", systemImage: "square.and.arrow.up")
+      }
+      .buttonStyle(.borderedProminent)
+
+      Button("Done") {
+        onDone()
+      }
+      .buttonStyle(.bordered)
+    }
+    .padding()
+    .background(theme.background)
+  }
+}
+
+struct JoinGameSheetView: View {
+  let theme: AppTheme
+  let isBusy: Bool
+  let onJoin: (String) -> Void
+  let onCancel: () -> Void
+  @State private var joinCode = ""
+
+  var body: some View {
+    let cleanedCode = joinCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    let isJoinDisabled = cleanedCode.isEmpty || isBusy
+
+    VStack(alignment: .leading, spacing: theme.sectionSpacing) {
+      Text("Join Game")
+        .font(.title2)
+        .bold()
+        .foregroundStyle(theme.textPrimary)
+
+      Text("Enter the join code you received from the host.")
+        .foregroundStyle(theme.textSecondary)
+
+      TextField("Join code", text: $joinCode)
+        .textInputAutocapitalization(.characters)
+        .autocorrectionDisabled()
+        .padding(theme.cellPadding)
+        .background(
+          RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+            .fill(theme.cardBackground)
+        )
+        .overlay(
+          RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+            .stroke(theme.border, lineWidth: theme.borderWidth)
+        )
+
+      Button("Join") {
+        onJoin(cleanedCode)
+      }
+      .buttonStyle(.borderedProminent)
+      .disabled(isJoinDisabled)
+
+      Button("Cancel") {
+        onCancel()
+      }
+      .buttonStyle(.bordered)
+    }
+    .padding()
+    .background(theme.background)
+  }
+}

@@ -17,19 +17,28 @@ struct AuthViewControllerItem: Identifiable {
   let viewController: UIViewController
 }
 
+struct InviteMatchmakerItem: Identifiable {
+  let id = UUID()
+  let invite: GKInvite
+}
+
 @MainActor
 @Observable
-final class GameCenterService {
+final class GameCenterService: NSObject {
   var authenticationViewControllerItem: AuthViewControllerItem?
+  var inviteMatchmakerItem: InviteMatchmakerItem?
   var isAuthenticated = false
   var playerDisplayName: String?
   var playerID: String?
   var lastErrorDescription: String?
   var lastError: Error?
+  private let inviteListener = GameCenterInviteListener()
+  private var isListenerRegistered = false
 
 #if targetEnvironment(simulator)
   func configure() {
     authenticationViewControllerItem = nil
+    inviteMatchmakerItem = nil
     isAuthenticated = true
     playerDisplayName = "Simulator"
     playerID = "SIMULATOR-LOCAL"
@@ -61,11 +70,13 @@ final class GameCenterService {
       }
 
       authenticationViewControllerItem = nil
+      inviteMatchmakerItem = nil
 
       if let error {
         lastErrorDescription = error.localizedDescription
         lastError = error
         isAuthenticated = false
+        unregisterListenerIfNeeded()
         return
       }
 
@@ -75,6 +86,12 @@ final class GameCenterService {
       playerID = localPlayer.teamPlayerID
       lastErrorDescription = nil
       lastError = nil
+
+      if isAuthenticated {
+        registerListenerIfNeeded()
+      } else {
+        unregisterListenerIfNeeded()
+      }
     }
   }
 
@@ -100,4 +117,34 @@ final class GameCenterService {
     }
   }
 #endif
+
+  func handleInviteAcceptance(_ invite: GKInvite) {
+    inviteMatchmakerItem = InviteMatchmakerItem(invite: invite)
+  }
+
+  private func registerListenerIfNeeded() {
+    guard !isListenerRegistered else { return }
+    inviteListener.onInviteAccepted = { [weak self] invite in
+      Task { @MainActor in
+        self?.handleInviteAcceptance(invite)
+      }
+    }
+    GKLocalPlayer.local.register(inviteListener)
+    isListenerRegistered = true
+  }
+
+  private func unregisterListenerIfNeeded() {
+    guard isListenerRegistered else { return }
+    GKLocalPlayer.local.unregisterListener(inviteListener)
+    inviteListener.onInviteAccepted = nil
+    isListenerRegistered = false
+  }
+}
+
+final class GameCenterInviteListener: NSObject, GKLocalPlayerListener {
+  var onInviteAccepted: ((GKInvite) -> Void)?
+
+  func player(_ player: GKPlayer, didAccept invite: GKInvite) {
+    onInviteAccepted?(invite)
+  }
 }

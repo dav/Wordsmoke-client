@@ -14,10 +14,12 @@ final class AppModel {
   var inviteSheet: InviteSheet?
   var gameRoomModel: GameRoomModel?
   var statusMessage = "Initializing Game Center…"
+  var connectionErrorMessage: String?
   var isBusy = false
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
   private var lobbyPollingTask: Task<Void, Never>?
+  private var connectionRetryTask: Task<Void, Never>?
 
   func start() async {
     gameCenter.configure()
@@ -58,15 +60,17 @@ final class AppModel {
     if gameCenter.isAuthenticated {
       if session != nil {
         statusMessage = "Connected to server."
+        connectionErrorMessage = nil
+        stopConnectionRetry()
       } else {
         statusMessage = "Game Center signed in."
-        Task {
-          await connectToServer()
-        }
+        startConnectionRetry()
       }
     } else {
       if session == nil {
         statusMessage = "Game Center sign-in required."
+        connectionErrorMessage = nil
+        stopConnectionRetry()
       }
     }
   }
@@ -91,15 +95,44 @@ final class AppModel {
       session = response
       apiClient.authToken = response.token
       statusMessage = "Connected to server."
+      connectionErrorMessage = nil
       await loadGames()
     } catch {
       let debugInfo = debugDescription(for: error)
       statusMessage = "Failed to connect: \(debugInfo)"
+      connectionErrorMessage = "Failed to connect to the server. Retrying…"
       print("[GameCenter] Connect failed: \(debugInfo)")
       if let lastError = gameCenter.lastError {
         print("[GameCenter] Last error: \(lastError)")
       }
     }
+  }
+
+  private func startConnectionRetry() {
+    guard connectionRetryTask == nil else { return }
+    connectionRetryTask = Task { [weak self] in
+      guard let self else { return }
+      var delay: Duration = .seconds(2)
+      while !Task.isCancelled {
+        if self.session != nil || !self.gameCenter.isAuthenticated {
+          break
+        }
+        await self.connectToServer()
+        if self.session != nil {
+          break
+        }
+        try? await Task.sleep(for: delay)
+        if delay < .seconds(30) {
+          delay = min(delay * 2, .seconds(30))
+        }
+      }
+      self.connectionRetryTask = nil
+    }
+  }
+
+  private func stopConnectionRetry() {
+    connectionRetryTask?.cancel()
+    connectionRetryTask = nil
   }
 
   func loadGames() async {
@@ -128,10 +161,41 @@ final class AppModel {
       }
       statusMessage = "Game created."
       if !AppEnvironment.isUITest {
-        inviteSheet = InviteSheet(joinCode: game.joinCode, minPlayers: 2, maxPlayers: 4)
+        inviteSheet = InviteSheet(joinCode: game.joinCode)
       }
     } catch {
       statusMessage = "Failed to create game: \(debugDescription(for: error))"
+    }
+  }
+
+  func joinGame(joinCode: String) async -> Bool {
+    guard !isBusy else { return false }
+    let cleanedCode = joinCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !cleanedCode.isEmpty else {
+      statusMessage = "Enter a join code."
+      return false
+    }
+
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let game = try await apiClient.joinGame(joinCode: cleanedCode)
+      currentGame = game
+      if let session {
+        gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
+      }
+      if let index = games.firstIndex(where: { $0.id == game.id }) {
+        games[index] = game
+      } else {
+        games.insert(game, at: 0)
+      }
+      statusMessage = "Joined game."
+      enterGame()
+      return true
+    } catch {
+      statusMessage = "Failed to join game: \(debugDescription(for: error))"
+      return false
     }
   }
 
