@@ -228,6 +228,10 @@ final class WordsmokeLocalUITests: XCTestCase {
       if element.waitForExistence(timeout: perSwipeTimeout) {
         return true
       }
+      scrollTarget.swipeDown()
+      if element.waitForExistence(timeout: perSwipeTimeout) {
+        return true
+      }
     }
     return element.waitForExistence(timeout: perSwipeTimeout)
   }
