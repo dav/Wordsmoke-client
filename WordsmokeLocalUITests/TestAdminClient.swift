@@ -217,6 +217,14 @@ struct TestAdminClient {
     return try decoder.decode(RoundActionResponse.self, from: data)
   }
 
+  func deleteGame(gameID: String) async throws {
+    let url = baseURL.appending(path: "test_admin/games/\(gameID)")
+    var request = authorizedRequest(url: url)
+    request.httpMethod = "DELETE"
+    let (data, response) = try await urlSession.data(for: request)
+    try validate(response: response, data: data)
+  }
+
   func waitForLatestGame(createdAfter: Date, timeout: TimeInterval) async throws -> Game {
     try await poll(timeout: timeout) {
       try await fetchLatestGame(createdAfter: createdAfter)

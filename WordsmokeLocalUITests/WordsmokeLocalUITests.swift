@@ -3,6 +3,9 @@ import XCTest
 @MainActor
 final class WordsmokeLocalUITests: XCTestCase {
   private let app = XCUIApplication()
+  private var adminClient: TestAdminClient?
+  private var createdGameID: String?
+  nonisolated(unsafe) private var testDidFail = false
 
   override func setUp() {
     super.setUp()
@@ -15,13 +18,22 @@ final class WordsmokeLocalUITests: XCTestCase {
         Self.captureFailureArtifacts(app: app, testName: name)
       }
     }
+    if !testDidFail, let adminClient, let createdGameID {
+        try await adminClient.deleteGame(gameID: createdGameID)
+    }
     try await super.tearDown()
+  }
+
+  override func record(_ issue: XCTIssue) {
+    testDidFail = true
+    super.record(issue)
   }
 
   func testLocalGameFlow() async throws {
     let baseURL = Self.resolveBaseURL()
     let adminToken = try Self.resolveAdminToken()
     let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
 
     app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
@@ -34,6 +46,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     newGameButton.tap()
 
     let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
     _ = try await admin.createVirtualPlayers(gameID: game.id, count: 2)
 
     let gameCard = app.buttons["active-game-\(game.id)"]
@@ -52,7 +65,7 @@ final class WordsmokeLocalUITests: XCTestCase {
 
     let localPlayerID = try requireLocalPlayerID(from: roundOneState)
     let virtualPlayerIDs = roundOneState.participants.filter { $0.virtual }.map { $0.id }
-    let participantNames = roundOneState.participants.reduce(into: [String: String]()) { result, participant in
+      _ = roundOneState.participants.reduce(into: [String: String]()) { result, participant in
       result[participant.id] = participant.displayName
     }
     var expectedGuessesByRound: [Int: [String: String]] = [:]
@@ -96,7 +109,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     let roundTwoState = try await admin.waitForRound(gameID: game.id, number: 2, timeout: 30)
     let roundTwoID = try requireRoundID(from: roundTwoState)
     let wordsRoundTwo = try await admin.fetchWords(gameID: game.id, excludeGoal: false)
-    let localPlayerName = try requirePlayerName(from: roundTwoState, playerID: localPlayerID)
+      _ = try requirePlayerName(from: roundTwoState, playerID: localPlayerID)
 
     let goalWord = wordsRoundTwo.goalWord
 
@@ -126,7 +139,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     XCTAssertGreaterThanOrEqual(otherSubmissionIDsRoundTwo.count, 2)
 
     let roundTwoStateForGuesses = try await admin.fetchState(gameID: game.id)
-    let expectedGuesses = roundTwoStateForGuesses.submissions.reduce(into: [String: String]()) { result, submission in
+      _ = roundTwoStateForGuesses.submissions.reduce(into: [String: String]()) { result, submission in
       if let guessWord = submission.guessWord {
         result[submission.playerName] = guessWord.uppercased()
       }
