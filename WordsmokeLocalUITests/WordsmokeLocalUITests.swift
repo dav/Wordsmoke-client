@@ -174,6 +174,177 @@ final class WordsmokeLocalUITests: XCTestCase {
     }
   }
 
+  // MARK: - 2-Player Tests
+
+  func testTwoPlayerGameLocalPlayerWins() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
+    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
+    app.launch()
+
+    let newGameButton = app.buttons["new-game-button"]
+    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
+
+    let createdAfter = Date()
+    newGameButton.tap()
+
+    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
+
+    // Create only 1 virtual player for 2-player game (no voting phase)
+    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 1)
+    let virtualPlayer = virtualPlayersResponse.players.first { $0.virtual }!
+
+    let gameCard = app.buttons["active-game-\(game.id)"]
+    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
+    gameCard.tap()
+
+    dismissOnboardingIfPresent()
+
+    let startButton = app.buttons["game-room-start-button"]
+    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
+    startButton.tap()
+
+    // Round 1: Both players submit non-goal words
+    let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
+    let roundOneID = try requireRoundID(from: roundOneState)
+    let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
+
+    let localPlayer = roundOneState.participants.first { !$0.virtual }!
+
+    try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
+
+    _ = try await admin.createSubmission(
+      gameID: game.id,
+      roundID: roundOneID,
+      playerID: virtualPlayer.id,
+      auto: true,
+      excludeGoal: true
+    )
+
+    // Round 2: Local player wins by guessing goal word
+    let roundTwoState = try await admin.waitForRound(gameID: game.id, number: 2, timeout: 30)
+    let roundTwoID = try requireRoundID(from: roundTwoState)
+    let wordsRoundTwo = try await admin.fetchWords(gameID: game.id, excludeGoal: false)
+    let goalWord = wordsRoundTwo.goalWord
+
+    try submitGuess(word: goalWord, phrasePrefix: "winner with")
+
+    _ = try await admin.createSubmission(
+      gameID: game.id,
+      roundID: roundTwoID,
+      playerID: virtualPlayer.id,
+      auto: true,
+      excludeGoal: true
+    )
+
+    // Verify game over with local player as winner
+    let gameOverSection = app.staticTexts["game-over-section"]
+    XCTAssertTrue(scrollToElement(gameOverSection, timeout: 20))
+
+    // Find the row by player name and check its accessibility label
+    let localPlayerSafeName = Self.accessibilitySafePlayerName(localPlayer.displayName)
+    let localPlayerRow = app.otherElements["game-over-player-\(localPlayerSafeName)"]
+    XCTAssertTrue(scrollToElement(localPlayerRow, timeout: 20))
+    XCTAssertTrue(localPlayerRow.label.contains("Winner"), "Local player should be marked as winner")
+
+    let virtualPlayerSafeName = Self.accessibilitySafePlayerName(virtualPlayer.displayName)
+    let virtualPlayerRow = app.otherElements["game-over-player-\(virtualPlayerSafeName)"]
+    XCTAssertTrue(scrollToElement(virtualPlayerRow, timeout: 20))
+    XCTAssertFalse(virtualPlayerRow.label.contains("Winner"), "Virtual player should not be marked as winner")
+  }
+
+  func testTwoPlayerGameLocalPlayerLoses() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
+    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
+    app.launch()
+
+    let newGameButton = app.buttons["new-game-button"]
+    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
+
+    let createdAfter = Date()
+    newGameButton.tap()
+
+    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
+
+    // Create only 1 virtual player for 2-player game (no voting phase)
+    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 1)
+    let virtualPlayer = virtualPlayersResponse.players.first { $0.virtual }!
+
+    let gameCard = app.buttons["active-game-\(game.id)"]
+    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
+    gameCard.tap()
+
+    dismissOnboardingIfPresent()
+
+    let startButton = app.buttons["game-room-start-button"]
+    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
+    startButton.tap()
+
+    // Round 1: Both players submit non-goal words
+    let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
+    let roundOneID = try requireRoundID(from: roundOneState)
+    let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
+
+    let localPlayer = roundOneState.participants.first { !$0.virtual }!
+
+    try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
+
+    _ = try await admin.createSubmission(
+      gameID: game.id,
+      roundID: roundOneID,
+      playerID: virtualPlayer.id,
+      auto: true,
+      excludeGoal: true
+    )
+
+    // Round 2: Virtual player wins by guessing goal word, local player loses
+    let roundTwoState = try await admin.waitForRound(gameID: game.id, number: 2, timeout: 30)
+    let roundTwoID = try requireRoundID(from: roundTwoState)
+    let wordsRoundTwo = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
+    let goalWord = try await admin.fetchWords(gameID: game.id, excludeGoal: false).goalWord
+
+    // Local player submits a non-goal word (fetch fresh word to ensure validity)
+    try submitGuess(word: wordsRoundTwo.randomGuessWord, phrasePrefix: "not the answer")
+
+    // Virtual player submits the goal word and wins
+    _ = try await admin.createSubmission(
+      gameID: game.id,
+      roundID: roundTwoID,
+      playerID: virtualPlayer.id,
+      guessWord: goalWord,
+      phrase: "I win \(goalWord)",
+      auto: false,
+      excludeGoal: false
+    )
+
+    // Verify game over with virtual player as winner
+    let gameOverSection = app.staticTexts["game-over-section"]
+    XCTAssertTrue(scrollToElement(gameOverSection, timeout: 20))
+
+    // Check virtual player is the winner (by name-based identifier with accessibility label)
+    let virtualPlayerSafeName = Self.accessibilitySafePlayerName(virtualPlayer.displayName)
+    let virtualPlayerRow = app.otherElements["game-over-player-\(virtualPlayerSafeName)"]
+    XCTAssertTrue(scrollToElement(virtualPlayerRow, timeout: 20))
+    XCTAssertTrue(virtualPlayerRow.label.contains("Winner"), "Virtual player should be marked as winner")
+
+    // Check local player is NOT the winner
+    let localPlayerSafeName = Self.accessibilitySafePlayerName(localPlayer.displayName)
+    let localPlayerRow = app.otherElements["game-over-player-\(localPlayerSafeName)"]
+    XCTAssertTrue(scrollToElement(localPlayerRow, timeout: 20))
+    XCTAssertFalse(localPlayerRow.label.contains("Winner"), "Local player should not be marked as winner")
+  }
+
   private func submitGuess(word: String, phrasePrefix: String) throws {
     dismissOnboardingIfPresent()
     let guessField = app.textFields["guess-word-field"]
@@ -188,6 +359,13 @@ final class WordsmokeLocalUITests: XCTestCase {
 
     let submitButton = app.buttons["submit-guess-button"]
     XCTAssertTrue(scrollToElement(submitButton, timeout: 10))
+
+    // Wait for the button to become enabled (validation to complete)
+    let enabledPredicate = NSPredicate(format: "isEnabled == true")
+    let expectation = XCTNSPredicateExpectation(predicate: enabledPredicate, object: submitButton)
+    let result = XCTWaiter.wait(for: [expectation], timeout: 10)
+    XCTAssertEqual(result, .completed, "Submit button should become enabled")
+
     submitButton.tap()
   }
 

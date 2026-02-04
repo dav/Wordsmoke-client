@@ -180,14 +180,40 @@ struct TestAdminClient {
     auto: Bool,
     excludeGoal: Bool
   ) async throws -> RoundActionResponse {
+    try await createSubmission(
+      gameID: gameID,
+      roundID: roundID,
+      playerID: playerID,
+      guessWord: nil,
+      phrase: nil,
+      auto: auto,
+      excludeGoal: excludeGoal
+    )
+  }
+
+  func createSubmission(
+    gameID: String,
+    roundID: String,
+    playerID: String,
+    guessWord: String?,
+    phrase: String?,
+    auto: Bool,
+    excludeGoal: Bool
+  ) async throws -> RoundActionResponse {
     let url = baseURL.appending(path: "test_admin/games/\(gameID)/rounds/\(roundID)/submissions")
     var request = authorizedRequest(url: url)
     request.httpMethod = "POST"
-    let body: [String: Any] = [
+    var body: [String: Any] = [
       "player_id": playerID,
       "auto": auto,
       "exclude_goal": excludeGoal
     ]
+    if let guessWord {
+      body["guess_word"] = guessWord
+    }
+    if let phrase {
+      body["phrase"] = phrase
+    }
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
