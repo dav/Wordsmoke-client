@@ -201,6 +201,10 @@ extension GameRoomView {
     if !model.hasSubmittedOwnGuess() {
       Text("Waiting on your submission.")
         .foregroundStyle(.secondary)
+    } else if model.voteSubmitted {
+      Text("Waiting for other players' votes.")
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("votes-submitted-waiting")
     } else {
       votingOtherPhrasesSection(for: round)
       submitVotesButton

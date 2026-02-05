@@ -345,6 +345,96 @@ final class WordsmokeLocalUITests: XCTestCase {
     XCTAssertFalse(localPlayerRow.label.contains("Winner"), "Local player should not be marked as winner")
   }
 
+  // MARK: - Voting UI Tests
+
+  /// Tests that after submitting votes, the UI updates to show a waiting state
+  /// instead of continuing to show the voting controls.
+  func testVotingUIUpdatesAfterSubmission() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
+    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
+    app.launch()
+
+    let newGameButton = app.buttons["new-game-button"]
+    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
+
+    let createdAfter = Date()
+    newGameButton.tap()
+
+    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
+
+    // Create 2 virtual players for 3-player game (voting is enabled for 3+ players)
+    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 2)
+    let virtualPlayerIDs = virtualPlayersResponse.players.filter { $0.virtual }.map { $0.id }
+
+    let gameCard = app.buttons["active-game-\(game.id)"]
+    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
+    gameCard.tap()
+
+    dismissOnboardingIfPresent()
+
+    let startButton = app.buttons["game-room-start-button"]
+    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
+    startButton.tap()
+
+    // Round 1: All players submit guesses
+    let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
+    let roundOneID = try requireRoundID(from: roundOneState)
+    let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
+
+    let localPlayerID = try requireLocalPlayerID(from: roundOneState)
+
+    try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
+
+    for playerID in virtualPlayerIDs {
+      _ = try await admin.createSubmission(
+        gameID: game.id,
+        roundID: roundOneID,
+        playerID: playerID,
+        auto: true,
+        excludeGoal: true
+      )
+    }
+
+    // Wait for voting phase
+    let votingState = try await admin.waitForRoundStatus(gameID: game.id, status: "voting", timeout: 20)
+    let otherSubmissionIDs = votingState.submissions
+      .filter { $0.playerId != localPlayerID }
+      .map { $0.id }
+    XCTAssertGreaterThanOrEqual(otherSubmissionIDs.count, 2, "Need at least 2 other submissions for voting")
+
+    // Wait for voting UI to appear
+    let submitVotesButton = app.buttons["submit-votes-button"]
+    XCTAssertTrue(scrollToElement(submitVotesButton, timeout: 20), "Submit votes button should appear")
+
+    // Submit votes (local player only - virtual players don't vote yet)
+    try submitVotes(favoriteID: otherSubmissionIDs[0], leastID: otherSubmissionIDs[1])
+
+    // After submitting votes, the submit button should disappear and be replaced
+    // by a waiting message. Give UI time to update.
+    let buttonDisappeared = await waitForButtonToDisappear(submitVotesButton, timeout: 10)
+    XCTAssertTrue(
+      buttonDisappeared,
+      "Submit votes button should disappear after submitting votes"
+    )
+  }
+
+  private func waitForButtonToDisappear(_ button: XCUIElement, timeout: TimeInterval) async -> Bool {
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline {
+      if !button.exists {
+        return true
+      }
+      try? await Task.sleep(for: .milliseconds(200))
+    }
+    return !button.exists
+  }
+
   private func submitGuess(word: String, phrasePrefix: String) throws {
     dismissOnboardingIfPresent()
     let guessField = app.textFields["guess-word-field"]
