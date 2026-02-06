@@ -18,6 +18,7 @@ struct TurnBasedMatchmakerView: UIViewControllerRepresentable {
     request.maxPlayers = maxPlayers
 
     let controller = GKTurnBasedMatchmakerViewController(matchRequest: request)
+    controller.matchmakingMode = .inviteOnly
     controller.showExistingMatches = false
     controller.turnBasedMatchmakerDelegate = context.coordinator
     return controller
