@@ -269,6 +269,20 @@ struct APIClient {
     return result.valid
   }
 
+  func fetchGoalWordLengths() async throws -> [Int] {
+    var request = URLRequest(url: baseURL.appending(path: "goal_word_lengths"))
+    request.httpMethod = "GET"
+    applyStandardHeaders(&request)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    let result = try decode(GoalWordLengthsResponse.self, from: data, response: response)
+    return result.lengths
+  }
+
   func fetchClientPolicy() async throws -> ClientPolicyResponse {
     var request = URLRequest(url: baseURL.appending(path: "client_policy"))
     request.httpMethod = "GET"

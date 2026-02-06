@@ -20,6 +20,8 @@ final class AppModel {
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
   var showTurnBasedMatchmaker = false
+  var showNewGameSheet = false
+  var availableGoalLengths: [Int] = []
   var pendingGoalLength: Int = 5
   private var lobbyPollingTask: Task<Void, Never>?
   private var connectionRetryTask: Task<Void, Never>?
@@ -99,6 +101,7 @@ final class AppModel {
       apiClient.authToken = response.token
       statusMessage = "Connected to server."
       connectionErrorMessage = nil
+      await loadGoalWordLengths()
       await loadGames()
     } catch {
       let debugInfo = debugDescription(for: error)
@@ -138,6 +141,18 @@ final class AppModel {
     connectionRetryTask = nil
   }
 
+  func loadGoalWordLengths() async {
+    do {
+      let lengths = try await apiClient.fetchGoalWordLengths()
+      availableGoalLengths = lengths
+      if let first = lengths.first, !lengths.contains(pendingGoalLength) {
+        pendingGoalLength = first
+      }
+    } catch {
+      print("[API] Failed to load goal word lengths: \(debugDescription(for: error))")
+    }
+  }
+
   func loadGames() async {
     guard !isBusy else { return }
     isBusy = true
@@ -150,7 +165,12 @@ final class AppModel {
     }
   }
 
-  func createGameAndInvite(goalLength: Int) async {
+  func presentNewGameSheet() {
+    showNewGameSheet = true
+  }
+
+  func createGameWithLength(_ goalLength: Int) async {
+    showNewGameSheet = false
     guard !isBusy else { return }
 
   #if targetEnvironment(simulator)

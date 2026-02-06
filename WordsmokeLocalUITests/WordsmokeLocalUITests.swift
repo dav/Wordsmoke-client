@@ -39,11 +39,8 @@ final class WordsmokeLocalUITests: XCTestCase {
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
     app.launch()
 
-    let newGameButton = app.buttons["new-game-button"]
-    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
-
     let createdAfter = Date()
-    newGameButton.tap()
+    tapNewGameAndCreate()
 
     let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
     createdGameID = game.id
@@ -186,11 +183,8 @@ final class WordsmokeLocalUITests: XCTestCase {
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
     app.launch()
 
-    let newGameButton = app.buttons["new-game-button"]
-    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
-
     let createdAfter = Date()
-    newGameButton.tap()
+    tapNewGameAndCreate(wordLength: 4)
 
     let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
     createdGameID = game.id
@@ -268,11 +262,8 @@ final class WordsmokeLocalUITests: XCTestCase {
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
     app.launch()
 
-    let newGameButton = app.buttons["new-game-button"]
-    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
-
     let createdAfter = Date()
-    newGameButton.tap()
+    tapNewGameAndCreate(wordLength: 7)
 
     let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
     createdGameID = game.id
@@ -359,11 +350,8 @@ final class WordsmokeLocalUITests: XCTestCase {
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
     app.launch()
 
-    let newGameButton = app.buttons["new-game-button"]
-    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
-
     let createdAfter = Date()
-    newGameButton.tap()
+    tapNewGameAndCreate()
 
     let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
     createdGameID = game.id
@@ -502,6 +490,23 @@ final class WordsmokeLocalUITests: XCTestCase {
       }
     }
     return element.waitForExistence(timeout: perSwipeTimeout)
+  }
+
+  private func tapNewGameAndCreate(wordLength: Int? = nil) {
+    let newGameButton = app.buttons["new-game-button"]
+    XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
+    newGameButton.tap()
+
+    let createButton = app.buttons["create-game-button"]
+    XCTAssertTrue(createButton.waitForExistence(timeout: 10))
+
+    if let wordLength {
+      let segment = app.buttons["\(wordLength) letters"]
+      XCTAssertTrue(segment.waitForExistence(timeout: 5), "Segment for \(wordLength) letters should exist")
+      segment.tap()
+    }
+
+    createButton.tap()
   }
 
   private func dismissOnboardingIfPresent(timeout: TimeInterval = 2) {

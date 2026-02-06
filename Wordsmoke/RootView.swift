@@ -111,9 +111,7 @@ struct RootView: View {
         if model.session != nil {
           HStack(spacing: 12) {
             Button("New Game") {
-              Task {
-                await model.createGameAndInvite(goalLength: 5)
-              }
+              model.presentNewGameSheet()
             }
             .buttonStyle(AccentPillButtonStyle(theme: theme))
             .accessibilityIdentifier("new-game-button")
@@ -202,6 +200,18 @@ struct RootView: View {
           theme: theme
         ) {
           model.dismissInviteSheet()
+        }
+      }
+      .sheet(isPresented: $model.showNewGameSheet) {
+        NewGameSheetView(
+          availableLengths: model.availableGoalLengths,
+          defaultLength: model.pendingGoalLength
+        ) { goalLength in
+          Task {
+            await model.createGameWithLength(goalLength)
+          }
+        } onCancel: {
+          model.showNewGameSheet = false
         }
       }
       .sheet(isPresented: $showingJoinSheet) {

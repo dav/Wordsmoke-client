@@ -166,6 +166,10 @@ struct ClientPolicyResponse: Decodable, Sendable, Equatable {
   }
 }
 
+struct GoalWordLengthsResponse: Decodable, Sendable, Equatable {
+  let lengths: [Int]
+}
+
 enum APIError: Error, CustomNSError, LocalizedError {
   case statusCode(Int, String)
   case invalidResponse
