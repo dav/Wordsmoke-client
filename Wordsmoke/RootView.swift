@@ -1,3 +1,4 @@
+import GameKit
 import Observation
 import SwiftUI
 
@@ -218,6 +219,28 @@ struct RootView: View {
       .sheet(item: $model.gameCenter.inviteMatchmakerItem) { item in
         MatchmakerInviteView(invite: item.invite) {
           model.gameCenter.inviteMatchmakerItem = nil
+        }
+      }
+      .sheet(isPresented: $model.showTurnBasedMatchmaker) {
+        TurnBasedMatchmakerView(
+          minPlayers: 2,
+          maxPlayers: 4,
+          onMatch: { match in
+            Task {
+              await model.handleMatchmakerResult(match)
+            }
+          },
+          onCancel: {
+            model.showTurnBasedMatchmaker = false
+          }
+        )
+      }
+      .onChange(of: model.gameCenter.receivedTurnBasedMatch?.id) { _, newValue in
+        if let match = model.gameCenter.receivedTurnBasedMatch?.match {
+          model.gameCenter.receivedTurnBasedMatch = nil
+          Task {
+            await model.handleIncomingTurnBasedMatch(match)
+          }
         }
       }
       .sheet(isPresented: $showingSettings) {

@@ -1,4 +1,5 @@
 import Foundation
+import GameKit
 import Observation
 import SwiftUI
 
@@ -18,6 +19,8 @@ final class AppModel {
   var isBusy = false
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
+  var showTurnBasedMatchmaker = false
+  var pendingGoalLength: Int = 5
   private var lobbyPollingTask: Task<Void, Never>?
   private var connectionRetryTask: Task<Void, Never>?
 
@@ -149,6 +152,8 @@ final class AppModel {
 
   func createGameAndInvite(goalLength: Int) async {
     guard !isBusy else { return }
+
+  #if targetEnvironment(simulator)
     isBusy = true
     defer { isBusy = false }
 
@@ -165,6 +170,76 @@ final class AppModel {
       }
     } catch {
       statusMessage = "Failed to create game: \(debugDescription(for: error))"
+    }
+  #else
+    pendingGoalLength = goalLength
+    showTurnBasedMatchmaker = true
+  #endif
+  }
+
+  func handleMatchmakerResult(_ match: GKTurnBasedMatch) async {
+    showTurnBasedMatchmaker = false
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    do {
+      let game = try await apiClient.createGame(goalLength: pendingGoalLength, gcMatchId: match.matchID)
+      currentGame = game
+      games.insert(game, at: 0)
+      if let session {
+        gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
+      }
+      statusMessage = "Game created."
+
+      let matchData = try JSONSerialization.data(withJSONObject: ["server_game_id": game.id])
+      match.saveCurrentTurn(withMatch: matchData) { error in
+        if let error {
+          print("[GameCenter] Failed to save matchData: \(error)")
+        }
+      }
+
+      enterGame()
+    } catch {
+      statusMessage = "Failed to create game: \(debugDescription(for: error))"
+    }
+  }
+
+  func handleIncomingTurnBasedMatch(_ match: GKTurnBasedMatch) async {
+    guard !isBusy else { return }
+    isBusy = true
+    defer { isBusy = false }
+
+    let maxRetries = 3
+    let retryDelay: Duration = .seconds(2)
+
+    for attempt in 1...maxRetries {
+      do {
+        let game = try await apiClient.joinGameByMatchId(match.matchID)
+        currentGame = game
+        if let session {
+          gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
+        }
+        if let index = games.firstIndex(where: { $0.id == game.id }) {
+          games[index] = game
+        } else {
+          games.insert(game, at: 0)
+        }
+        statusMessage = "Joined game."
+        enterGame()
+        return
+      } catch let error as APIError {
+        if case .statusCode(404, _) = error, attempt < maxRetries {
+          print("[GameCenter] Game not found for match \(match.matchID), retrying (\(attempt)/\(maxRetries))…")
+          try? await Task.sleep(for: retryDelay)
+          continue
+        }
+        statusMessage = "Failed to join game: \(debugDescription(for: error))"
+        return
+      } catch {
+        statusMessage = "Failed to join game: \(debugDescription(for: error))"
+        return
+      }
     }
   }
 

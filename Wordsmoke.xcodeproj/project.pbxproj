@@ -30,6 +30,7 @@
 		91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15CF1284B4330AC01A425C64 /* AnalyticsService.swift */; };
 		990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F10D9B3B967F68F1C71A4EB /* APIModels.swift */; };
 		992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4878A06FDDA991B74D275E35 /* AppEnvironment.swift */; };
+		99F0DDEC61771B1B1E19E76F /* TurnBasedMatchmakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */; };
 		9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6552EA626DE57F91C1ADB24 /* AppRoute.swift */; };
 		9E24AE866B79A935B8FC9C86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 173209AFEBBDE6466400BA6A /* Assets.xcassets */; };
 		A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */; };
@@ -71,6 +72,7 @@
 		173209AFEBBDE6466400BA6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
+		370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnBasedMatchmakerView.swift; sourceTree = "<group>"; };
 		3F10D9B3B967F68F1C71A4EB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		4128BA52E3428D244575448C /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 				DB7E692155893C5379625E35 /* RootView.swift */,
 				6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */,
 				BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */,
+				370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */,
 				DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */,
 				D2268AC85CFB211AA5943BC4 /* Wordsmoke.entitlements */,
 				24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */,
@@ -384,6 +387,7 @@
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
 				3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */,
 				FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */,
+				99F0DDEC61771B1B1E19E76F /* TurnBasedMatchmakerView.swift in Sources */,
 				36C93A0143C83613DA2D80B8 /* WordleFeedback.swift in Sources */,
 				188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */,
 			);

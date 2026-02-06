@@ -49,12 +49,16 @@ struct APIClient {
     return try decode(SessionResponse.self, from: data, response: response)
   }
 
-  func createGame(goalLength: Int) async throws -> GameResponse {
+  func createGame(goalLength: Int, gcMatchId: String? = nil) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games"))
     request.httpMethod = "POST"
     applyStandardHeaders(&request, includeContentType: true)
 
-    let body = ["game": ["goal_length": goalLength]]
+    var gameParams: [String: Any] = ["goal_length": goalLength]
+    if let gcMatchId {
+      gameParams["gc_match_id"] = gcMatchId
+    }
+    let body: [String: Any] = ["game": gameParams]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
     logRequest(request)
@@ -71,6 +75,22 @@ struct APIClient {
     applyStandardHeaders(&request, includeContentType: true)
 
     let body = ["join_code": joinCode]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func joinGameByMatchId(_ gcMatchId: String) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "game_join"))
+    request.httpMethod = "POST"
+    applyStandardHeaders(&request, includeContentType: true)
+
+    let body = ["gc_match_id": gcMatchId]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
     logRequest(request)

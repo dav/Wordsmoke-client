@@ -22,17 +22,23 @@ struct InviteMatchmakerItem: Identifiable {
   let invite: GKInvite
 }
 
+struct TurnBasedMatchItem: Identifiable {
+  let id = UUID()
+  let match: GKTurnBasedMatch
+}
+
 @MainActor
 @Observable
 final class GameCenterService: NSObject {
   var authenticationViewControllerItem: AuthViewControllerItem?
   var inviteMatchmakerItem: InviteMatchmakerItem?
+  var receivedTurnBasedMatch: TurnBasedMatchItem?
   var isAuthenticated = false
   var playerDisplayName: String?
   var playerID: String?
   var lastErrorDescription: String?
   var lastError: Error?
-  private let inviteListener = GameCenterInviteListener()
+  private let eventListener = GameCenterEventListener()
   private var isListenerRegistered = false
 
 #if targetEnvironment(simulator)
@@ -122,29 +128,45 @@ final class GameCenterService: NSObject {
     inviteMatchmakerItem = InviteMatchmakerItem(invite: invite)
   }
 
+  func handleReceivedTurnBasedMatch(_ match: GKTurnBasedMatch) {
+    receivedTurnBasedMatch = TurnBasedMatchItem(match: match)
+  }
+
   private func registerListenerIfNeeded() {
     guard !isListenerRegistered else { return }
-    inviteListener.onInviteAccepted = { [weak self] invite in
+    eventListener.onInviteAccepted = { [weak self] invite in
       Task { @MainActor in
         self?.handleInviteAcceptance(invite)
       }
     }
-    GKLocalPlayer.local.register(inviteListener)
+    eventListener.onTurnBasedMatchReceived = { [weak self] match in
+      Task { @MainActor in
+        self?.handleReceivedTurnBasedMatch(match)
+      }
+    }
+    GKLocalPlayer.local.register(eventListener)
     isListenerRegistered = true
   }
 
   private func unregisterListenerIfNeeded() {
     guard isListenerRegistered else { return }
-    GKLocalPlayer.local.unregisterListener(inviteListener)
-    inviteListener.onInviteAccepted = nil
+    GKLocalPlayer.local.unregisterListener(eventListener)
+    eventListener.onInviteAccepted = nil
+    eventListener.onTurnBasedMatchReceived = nil
     isListenerRegistered = false
   }
 }
 
-final class GameCenterInviteListener: NSObject, GKLocalPlayerListener {
+final class GameCenterEventListener: NSObject, GKLocalPlayerListener {
   var onInviteAccepted: ((GKInvite) -> Void)?
+  var onTurnBasedMatchReceived: ((GKTurnBasedMatch) -> Void)?
 
   func player(_ player: GKPlayer, didAccept invite: GKInvite) {
     onInviteAccepted?(invite)
+  }
+
+  func player(_ player: GKPlayer, receivedTurnEventFor match: GKTurnBasedMatch, didBecomeActive: Bool) {
+    guard didBecomeActive else { return }
+    onTurnBasedMatchReceived?(match)
   }
 }

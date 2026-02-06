@@ -50,6 +50,7 @@ struct GameResponse: Decodable, Sendable, Equatable {
   let id: String
   let status: String
   let joinCode: String
+  let gcMatchId: String?
   let goalLength: Int
   let currentRoundID: String?
   let currentRoundNumber: Int?
@@ -65,6 +66,7 @@ struct GameResponse: Decodable, Sendable, Equatable {
     case id
     case status
     case joinCode = "join_code"
+    case gcMatchId = "gc_match_id"
     case goalLength = "goal_length"
     case currentRoundID = "current_round_id"
     case currentRoundNumber = "current_round_number"
