@@ -166,23 +166,14 @@ struct RootView: View {
         .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
           GameCenterAuthView(viewController: item.viewController)
         }
-        #if targetEnvironment(simulator)
-        .sheet(item: $model.simulatorInviteSheet) { sheet in
-          InviteShareSheetView(
-            joinCode: sheet.joinCode,
-            theme: theme
-          ) {
-            model.dismissInviteSheet()
-          }
-        }
-        #endif
         .sheet(isPresented: $model.showNewGameSheet) {
           NewGameSheetView(
             availableLengths: model.availableGoalLengths,
-            defaultLength: model.pendingGoalLength
-          ) { goalLength in
+            defaultLength: model.pendingGoalLength,
+            defaultPlayerCount: model.pendingPlayerCount
+          ) { goalLength, playerCount in
             Task {
-              await model.createGameWithLength(goalLength)
+              await model.createGameWithLength(goalLength, playerCount: playerCount)
             }
           } onCancel: {
             model.showNewGameSheet = false
@@ -200,24 +191,19 @@ struct RootView: View {
             showingJoinSheet = false
           }
         }
+        .sheet(isPresented: $model.showInvitePlayersSheet) {
+          InvitePlayersView(
+            appModel: model,
+            goalLength: model.pendingGoalLength,
+            playerCount: model.pendingPlayerCount
+          ) {
+            model.dismissInvitePlayers()
+          }
+        }
         .sheet(item: $model.gameCenter.inviteMatchmakerItem) { item in
           MatchmakerInviteView(invite: item.invite) {
             model.gameCenter.inviteMatchmakerItem = nil
           }
-        }
-        .sheet(isPresented: $model.showTurnBasedMatchmaker) {
-          TurnBasedMatchmakerView(
-            minPlayers: 2,
-            maxPlayers: 4,
-            onMatch: { match in
-              Task {
-                await model.handleMatchmakerResult(match)
-              }
-            },
-            onCancel: {
-              model.showTurnBasedMatchmaker = false
-            }
-          )
         }
         .sheet(isPresented: $showingSettings) {
           SettingsView(

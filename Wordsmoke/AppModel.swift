@@ -7,28 +7,35 @@ import SwiftUI
 @Observable
 final class AppModel {
   var gameCenter = GameCenterService()
-  var apiClient = APIClient(baseURL: AppEnvironment.baseURL)
+  var apiClient: APIClient
+  var matchmakingProvider: MatchmakingProvider
   let analytics = AnalyticsService()
   var session: SessionResponse?
   var currentGame: GameResponse?
   var games: [GameResponse] = []
-  #if targetEnvironment(simulator)
-    var simulatorInviteSheet: InviteSheet?
-  #endif
   var gameRoomModel: GameRoomModel?
   var statusMessage = "Initializing Game Center…"
   var connectionErrorMessage: String?
   var isBusy = false
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
-  var showTurnBasedMatchmaker = false
   var showNewGameSheet = false
+  var showInvitePlayersSheet = false
   var availableGoalLengths: [Int] = []
   var pendingGoalLength: Int = 5
+  var pendingPlayerCount: Int = 2
   private var lobbyPollingTask: Task<Void, Never>?
   private var connectionRetryTask: Task<Void, Never>?
 
+  init() {
+    let client = APIClient(baseURL: AppEnvironment.baseURL)
+    self.apiClient = client
+    self.matchmakingProvider = AppModel.makeMatchmakingProvider(apiClient: client)
+  }
+
   func start() async {
+    apiClient.debugMatchmakingToken = AppEnvironment.debugMatchmakingToken
+    matchmakingProvider.update(apiClient: apiClient)
     gameCenter.configure()
     statusMessage = "Waiting for Game Center sign-in…"
     handleAuthChange()
@@ -43,6 +50,8 @@ final class AppModel {
     }
 
     apiClient = APIClient(baseURL: baseURL)
+    apiClient.debugMatchmakingToken = AppEnvironment.debugMatchmakingToken
+    matchmakingProvider.update(apiClient: apiClient)
     session = nil
     currentGame = nil
     games = []
@@ -101,6 +110,7 @@ final class AppModel {
       )
       session = response
       apiClient.authToken = response.token
+      matchmakingProvider.update(apiClient: apiClient)
       statusMessage = "Connected to server."
       connectionErrorMessage = nil
       await loadGoalWordLengths()
@@ -171,42 +181,29 @@ final class AppModel {
     showNewGameSheet = true
   }
 
-  func createGameWithLength(_ goalLength: Int) async {
+  func createGameWithLength(_ goalLength: Int, playerCount: Int) async {
     showNewGameSheet = false
-    guard !isBusy else { return }
-
-  #if targetEnvironment(simulator)
-    isBusy = true
-    defer { isBusy = false }
-
-    do {
-      let game = try await apiClient.createGame(goalLength: goalLength)
-      currentGame = game
-      games.insert(game, at: 0)
-      if let session {
-        gameRoomModel = GameRoomModel(game: game, apiClient: apiClient, localPlayerID: session.playerID)
-      }
-      statusMessage = "Game created."
-      if !AppEnvironment.isUITest {
-        simulatorInviteSheet = InviteSheet(joinCode: game.joinCode)
-      }
-    } catch {
-      statusMessage = "Failed to create game: \(debugDescription(for: error))"
-    }
-  #else
     pendingGoalLength = goalLength
-    showTurnBasedMatchmaker = true
-  #endif
+    pendingPlayerCount = playerCount
+    showInvitePlayersSheet = true
   }
 
-  func handleMatchmakerResult(_ match: GKTurnBasedMatch) async {
-    showTurnBasedMatchmaker = false
+  func dismissInvitePlayers() {
+    showInvitePlayersSheet = false
+  }
+
+  func createGameWithInvites(inviteeIDs: [String]) async {
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }
 
     do {
-      let game = try await apiClient.createGame(goalLength: pendingGoalLength, gcMatchId: match.matchID)
+      let game = try await matchmakingProvider.createGame(
+        goalLength: pendingGoalLength,
+        playerCount: pendingPlayerCount,
+        inviteeIDs: inviteeIDs
+      )
+      showInvitePlayersSheet = false
       currentGame = game
       games.insert(game, at: 0)
       if let session {
@@ -214,10 +211,11 @@ final class AppModel {
       }
       statusMessage = "Game created."
 
-      let matchData = try JSONSerialization.data(withJSONObject: ["server_game_id": game.id])
-      match.saveCurrentTurn(withMatch: matchData) { error in
-        if let error {
-          print("[GameCenter] Failed to save matchData: \(error)")
+      if let matchID = game.gcMatchId {
+        matchmakingProvider.startListening(for: matchID) { [weak self] event in
+          Task { @MainActor in
+            await self?.handleMatchmakingEvent(event)
+          }
         }
       }
 
@@ -262,6 +260,13 @@ final class AppModel {
         statusMessage = "Failed to join game: \(debugDescription(for: error))"
         return
       }
+    }
+  }
+
+  private func handleMatchmakingEvent(_ event: MatchmakingEvent) async {
+    switch event {
+    case .inviteAccepted:
+      await refreshGame()
     }
   }
 
@@ -365,12 +370,6 @@ final class AppModel {
     enterGame()
   }
 
-  #if targetEnvironment(simulator)
-  func dismissInviteSheet() {
-    simulatorInviteSheet = nil
-  }
-  #endif
-
   private func debugDescription(for error: Error) -> String {
     if let apiError = error as? APIError {
       return apiError.localizedDescription
@@ -396,6 +395,14 @@ final class AppModel {
         + "Set MARKETING_VERSION and CURRENT_PROJECT_VERSION in Build Settings or .xcconfig."
       )
     }
+  }
+
+  private static func makeMatchmakingProvider(apiClient: APIClient) -> MatchmakingProvider {
+  #if DEBUG
+    return ServerMatchmakingProvider(apiClient: apiClient)
+  #else
+    return GameCenterMatchmakingProvider(apiClient: apiClient)
+  #endif
   }
 
 }

@@ -2,21 +2,45 @@ import SwiftUI
 
 struct NewGameSheetView: View {
   let availableLengths: [Int]
-  let onCreate: (Int) -> Void
+  let onCreate: (Int, Int) -> Void
   let onCancel: () -> Void
 
   @State private var selectedLength: Int
+  @State private var selectedPlayerCount: Int
+  private let availablePlayerCounts = [2, 3, 4]
 
-  init(availableLengths: [Int], defaultLength: Int, onCreate: @escaping (Int) -> Void, onCancel: @escaping () -> Void) {
+  init(
+    availableLengths: [Int],
+    defaultLength: Int,
+    defaultPlayerCount: Int,
+    onCreate: @escaping (Int, Int) -> Void,
+    onCancel: @escaping () -> Void
+  ) {
     self.availableLengths = availableLengths
     self.onCreate = onCreate
     self.onCancel = onCancel
     self._selectedLength = State(initialValue: availableLengths.contains(defaultLength) ? defaultLength : availableLengths.first ?? 5)
+    if availablePlayerCounts.contains(defaultPlayerCount) {
+      self._selectedPlayerCount = State(initialValue: defaultPlayerCount)
+    } else {
+      self._selectedPlayerCount = State(initialValue: availablePlayerCounts.first ?? 2)
+    }
   }
 
   var body: some View {
     NavigationStack {
       Form {
+        Section("Players") {
+          Picker("Players", selection: $selectedPlayerCount) {
+            ForEach(availablePlayerCounts, id: \.self) { count in
+              Text("\(count) players").tag(count)
+            }
+          }
+          .pickerStyle(.segmented)
+          Text("All players must be invited before starting.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
         Section("Select Word Length") {
           VStack(alignment: .leading) {
             Picker("Letters", selection: $selectedLength) {
@@ -51,7 +75,7 @@ struct NewGameSheetView: View {
           Button("Cancel") { onCancel() }
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Create") { onCreate(selectedLength) }
+          Button("Create") { onCreate(selectedLength, selectedPlayerCount) }
             .disabled(availableLengths.isEmpty)
             .accessibilityIdentifier("create-game-button")
         }

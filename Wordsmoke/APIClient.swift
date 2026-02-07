@@ -6,6 +6,7 @@ struct APIClient {
   var accountID: String?
   var urlSession: URLSession = .shared
   var authToken: String?
+  var debugMatchmakingToken: String?
   let apiVersion: String = "1"
   let logState = LogState()
 
@@ -59,6 +60,44 @@ struct APIClient {
       gameParams["gc_match_id"] = gcMatchId
     }
     let body: [String: Any] = ["game": gameParams]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    return try decode(GameResponse.self, from: data, response: response)
+  }
+
+  func fetchDebugMatchmakingPlayers() async throws -> [DebugMatchmakingPlayer] {
+    var request = URLRequest(url: baseURL.appending(path: "debug/matchmaking_players"))
+    request.httpMethod = "GET"
+    applyStandardHeaders(&request, includeDebugMatchmaking: true)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    let payload = try decode(DebugMatchmakingPlayersResponse.self, from: data, response: response)
+    return payload.players
+  }
+
+  func createDebugMatchmakingMatch(
+    goalLength: Int,
+    playerCount: Int,
+    inviteeIDs: [String]
+  ) async throws -> GameResponse {
+    var request = URLRequest(url: baseURL.appending(path: "debug/matchmaking_matches"))
+    request.httpMethod = "POST"
+    applyStandardHeaders(&request, includeContentType: true, includeDebugMatchmaking: true)
+
+    let body: [String: Any] = [
+      "goal_length": goalLength,
+      "player_count": playerCount,
+      "invitee_ids": inviteeIDs
+    ]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
     logRequest(request)
@@ -318,7 +357,11 @@ struct APIClient {
     }
   }
 
-  private func applyStandardHeaders(_ request: inout URLRequest, includeContentType: Bool = false) {
+  private func applyStandardHeaders(
+    _ request: inout URLRequest,
+    includeContentType: Bool = false,
+    includeDebugMatchmaking: Bool = false
+  ) {
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     if includeContentType {
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -332,6 +375,9 @@ struct APIClient {
     }
     if let authToken {
       request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+    }
+    if includeDebugMatchmaking, let debugMatchmakingToken {
+      request.setValue(debugMatchmakingToken, forHTTPHeaderField: "X-Debug-Matchmaking-Token")
     }
   }
 }

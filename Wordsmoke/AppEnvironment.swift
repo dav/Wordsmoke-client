@@ -39,6 +39,7 @@ enum AppEnvironment {
   static let developmentURLKey = "server.developmentURL"
   static let uiTestFlagKey = "WORDSMOKE_UI_TESTS"
   static let baseURLOverrideKey = "WORDSMOKE_BASE_URL"
+  static let debugMatchmakingTokenKey = "WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"
   static let defaultDevelopmentURL = URL(string: "https://karoline-unconsulted-oversensibly.ngrok-free.dev")!
 
   static var defaultServerEnvironment: ServerEnvironment {
@@ -90,5 +91,19 @@ enum AppEnvironment {
 
   static var isUITest: Bool {
     ProcessInfo.processInfo.environment[uiTestFlagKey] == "1"
+  }
+
+  static var debugMatchmakingToken: String? {
+  #if DEBUG
+    if let token = ProcessInfo.processInfo.environment[debugMatchmakingTokenKey] {
+      return token
+    }
+    if let token = Bundle.main.object(forInfoDictionaryKey: debugMatchmakingTokenKey) as? String {
+      return token
+    }
+    return nil
+  #else
+    return nil
+  #endif
   }
 }

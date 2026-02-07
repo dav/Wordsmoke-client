@@ -136,6 +136,11 @@ extension GameRoomModel {
   }
 
   func startGame() async {
+    let playersCount = game.playersCount ?? game.participants?.count ?? 0
+    if playersCount < 2 {
+      errorMessage = "At least 2 players must join before starting."
+      return
+    }
     guard !isBusy else { return }
     isBusy = true
     defer { isBusy = false }

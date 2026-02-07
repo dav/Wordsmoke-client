@@ -10,6 +10,19 @@
 		090E44A5F9E4B6617CB750B3 /* TestAdminClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90934B6A3E365C30CC3876EF /* TestAdminClient.swift */; };
 		0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5172F0844CBC8E960B066C4 /* GameModels.swift */; };
 		0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */; };
+		A20000000000000000000001 /* DebugMatchmakingPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* DebugMatchmakingPlayer.swift */; };
+		A20000000000000000000002 /* DebugMatchmakingPlayersResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */; };
+		A20000000000000000000003 /* MatchmakingSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* MatchmakingSource.swift */; };
+		A20000000000000000000004 /* MatchmakingInvitee.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* MatchmakingInvitee.swift */; };
+		A20000000000000000000005 /* MatchmakingEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* MatchmakingEvent.swift */; };
+		A20000000000000000000006 /* MatchmakingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* MatchmakingError.swift */; };
+		A20000000000000000000007 /* MatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* MatchmakingProvider.swift */; };
+		A20000000000000000000008 /* GameCenterMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */; };
+		A20000000000000000000009 /* ActionCableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000019 /* ActionCableClient.swift */; };
+		A2000000000000000000000A /* ServerMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001A /* ServerMatchmakingProvider.swift */; };
+		A2000000000000000000000B /* InvitePlayersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* InvitePlayersViewModel.swift */; };
+		A2000000000000000000000C /* InviteeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001C /* InviteeRowView.swift */; };
+		A2000000000000000000000D /* InvitePlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* InvitePlayersView.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
 		1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */; };
 		1FE969C3EF10A917CEE87E39 /* WordsmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */; };
@@ -18,7 +31,6 @@
 		36C93A0143C83613DA2D80B8 /* WordleFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */; };
 		384BDE316C50D7003DDA51D0 /* GameRoomView+Subviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */; };
 		3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */; };
-		3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFFA6EC0528E362CF64E209D /* InviteSheet.swift */; };
 		4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5944935A35D4EDE774A15C /* APIClient.swift */; };
 		4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */; };
 		46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6E0D99AEACE3C415847FF /* MarksView.swift */; };
@@ -71,6 +83,19 @@
 		06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterAuthView.swift; sourceTree = "<group>"; };
 		15CF1284B4330AC01A425C64 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		173209AFEBBDE6466400BA6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A10000000000000000000011 /* DebugMatchmakingPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayer.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayersResponse.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* MatchmakingSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingSource.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* MatchmakingInvitee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingInvitee.swift; sourceTree = "<group>"; };
+		A10000000000000000000015 /* MatchmakingEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingEvent.swift; sourceTree = "<group>"; };
+		A10000000000000000000016 /* MatchmakingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingError.swift; sourceTree = "<group>"; };
+		A10000000000000000000017 /* MatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingProvider.swift; sourceTree = "<group>"; };
+		A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterMatchmakingProvider.swift; sourceTree = "<group>"; };
+		A10000000000000000000019 /* ActionCableClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionCableClient.swift; sourceTree = "<group>"; };
+		A1000000000000000000001A /* ServerMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerMatchmakingProvider.swift; sourceTree = "<group>"; };
+		A1000000000000000000001B /* InvitePlayersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersViewModel.swift; sourceTree = "<group>"; };
+		A1000000000000000000001C /* InviteeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteeRowView.swift; sourceTree = "<group>"; };
+		A1000000000000000000001D /* InvitePlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersView.swift; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
 		370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnBasedMatchmakerView.swift; sourceTree = "<group>"; };
@@ -106,7 +131,6 @@
 		E9945E9A4B85356A3EAEB6AC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterService.swift; sourceTree = "<group>"; };
 		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		FFFA6EC0528E362CF64E209D /* InviteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +186,7 @@
 		9EF0DD21729CA587BCDD4145 /* Wordsmoke */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000019 /* ActionCableClient.swift */,
 				3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */,
 				15CF1284B4330AC01A425C64 /* AnalyticsService.swift */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
@@ -171,15 +196,25 @@
 				E9945E9A4B85356A3EAEB6AC /* AppModel.swift */,
 				C6552EA626DE57F91C1ADB24 /* AppRoute.swift */,
 				173209AFEBBDE6466400BA6A /* Assets.xcassets */,
+				A10000000000000000000011 /* DebugMatchmakingPlayer.swift */,
+				A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */,
 				06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */,
+				A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */,
 				EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */,
 				D5172F0844CBC8E960B066C4 /* GameModels.swift */,
 				489F85041C711924670A1610 /* GameRoomModel.swift */,
 				B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */,
 				639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */,
 				6F213A3024987A913C1104C8 /* Info.plist */,
-				FFFA6EC0528E362CF64E209D /* InviteSheet.swift */,
+				A1000000000000000000001D /* InvitePlayersView.swift */,
+				A1000000000000000000001B /* InvitePlayersViewModel.swift */,
+				A1000000000000000000001C /* InviteeRowView.swift */,
 				D0B6E0D99AEACE3C415847FF /* MarksView.swift */,
+				A10000000000000000000016 /* MatchmakingError.swift */,
+				A10000000000000000000015 /* MatchmakingEvent.swift */,
+				A10000000000000000000014 /* MatchmakingInvitee.swift */,
+				A10000000000000000000017 /* MatchmakingProvider.swift */,
+				A10000000000000000000013 /* MatchmakingSource.swift */,
 				4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */,
 				E879A39397FE5587AB552F9A /* NewGameSheetView.swift */,
 				DB5EE51A948C47A4B233495E /* OnboardingModels.swift */,
@@ -187,6 +222,7 @@
 				4128BA52E3428D244575448C /* OnboardingStore.swift */,
 				E6884B6216C35B5F2CD87500 /* RootSubviews.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
+				A1000000000000000000001A /* ServerMatchmakingProvider.swift */,
 				6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */,
 				BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */,
 				370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */,
@@ -366,6 +402,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A20000000000000000000009 /* ActionCableClient.swift in Sources */,
 				A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */,
 				4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */,
 				990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */,
@@ -374,14 +411,24 @@
 				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,
+				A20000000000000000000001 /* DebugMatchmakingPlayer.swift in Sources */,
+				A20000000000000000000002 /* DebugMatchmakingPlayersResponse.swift in Sources */,
 				0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */,
+				A20000000000000000000008 /* GameCenterMatchmakingProvider.swift in Sources */,
 				6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */,
 				0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */,
 				E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */,
 				384BDE316C50D7003DDA51D0 /* GameRoomView+Subviews.swift in Sources */,
 				1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */,
-				3EECC2CB9A71127C4FA6B50D /* InviteSheet.swift in Sources */,
+				A2000000000000000000000D /* InvitePlayersView.swift in Sources */,
+				A2000000000000000000000B /* InvitePlayersViewModel.swift in Sources */,
+				A2000000000000000000000C /* InviteeRowView.swift in Sources */,
 				46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */,
+				A20000000000000000000006 /* MatchmakingError.swift in Sources */,
+				A20000000000000000000005 /* MatchmakingEvent.swift in Sources */,
+				A20000000000000000000004 /* MatchmakingInvitee.swift in Sources */,
+				A20000000000000000000007 /* MatchmakingProvider.swift in Sources */,
+				A20000000000000000000003 /* MatchmakingSource.swift in Sources */,
 				201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */,
 				D5CFF5879FE920AC5FC417F1 /* NewGameSheetView.swift in Sources */,
 				7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */,
@@ -389,6 +436,7 @@
 				6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */,
 				CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
+				A2000000000000000000000A /* ServerMatchmakingProvider.swift in Sources */,
 				3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */,
 				FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */,
 				99F0DDEC61771B1B1E19E76F /* TurnBasedMatchmakerView.swift in Sources */,

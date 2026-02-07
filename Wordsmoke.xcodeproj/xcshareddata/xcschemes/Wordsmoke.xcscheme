@@ -85,8 +85,13 @@
             ReferencedContainer = "container:Wordsmoke.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-      </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"
+            value = "ihsdfs8"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
