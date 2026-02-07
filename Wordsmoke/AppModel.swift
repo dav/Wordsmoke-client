@@ -12,7 +12,9 @@ final class AppModel {
   var session: SessionResponse?
   var currentGame: GameResponse?
   var games: [GameResponse] = []
-  var inviteSheet: InviteSheet?
+  #if targetEnvironment(simulator)
+    var simulatorInviteSheet: InviteSheet?
+  #endif
   var gameRoomModel: GameRoomModel?
   var statusMessage = "Initializing Game Center…"
   var connectionErrorMessage: String?
@@ -186,7 +188,7 @@ final class AppModel {
       }
       statusMessage = "Game created."
       if !AppEnvironment.isUITest {
-        inviteSheet = InviteSheet(joinCode: game.joinCode)
+        simulatorInviteSheet = InviteSheet(joinCode: game.joinCode)
       }
     } catch {
       statusMessage = "Failed to create game: \(debugDescription(for: error))"
@@ -363,9 +365,11 @@ final class AppModel {
     enterGame()
   }
 
+  #if targetEnvironment(simulator)
   func dismissInviteSheet() {
-    inviteSheet = nil
+    simulatorInviteSheet = nil
   }
+  #endif
 
   private func debugDescription(for error: Error) -> String {
     if let apiError = error as? APIError {

@@ -24,111 +24,259 @@ struct RootView: View {
     return "Connected to \(label) server"
   }
 
-  private func updateLobbyPolling(for scenePhase: ScenePhase) {
-    let isOnRootScreen = model.navigationPath.count == 0
-    if scenePhase == .active, model.session != nil, isOnRootScreen {
-      model.startLobbyPolling()
-    } else {
-      model.stopLobbyPolling()
+  var body: some View {
+    RootScaffoldView(
+      model: model,
+      theme: theme,
+      showDebug: showDebug,
+      serverStatusText: serverStatusText,
+      scenePhase: scenePhase,
+      useDevelopment: $useDevelopment,
+      developmentURLRaw: $developmentURLRaw,
+      showingSettings: $showingSettings,
+      showingJoinSheet: $showingJoinSheet,
+      onboardingStore: $onboardingStore,
+      themeSelectionRaw: $themeSelectionRaw
+    )
+    .environment(\.appTheme, theme)
+    .environment(\.debugEnabled, showDebug)
+  }
+
+  private struct RootScaffoldView: View {
+    @Bindable var model: AppModel
+    let theme: AppTheme
+    let showDebug: Bool
+    let serverStatusText: String
+    let scenePhase: ScenePhase
+    @Binding var useDevelopment: Bool
+    @Binding var developmentURLRaw: String
+    @Binding var showingSettings: Bool
+    @Binding var showingJoinSheet: Bool
+    @Binding var onboardingStore: OnboardingStore
+    @Binding var themeSelectionRaw: String
+
+    var body: some View {
+      NavigationStack(path: $model.navigationPath) {
+        RootContentView(
+          model: model,
+          theme: theme,
+          showDebug: showDebug,
+          serverStatusText: serverStatusText,
+          onShowSettings: {
+            showingSettings = true
+          },
+          onShowJoinSheet: {
+            showingJoinSheet = true
+          }
+        )
+        .padding()
+        .navigationTitle("")
+        .navigationBarHidden(true)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(theme.background)
+        .tint(theme.accent)
+        .modifier(RootLifecycleModifier(
+          model: model,
+          scenePhase: scenePhase,
+          useDevelopment: $useDevelopment,
+          developmentURLRaw: $developmentURLRaw
+        ))
+        .modifier(RootSheetsModifier(
+          model: model,
+          theme: theme,
+          showingSettings: $showingSettings,
+          showingJoinSheet: $showingJoinSheet,
+          onboardingStore: $onboardingStore,
+          themeSelectionRaw: $themeSelectionRaw
+        ))
+      }
     }
   }
 
-  var body: some View {
-    NavigationStack(path: $model.navigationPath) {
-      VStack(alignment: .leading, spacing: theme.sectionSpacing) {
-        ZStack {
-          Text("Wordsmoke")
-            .font(.largeTitle)
-            .bold()
-            .foregroundStyle(theme.textPrimary)
-            .frame(maxWidth: .infinity, alignment: .center)
+  private struct RootLifecycleModifier: ViewModifier {
+    @Bindable var model: AppModel
+    let scenePhase: ScenePhase
+    @Binding var useDevelopment: Bool
+    @Binding var developmentURLRaw: String
 
-          HStack(spacing: 12) {
-            Spacer()
-            Button {
-              showingSettings = true
-            } label: {
-              Image(systemName: "gearshape")
-                .font(.system(size: 16, weight: .semibold))
-                .frame(width: 32, height: 32)
+    func body(content: Content) -> some View {
+      content
+        .task {
+          await model.start()
+          updateLobbyPolling(for: scenePhase)
+        }
+        .onDisappear {
+          model.stopLobbyPolling()
+        }
+        .onChange(of: model.gameCenter.isAuthenticated) { _, _ in
+          model.handleAuthChange()
+        }
+        .onChange(of: model.session?.token) { _, _ in
+          if model.session != nil {
+            Task {
+              await model.loadGames()
             }
-            .buttonStyle(.bordered)
-            .tint(theme.accent)
-            .accessibilityIdentifier("settings-button")
+            updateLobbyPolling(for: scenePhase)
+          } else {
+            model.stopLobbyPolling()
           }
         }
+        .onChange(of: model.navigationPath.count) { _, _ in
+          updateLobbyPolling(for: scenePhase)
+        }
+        .onChange(of: scenePhase) { _, newValue in
+          updateLobbyPolling(for: newValue)
+        }
+        .onChange(of: useDevelopment) { _, _ in
+          model.updateBaseURLIfNeeded()
+        }
+        .onChange(of: developmentURLRaw) { _, _ in
+          model.updateBaseURLIfNeeded()
+        }
+        .onChange(of: model.gameCenter.receivedTurnBasedMatch?.id) { _, _ in
+          if let match = model.gameCenter.receivedTurnBasedMatch?.match {
+            model.gameCenter.receivedTurnBasedMatch = nil
+            Task {
+              await model.handleIncomingTurnBasedMatch(match)
+            }
+          }
+        }
+    }
+
+    private func updateLobbyPolling(for scenePhase: ScenePhase) {
+      let isOnRootScreen = model.navigationPath.count == 0
+      if scenePhase == .active, model.session != nil, isOnRootScreen {
+        model.startLobbyPolling()
+      } else {
+        model.stopLobbyPolling()
+      }
+    }
+  }
+
+  private struct RootSheetsModifier: ViewModifier {
+    @Bindable var model: AppModel
+    let theme: AppTheme
+    @Binding var showingSettings: Bool
+    @Binding var showingJoinSheet: Bool
+    @Binding var onboardingStore: OnboardingStore
+    @Binding var themeSelectionRaw: String
+
+    func body(content: Content) -> some View {
+      content
+        .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
+          GameCenterAuthView(viewController: item.viewController)
+        }
+        #if targetEnvironment(simulator)
+        .sheet(item: $model.simulatorInviteSheet) { sheet in
+          InviteShareSheetView(
+            joinCode: sheet.joinCode,
+            theme: theme
+          ) {
+            model.dismissInviteSheet()
+          }
+        }
+        #endif
+        .sheet(isPresented: $model.showNewGameSheet) {
+          NewGameSheetView(
+            availableLengths: model.availableGoalLengths,
+            defaultLength: model.pendingGoalLength
+          ) { goalLength in
+            Task {
+              await model.createGameWithLength(goalLength)
+            }
+          } onCancel: {
+            model.showNewGameSheet = false
+          }
+        }
+        .sheet(isPresented: $showingJoinSheet) {
+          JoinGameSheetView(theme: theme, isBusy: model.isBusy) { joinCode in
+            Task {
+              let joined = await model.joinGame(joinCode: joinCode)
+              if joined {
+                showingJoinSheet = false
+              }
+            }
+          } onCancel: {
+            showingJoinSheet = false
+          }
+        }
+        .sheet(item: $model.gameCenter.inviteMatchmakerItem) { item in
+          MatchmakerInviteView(invite: item.invite) {
+            model.gameCenter.inviteMatchmakerItem = nil
+          }
+        }
+        .sheet(isPresented: $model.showTurnBasedMatchmaker) {
+          TurnBasedMatchmakerView(
+            minPlayers: 2,
+            maxPlayers: 4,
+            onMatch: { match in
+              Task {
+                await model.handleMatchmakerResult(match)
+              }
+            },
+            onCancel: {
+              model.showTurnBasedMatchmaker = false
+            }
+          )
+        }
+        .sheet(isPresented: $showingSettings) {
+          SettingsView(
+            themeSelectionRaw: $themeSelectionRaw,
+            onboarding: onboardingStore,
+            analytics: model.analytics
+          )
+        }
+        .navigationDestination(for: AppRoute.self) { route in
+          switch route {
+          case .game:
+            if let gameRoomModel = model.gameRoomModel {
+              GameRoomView(model: gameRoomModel, onboarding: onboardingStore, analytics: model.analytics)
+            } else {
+              Text("Game unavailable")
+            }
+          }
+        }
+    }
+  }
+
+  private struct RootContentView: View {
+    @Bindable var model: AppModel
+    let theme: AppTheme
+    let showDebug: Bool
+    let serverStatusText: String
+    let onShowSettings: () -> Void
+    let onShowJoinSheet: () -> Void
+
+    private var activeGames: [GameResponse] {
+      model.games.filter { $0.status != "completed" }
+    }
+
+    private var completedGames: [GameResponse] {
+      model.games
+        .filter { $0.status == "completed" }
+        .sorted { ($0.endedAt ?? "") > ($1.endedAt ?? "") }
+    }
+
+    var body: some View {
+      VStack(alignment: .leading, spacing: theme.sectionSpacing) {
+        HeaderView(theme: theme, onShowSettings: onShowSettings)
 
         if showDebug || model.connectionErrorMessage != nil || !model.gameCenter.isAuthenticated {
-          // Status
-          VStack(alignment: .leading, spacing: 12) {
-            Text("Status")
-              .font(.headline)
-              .foregroundStyle(theme.textPrimary)
-
-            Text(serverStatusText)
-              .foregroundStyle(theme.textSecondary)
-
-            if model.isBusy {
-              ProgressView()
-            }
-
-            if model.gameCenter.isAuthenticated {
-              if model.session == nil {
-                if showDebug {
-                  Button("Connect to Server") {
-                    Task {
-                      await model.connectToServer()
-                    }
-                  }
-                  .buttonStyle(.borderedProminent)
-                  .accessibilityIdentifier("connect-server-button")
-                } else if let errorMessage = model.connectionErrorMessage {
-                  Text(errorMessage)
-                    .foregroundStyle(theme.textSecondary)
-                }
-              }
-            } else {
-              Text("Sign in to Game Center to get started.")
-            }
-
-            if showDebug, let session = model.session {
-              SessionSummaryView(session: session)
-            }
-          }
-          .padding(theme.cellPadding)
-          .frame(maxWidth: 520)
-          .background(
-            RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
-              .fill(theme.cardBackground)
+          StatusCardView(
+            model: model,
+            theme: theme,
+            showDebug: showDebug,
+            serverStatusText: serverStatusText
           )
-          .overlay(
-            RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
-              .stroke(theme.border, lineWidth: theme.borderWidth)
-          )
-          .frame(maxWidth: .infinity, alignment: .center)
         }
 
         if model.session != nil {
-          HStack(spacing: 12) {
-            Button("New Game") {
-              model.presentNewGameSheet()
-            }
-            .buttonStyle(AccentPillButtonStyle(theme: theme))
-            .accessibilityIdentifier("new-game-button")
-
-            Button("Join Game") {
-              showingJoinSheet = true
-            }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("join-game-button")
+          LobbyButtonsView(theme: theme, onShowJoinSheet: onShowJoinSheet) {
+            model.presentNewGameSheet()
           }
         }
 
         if model.session != nil {
-          let activeGames = model.games.filter { $0.status != "completed" }
-          let completedGames = model.games.filter { $0.status == "completed" }
-            .sorted { ($0.endedAt ?? "") > ($1.endedAt ?? "") }
-
           ActiveGamesView(
             games: activeGames,
             title: "Active Games",
@@ -151,127 +299,107 @@ struct RootView: View {
 
         Spacer()
       }
-      .padding()
-      .navigationTitle("")
-      .navigationBarHidden(true)
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(theme.background)
-      .tint(theme.accent)
-      .environment(\.appTheme, theme)
-      .environment(\.debugEnabled, showDebug)
-      .task {
-        await model.start()
-        updateLobbyPolling(for: scenePhase)
-      }
-      .onDisappear {
-        model.stopLobbyPolling()
-      }
-      .onChange(of: model.gameCenter.isAuthenticated) { _, _ in
-        model.handleAuthChange()
-      }
-      .onChange(of: model.session?.token) { _, _ in
-        if model.session != nil {
-          Task {
-            await model.loadGames()
+    }
+  }
+
+  private struct HeaderView: View {
+    let theme: AppTheme
+    let onShowSettings: () -> Void
+
+    var body: some View {
+      ZStack {
+        Text("Wordsmoke")
+          .font(.largeTitle)
+          .bold()
+          .foregroundStyle(theme.textPrimary)
+          .frame(maxWidth: .infinity, alignment: .center)
+
+        HStack(spacing: 12) {
+          Spacer()
+          Button(action: onShowSettings) {
+            Image(systemName: "gearshape")
+              .font(.system(size: 16, weight: .semibold))
+              .frame(width: 32, height: 32)
           }
-          updateLobbyPolling(for: scenePhase)
-        } else {
-          model.stopLobbyPolling()
-        }
-      }
-      .onChange(of: model.navigationPath.count) { _, _ in
-        updateLobbyPolling(for: scenePhase)
-      }
-      .onChange(of: scenePhase) { _, newValue in
-        updateLobbyPolling(for: newValue)
-      }
-      .onChange(of: useDevelopment) { _, _ in
-        model.updateBaseURLIfNeeded()
-      }
-      .onChange(of: developmentURLRaw) { _, _ in
-        model.updateBaseURLIfNeeded()
-      }
-      .sheet(item: $model.gameCenter.authenticationViewControllerItem) { item in
-        GameCenterAuthView(viewController: item.viewController)
-      }
-      .sheet(item: $model.inviteSheet) { sheet in
-        InviteShareSheetView(
-          joinCode: sheet.joinCode,
-          theme: theme
-        ) {
-          model.dismissInviteSheet()
-        }
-      }
-      .sheet(isPresented: $model.showNewGameSheet) {
-        NewGameSheetView(
-          availableLengths: model.availableGoalLengths,
-          defaultLength: model.pendingGoalLength
-        ) { goalLength in
-          Task {
-            await model.createGameWithLength(goalLength)
-          }
-        } onCancel: {
-          model.showNewGameSheet = false
-        }
-      }
-      .sheet(isPresented: $showingJoinSheet) {
-        JoinGameSheetView(theme: theme, isBusy: model.isBusy) { joinCode in
-          Task {
-            let joined = await model.joinGame(joinCode: joinCode)
-            if joined {
-              showingJoinSheet = false
-            }
-          }
-        } onCancel: {
-          showingJoinSheet = false
-        }
-      }
-      .sheet(item: $model.gameCenter.inviteMatchmakerItem) { item in
-        MatchmakerInviteView(invite: item.invite) {
-          model.gameCenter.inviteMatchmakerItem = nil
-        }
-      }
-      .sheet(isPresented: $model.showTurnBasedMatchmaker) {
-        TurnBasedMatchmakerView(
-          minPlayers: 2,
-          maxPlayers: 4,
-          onMatch: { match in
-            Task {
-              await model.handleMatchmakerResult(match)
-            }
-          },
-          onCancel: {
-            model.showTurnBasedMatchmaker = false
-          }
-        )
-      }
-      .onChange(of: model.gameCenter.receivedTurnBasedMatch?.id) { _, newValue in
-        if let match = model.gameCenter.receivedTurnBasedMatch?.match {
-          model.gameCenter.receivedTurnBasedMatch = nil
-          Task {
-            await model.handleIncomingTurnBasedMatch(match)
-          }
-        }
-      }
-      .sheet(isPresented: $showingSettings) {
-        SettingsView(
-          themeSelectionRaw: $themeSelectionRaw,
-          onboarding: onboardingStore,
-          analytics: model.analytics
-        )
-      }
-      .navigationDestination(for: AppRoute.self) { route in
-        switch route {
-        case .game:
-          if let gameRoomModel = model.gameRoomModel {
-            GameRoomView(model: gameRoomModel, onboarding: onboardingStore, analytics: model.analytics)
-          } else {
-            Text("Game unavailable")
-          }
+          .buttonStyle(.bordered)
+          .tint(theme.accent)
+          .accessibilityIdentifier("settings-button")
         }
       }
     }
-    .environment(\.appTheme, theme)
-    .environment(\.debugEnabled, showDebug)
+  }
+
+  private struct StatusCardView: View {
+    @Bindable var model: AppModel
+    let theme: AppTheme
+    let showDebug: Bool
+    let serverStatusText: String
+
+    var body: some View {
+      VStack(alignment: .leading, spacing: 12) {
+        Text("Status")
+          .font(.headline)
+          .foregroundStyle(theme.textPrimary)
+
+        Text(serverStatusText)
+          .foregroundStyle(theme.textSecondary)
+
+        if model.isBusy {
+          ProgressView()
+        }
+
+        if model.gameCenter.isAuthenticated {
+          if model.session == nil {
+            if showDebug {
+              Button("Connect to Server") {
+                Task {
+                  await model.connectToServer()
+                }
+              }
+              .buttonStyle(.borderedProminent)
+              .accessibilityIdentifier("connect-server-button")
+            } else if let errorMessage = model.connectionErrorMessage {
+              Text(errorMessage)
+                .foregroundStyle(theme.textSecondary)
+            }
+          }
+        } else {
+          Text("Sign in to Game Center to get started.")
+        }
+
+        if showDebug, let session = model.session {
+          SessionSummaryView(session: session)
+        }
+      }
+      .padding(theme.cellPadding)
+      .frame(maxWidth: 520)
+      .background(
+        RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+          .fill(theme.cardBackground)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+          .stroke(theme.border, lineWidth: theme.borderWidth)
+      )
+      .frame(maxWidth: .infinity, alignment: .center)
+    }
+  }
+
+  private struct LobbyButtonsView: View {
+    let theme: AppTheme
+    let onShowJoinSheet: () -> Void
+    let onStartNewGame: () -> Void
+
+    var body: some View {
+      HStack(spacing: 12) {
+        Button("New Game", action: onStartNewGame)
+          .buttonStyle(AccentPillButtonStyle(theme: theme))
+          .accessibilityIdentifier("new-game-button")
+
+        Button("Join Game w/ Invite Code", action: onShowJoinSheet)
+          .buttonStyle(.bordered)
+          .accessibilityIdentifier("join-game-button")
+      }
+    }
   }
 }
