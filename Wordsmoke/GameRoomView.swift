@@ -45,14 +45,16 @@ struct GameRoomView: View {
               HStack {
                 Text("Players")
                 Spacer()
-                Button("Start Game") {
-                  Task {
-                    await model.startGame()
+                if model.isHost() {
+                  Button("Start Game") {
+                    Task {
+                      await model.startGame()
+                    }
                   }
+                  .buttonStyle(.borderedProminent)
+                  .disabled((model.game.playersCount ?? model.game.participants?.count ?? 0) < 2 || model.isBusy)
+                  .accessibilityIdentifier("game-room-start-button")
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled((model.game.playersCount ?? model.game.participants?.count ?? 0) < 2 || model.isBusy)
-                .accessibilityIdentifier("game-room-start-button")
               }
             }
           }

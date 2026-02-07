@@ -214,6 +214,10 @@ extension GameRoomModel {
     game.participants?.first(where: { $0.player.id == playerID })?.player.displayName
   }
 
+  func isHost() -> Bool {
+    game.participants?.first(where: { $0.player.id == localPlayerID })?.role == "host"
+  }
+
   func playerScore(for playerID: String) -> Int {
     game.participants?.first(where: { $0.player.id == playerID })?.score ?? 0
   }
