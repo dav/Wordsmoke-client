@@ -90,7 +90,7 @@ struct GameRoomView: View {
                 submissionForm()
               }
             } else if round.status == "voting" {
-              Section("Your Vote") {
+              Section("Your Round \(round.number) Vote") {
                 votingActionSection(for: round)
               }
             }

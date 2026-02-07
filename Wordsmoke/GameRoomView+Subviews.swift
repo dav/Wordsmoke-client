@@ -160,16 +160,18 @@ extension GameRoomView {
   private func roundReportContent(for round: RoundPayload, playerID: String) -> some View {
     let submission = round.submissions.first { $0.playerID == playerID }
     let isLocal = playerID == model.localPlayerID
+    let waitingForGuessString = isLocal ? "Waiting for your guess..." : "Waiting for guess..."
+    let waitingForVoteString = isLocal ? "Waiting for your vote..." : "Waiting for vote..."
 
     if round.status == "closed" {
       if let submission {
         completedSubmissionContent(for: submission)
       } else {
-        roundStatusRow(text: "waiting...", symbol: "clock", style: .secondary)
+        roundStatusRow(text: waitingForGuessString, symbol: "clock", style: .secondary)
       }
     } else if let submission, submission.createdAt != nil {
       if round.status == "voting", submission.voted != true {
-        roundStatusRow(text: "waiting for vote", symbol: "clock", style: .secondary)
+        roundStatusRow(text: waitingForVoteString, symbol: "clock", style: .secondary)
       } else if isLocal {
         localInProgressSubmissionContent(for: submission)
       } else {
@@ -213,10 +215,11 @@ extension GameRoomView {
 
   @ViewBuilder
   private func votingOtherPhrasesSection(for round: RoundPayload) -> some View {
-    Divider()
-
-    Text("Other players’ phrases")
-      .font(.headline)
+    VStack {
+      Text("Other players’ phrases")
+        .font(.headline)
+      Text("Pick a favorite and least favorite phrase for this round.")
+    }
     let submissions = model.otherSubmissions(in: round)
     let firstSubmissionID = submissions.first?.id
     ForEach(submissions) { submission in
