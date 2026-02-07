@@ -11,10 +11,23 @@ struct GameRoomView: View {
   @State private var onboardingIsActive = false
   @State private var onboardingVisibleTargets = Set<OnboardingTarget>()
   @State private var lastTrackedStepID: OnboardingStepID?
+  @State var isGuessSubmitButtonVisible = false
+  @State var isVotesSubmitButtonVisible = false
 
   var body: some View {
     ScrollViewReader { proxy in
-      ZStack {
+      let reminderKind: SubmissionReminderKind? = {
+        guard let round = model.round else { return nil }
+        if shouldShowSubmissionForm(for: round) {
+          return isGuessSubmitButtonVisible ? nil : .guess
+        }
+        if round.status == "voting", model.hasSubmittedOwnGuess(), !model.voteSubmitted {
+          return isVotesSubmitButtonVisible ? nil : .vote
+        }
+        return nil
+      }()
+
+      ZStack(alignment: .bottomTrailing) {
         Form {
           if showDebug {
             Section("Status") {
@@ -165,6 +178,14 @@ struct GameRoomView: View {
         .onChange(of: onboardingVisibleTargets) { _, _ in
           guard onboardingIsActive, let target = currentOnboardingStep?.target else { return }
           scrollToOnboardingTarget(target, proxy: proxy)
+        }
+
+        if let reminderKind {
+          SubmissionReminderView(kind: reminderKind, theme: theme)
+            .padding(.trailing, theme.sectionSpacing)
+            .padding(.bottom, theme.sectionSpacing)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("submission-reminder")
         }
       }
       .overlayPreferenceValue(OnboardingTargetPreferenceKey.self) { anchors in

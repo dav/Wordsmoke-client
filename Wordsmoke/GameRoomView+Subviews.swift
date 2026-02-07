@@ -44,6 +44,12 @@ extension GameRoomView {
     .accessibilityIdentifier("submit-guess-button")
     .onboardingTarget(.submitGuessButton)
     .id(OnboardingTarget.submitGuessButton)
+    .onAppear {
+      isGuessSubmitButtonVisible = true
+    }
+    .onDisappear {
+      isGuessSubmitButtonVisible = false
+    }
 
     if let errorMessage = model.errorMessage {
       Text(errorMessage)
@@ -313,6 +319,12 @@ extension GameRoomView {
     .accessibilityIdentifier("submit-votes-button")
     .onboardingTarget(.submitVotesButton)
     .id(OnboardingTarget.submitVotesButton)
+    .onAppear {
+      isVotesSubmitButtonVisible = true
+    }
+    .onDisappear {
+      isVotesSubmitButtonVisible = false
+    }
   }
 
   @ViewBuilder
@@ -422,5 +434,45 @@ extension GameRoomView {
         return .secondary
       }
     }
+  }
+}
+
+enum SubmissionReminderKind {
+  case guess
+  case vote
+}
+
+struct SubmissionReminderView: View {
+  let kind: SubmissionReminderKind
+  let theme: AppTheme
+
+  var body: some View {
+    let labelText = switch kind {
+    case .guess:
+      "Scroll to submit your guess"
+    case .vote:
+      "Scroll to submit your votes"
+    }
+
+    HStack(spacing: 8) {
+      Image(systemName: "arrow.down")
+        .foregroundStyle(theme.textSecondary)
+      Text(labelText)
+        .font(.caption)
+        .bold()
+        .foregroundStyle(theme.textPrimary)
+    }
+    .padding(.horizontal, theme.cellPadding)
+    .padding(.vertical, theme.cellPadding / 2)
+    .background(
+      RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+        .fill(theme.cardBackground)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+        .stroke(theme.border, lineWidth: theme.borderWidth)
+    )
+    .clipShape(.rect(cornerRadius: theme.cornerRadius))
+    .accessibilityLabel(labelText)
   }
 }
