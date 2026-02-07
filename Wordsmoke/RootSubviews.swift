@@ -40,6 +40,7 @@ struct GameSummaryView: View {
 struct ActiveGamesView: View {
   let games: [GameResponse]
   let title: String
+  let isLoading: Bool
   let showDebug: Bool
   let currentPlayerName: String?
   let theme: AppTheme
@@ -52,7 +53,10 @@ struct ActiveGamesView: View {
         .bold()
         .foregroundStyle(theme.textPrimary)
 
-      if games.isEmpty {
+      if isLoading {
+        Text("Loading")
+          .foregroundStyle(theme.textSecondary)
+      } else if games.isEmpty {
         Text("No games yet.")
           .foregroundStyle(theme.textSecondary)
       } else {
@@ -165,6 +169,7 @@ struct ActiveGamesView: View {
 
 struct CompletedGamesView: View {
   let games: [GameResponse]
+  let isLoading: Bool
   let showDebug: Bool
   let currentPlayerName: String?
   let theme: AppTheme
@@ -177,7 +182,10 @@ struct CompletedGamesView: View {
         .bold()
         .foregroundStyle(theme.textPrimary)
 
-      if games.isEmpty {
+      if isLoading {
+        Text("Loading")
+          .foregroundStyle(theme.textSecondary)
+      } else if games.isEmpty {
         Text("No completed games yet.")
           .foregroundStyle(theme.textSecondary)
       } else {

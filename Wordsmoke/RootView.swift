@@ -244,6 +244,8 @@ struct RootView: View {
     }
 
     var body: some View {
+      let isLoadingGames = !model.hasLoadedGames
+
       VStack(alignment: .leading, spacing: theme.sectionSpacing) {
         HeaderView(theme: theme, onShowSettings: onShowSettings)
 
@@ -266,6 +268,7 @@ struct RootView: View {
           ActiveGamesView(
             games: activeGames,
             title: "Active Games",
+            isLoading: isLoadingGames,
             showDebug: showDebug,
             currentPlayerName: model.session?.playerName,
             theme: theme
@@ -275,6 +278,7 @@ struct RootView: View {
 
           CompletedGamesView(
             games: completedGames,
+            isLoading: isLoadingGames,
             showDebug: showDebug,
             currentPlayerName: model.session?.playerName,
             theme: theme
@@ -284,6 +288,10 @@ struct RootView: View {
         }
 
         Spacer()
+      }
+      .task(id: model.session?.token) {
+        guard model.session != nil, !model.hasLoadedGames else { return }
+        await model.loadGames()
       }
     }
   }

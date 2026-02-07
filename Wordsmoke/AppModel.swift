@@ -17,6 +17,8 @@ final class AppModel {
   var statusMessage = "Initializing Game Center…"
   var connectionErrorMessage: String?
   var isBusy = false
+  var isLoadingGames = false
+  var hasLoadedGames = false
   var navigationPath = NavigationPath()
   var clientPolicy: ClientPolicyResponse?
   var showNewGameSheet = false
@@ -55,6 +57,7 @@ final class AppModel {
     session = nil
     currentGame = nil
     games = []
+    hasLoadedGames = false
     gameRoomModel = nil
     navigationPath = NavigationPath()
     statusMessage = "Server set to \(baseURL.absoluteString)."
@@ -166,12 +169,13 @@ final class AppModel {
   }
 
   func loadGames() async {
-    guard !isBusy else { return }
-    isBusy = true
-    defer { isBusy = false }
+    guard !isLoadingGames else { return }
+    isLoadingGames = true
+    defer { isLoadingGames = false }
 
     do {
       games = try await apiClient.fetchGames()
+      hasLoadedGames = true
     } catch {
       statusMessage = "Failed to load games: \(debugDescription(for: error))"
     }
