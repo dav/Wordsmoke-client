@@ -320,7 +320,16 @@ extension GameRoomModel {
   }
 
   func otherSubmissions(in round: RoundPayload) -> [RoundSubmission] {
-    round.submissions.filter { $0.playerID != localPlayerID }
+    round.submissions
+      .filter { $0.playerID != localPlayerID }
+      .sorted { left, right in
+        let leftKey = votingShuffleKey(roundID: round.id, submissionID: left.id)
+        let rightKey = votingShuffleKey(roundID: round.id, submissionID: right.id)
+        if leftKey == rightKey {
+          return left.id < right.id
+        }
+        return leftKey < rightKey
+      }
   }
 
   func playerName(for playerID: String) -> String? {
@@ -329,6 +338,14 @@ extension GameRoomModel {
 
   func isHost() -> Bool {
     game.participants?.first(where: { $0.player.id == localPlayerID })?.role == "host"
+  }
+
+  private func votingShuffleKey(roundID: String, submissionID: String) -> Int {
+    var hasher = Hasher()
+    hasher.combine(roundID)
+    hasher.combine(localPlayerID)
+    hasher.combine(submissionID)
+    return hasher.finalize()
   }
 
   func playerScore(for playerID: String) -> Int {

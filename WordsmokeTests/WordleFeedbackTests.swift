@@ -158,6 +158,37 @@ final class ReportFlowTests: XCTestCase {
     XCTAssertEqual(statuses.first?.statusText, "Host")
   }
 
+  func testOtherSubmissionsUseStableShuffledOrder() {
+    let model = makeModel()
+    let local = makeSubmission(id: "s-local", playerID: "player-local", playerName: "Local", phrase: "mine")
+    let first = makeSubmission(id: "s-a", playerID: "player-a", playerName: "Alex", phrase: "alpha")
+    let second = makeSubmission(id: "s-b", playerID: "player-b", playerName: "Bailey", phrase: "beta")
+    let third = makeSubmission(id: "s-c", playerID: "player-c", playerName: "Casey", phrase: "gamma")
+
+    let roundForward = RoundPayload(
+      id: "round-voting",
+      number: 2,
+      status: "voting",
+      stage: "voting",
+      submissions: [local, first, second, third],
+      phraseVotesCount: 0
+    )
+    let roundReverse = RoundPayload(
+      id: "round-voting",
+      number: 2,
+      status: "voting",
+      stage: "voting",
+      submissions: [local, third, second, first],
+      phraseVotesCount: 0
+    )
+
+    let forwardIDs = model.otherSubmissions(in: roundForward).map(\.id)
+    let reverseIDs = model.otherSubmissions(in: roundReverse).map(\.id)
+
+    XCTAssertEqual(forwardIDs, reverseIDs)
+    XCTAssertEqual(Set(forwardIDs), Set(["s-a", "s-b", "s-c"]))
+  }
+
   private func makeModel(
     status: String = "active",
     invitedPlayers: [GameInvitedPlayer]? = nil
