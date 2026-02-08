@@ -5,6 +5,7 @@ struct GameRoomView: View {
   @Bindable var model: GameRoomModel
   @Bindable var onboarding: OnboardingStore
   let analytics: AnalyticsService
+  private let gameRoomBottomAnchorID = "game-room-bottom-anchor"
   @Environment(\.appTheme) var theme
   @Environment(\.debugEnabled) var showDebug
   @Environment(\.scenePhase) private var scenePhase
@@ -142,6 +143,7 @@ struct GameRoomView: View {
           }
 
           reportIssueSection
+            .id(gameRoomBottomAnchorID)
         }
         .scrollContentBackground(.hidden)
         .listStyle(.insetGrouped)
@@ -216,11 +218,15 @@ struct GameRoomView: View {
         }
 
         if let reminderKind {
-          SubmissionReminderView(kind: reminderKind, theme: theme)
-            .padding(.trailing, theme.sectionSpacing)
-            .padding(.bottom, theme.sectionSpacing)
-            .allowsHitTesting(false)
-            .accessibilityIdentifier("submission-reminder")
+          Button {
+            scrollToSubmissionArea(proxy: proxy)
+          } label: {
+            SubmissionReminderView(kind: reminderKind, theme: theme)
+          }
+          .buttonStyle(.plain)
+          .padding(.trailing, theme.sectionSpacing)
+          .padding(.bottom, theme.sectionSpacing)
+          .accessibilityIdentifier("submission-reminder")
         }
       }
       .overlayPreferenceValue(OnboardingTargetPreferenceKey.self) { anchors in
@@ -400,6 +406,17 @@ struct GameRoomView: View {
           proxy.scrollTo(target, anchor: .center)
         }
         try? await Task.sleep(for: .milliseconds(150))
+      }
+    }
+  }
+
+  private func scrollToSubmissionArea(proxy: ScrollViewProxy) {
+    Task { @MainActor in
+      for _ in 0..<2 {
+        withAnimation {
+          proxy.scrollTo(gameRoomBottomAnchorID, anchor: .bottom)
+        }
+        try? await Task.sleep(for: .milliseconds(100))
       }
     }
   }
