@@ -38,6 +38,13 @@ struct SettingsView: View {
     )
   }
 
+  private var appVersionText: String {
+    let shortVersion =
+      Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+    let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
+    return "Version \(shortVersion) (\(buildNumber))"
+  }
+
   var body: some View {
     let selectionBinding = Binding<ThemeSelection>(
       get: { ThemeSelection(rawValue: themeSelectionRaw) ?? .system },
@@ -114,6 +121,12 @@ struct SettingsView: View {
           } header: {
             Text("Developer")
           }
+        }
+
+        SwiftUI.Section {
+          Text(appVersionText)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("settings-version-text")
         }
       }
       .navigationTitle("Settings")
