@@ -58,6 +58,7 @@ struct GameResponse: Decodable, Sendable, Equatable {
   let participantNames: [String]?
   let rounds: [GameRoundSummary]?
   let participants: [GameParticipant]?
+  let invitedPlayers: [GameInvitedPlayer]?
   let endedAt: String?
   let winnerNames: [String]?
   let winningRoundNumber: Int?
@@ -74,6 +75,7 @@ struct GameResponse: Decodable, Sendable, Equatable {
     case participantNames = "participant_names"
     case rounds
     case participants
+    case invitedPlayers = "invited_players"
     case endedAt = "ended_at"
     case winnerNames = "winner_names"
     case winningRoundNumber = "winning_round_number"
@@ -131,6 +133,23 @@ struct GameParticipantPlayer: Decodable, Sendable, Equatable {
     case nickname
     case gameCenterPlayerID = "game_center_player_id"
     case virtual
+  }
+}
+
+struct GameInvitedPlayer: Decodable, Sendable, Identifiable, Equatable {
+  var id: String { playerID }
+  let playerID: String
+  let displayName: String
+  let nickname: String?
+  let inviteStatus: String
+  let accepted: Bool
+
+  enum CodingKeys: String, CodingKey {
+    case playerID = "player_id"
+    case displayName = "display_name"
+    case nickname
+    case inviteStatus = "invite_status"
+    case accepted
   }
 }
 

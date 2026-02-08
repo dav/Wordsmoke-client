@@ -9,6 +9,14 @@ struct ReportablePhrase: Identifiable, Hashable, Sendable {
   let phrase: String
 }
 
+struct WaitingRoomPlayerStatus: Identifiable, Equatable, Sendable {
+  var id: String { playerID }
+  let playerID: String
+  let displayName: String
+  let statusText: String
+  let highlightsAsPositive: Bool
+}
+
 @MainActor
 @Observable
 final class GameRoomModel {
@@ -232,6 +240,66 @@ extension GameRoomModel {
 }
 
 extension GameRoomModel {
+  func waitingRoomPlayerStatuses() -> [WaitingRoomPlayerStatus] {
+    guard let participants = game.participants else { return [] }
+
+    let participantsByPlayerID = Dictionary(uniqueKeysWithValues: participants.map { ($0.player.id, $0) })
+    let invitedByPlayerID = Dictionary(uniqueKeysWithValues: (game.invitedPlayers ?? []).map { ($0.playerID, $0) })
+    let hostPlayerID = participants.first(where: { $0.role == "host" })?.player.id
+
+    var rowsByPlayerID: [String: WaitingRoomPlayerStatus] = [:]
+
+    if let hostPlayerID, let host = participantsByPlayerID[hostPlayerID] {
+      rowsByPlayerID[hostPlayerID] = WaitingRoomPlayerStatus(
+        playerID: hostPlayerID,
+        displayName: host.player.displayName,
+        statusText: "Host",
+        highlightsAsPositive: true
+      )
+    }
+
+    for invited in invitedByPlayerID.values {
+      if invited.playerID == hostPlayerID {
+        continue
+      }
+      let hasJoined = participantsByPlayerID[invited.playerID] != nil
+      rowsByPlayerID[invited.playerID] = WaitingRoomPlayerStatus(
+        playerID: invited.playerID,
+        displayName: invited.displayName,
+        statusText: hasJoined ? "Joined" : "Invited",
+        highlightsAsPositive: hasJoined
+      )
+    }
+
+    for participant in participants where participant.player.id != hostPlayerID {
+      if rowsByPlayerID[participant.player.id] != nil {
+        continue
+      }
+      rowsByPlayerID[participant.player.id] = WaitingRoomPlayerStatus(
+        playerID: participant.player.id,
+        displayName: participant.player.displayName,
+        statusText: "Joined",
+        highlightsAsPositive: true
+      )
+    }
+
+    return rowsByPlayerID.values.sorted { left, right in
+      if left.playerID == hostPlayerID { return true }
+      if right.playerID == hostPlayerID { return false }
+      return left.displayName.localizedStandardCompare(right.displayName) == .orderedAscending
+    }
+  }
+
+  func hasPendingInvitedPlayers() -> Bool {
+    guard let invitedPlayers = game.invitedPlayers else { return false }
+    let joinedPlayerIDs = Set((game.participants ?? []).map { $0.player.id })
+    return invitedPlayers.contains { !($0.accepted || joinedPlayerIDs.contains($0.playerID)) }
+  }
+
+  func shouldConfirmEarlyStart() -> Bool {
+    isHost() && hasPendingInvitedPlayers()
+  }
+
   func isReadyToVote() -> Bool {
     guard let round else { return false }
     return round.stage == "voting" && !voteSubmitted

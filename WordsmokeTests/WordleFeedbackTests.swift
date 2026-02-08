@@ -90,10 +90,81 @@ final class ReportFlowTests: XCTestCase {
     XCTAssertTrue(message.contains("phrase=\"bad phrase\""))
   }
 
-  private func makeModel() -> GameRoomModel {
+  func testWaitingRoomStatusesAreHostFirstAndDeduped() {
+    let model = makeModel(
+      status: "waiting",
+      invitedPlayers: [
+        GameInvitedPlayer(
+          playerID: "player-a",
+          displayName: "Alex",
+          nickname: nil,
+          inviteStatus: "accepted",
+          accepted: true
+        ),
+        GameInvitedPlayer(
+          playerID: "player-b",
+          displayName: "Bailey",
+          nickname: nil,
+          inviteStatus: "pending",
+          accepted: false
+        )
+      ]
+    )
+
+    let statuses = model.waitingRoomPlayerStatuses()
+
+    XCTAssertEqual(statuses.count, 3)
+    XCTAssertEqual(statuses.map(\.displayName), ["Local", "Alex", "Bailey"])
+    XCTAssertEqual(statuses.map(\.statusText), ["Host", "Joined", "Invited"])
+    XCTAssertEqual(statuses.filter { $0.playerID == "player-a" }.count, 1)
+    XCTAssertTrue(model.hasPendingInvitedPlayers())
+  }
+
+  func testHostShouldConfirmEarlyStartWhenPendingInvitesRemain() {
+    let model = makeModel(
+      status: "waiting",
+      invitedPlayers: [
+        GameInvitedPlayer(
+          playerID: "player-b",
+          displayName: "Bailey",
+          nickname: nil,
+          inviteStatus: "pending",
+          accepted: false
+        )
+      ]
+    )
+
+    XCTAssertTrue(model.hasPendingInvitedPlayers())
+    XCTAssertTrue(model.shouldConfirmEarlyStart())
+  }
+
+  func testHostStatusAppearsAtTopInWaitingRoom() {
+    let model = makeModel(
+      status: "waiting",
+      invitedPlayers: [
+        GameInvitedPlayer(
+          playerID: "player-a",
+          displayName: "Alex",
+          nickname: nil,
+          inviteStatus: "accepted",
+          accepted: true
+        )
+      ]
+    )
+
+    let statuses = model.waitingRoomPlayerStatuses()
+
+    XCTAssertEqual(statuses.first?.displayName, "Local")
+    XCTAssertEqual(statuses.first?.statusText, "Host")
+  }
+
+  private func makeModel(
+    status: String = "active",
+    invitedPlayers: [GameInvitedPlayer]? = nil
+  ) -> GameRoomModel {
     let game = GameResponse(
       id: "game-123",
-      status: "active",
+      status: status,
       joinCode: "ABCD",
       gcMatchId: nil,
       goalLength: 5,
@@ -130,6 +201,7 @@ final class ReportFlowTests: XCTestCase {
           )
         )
       ],
+      invitedPlayers: invitedPlayers,
       endedAt: nil,
       winnerNames: nil,
       winningRoundNumber: nil

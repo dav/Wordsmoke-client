@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct GameRoomView: View {
   @Bindable var model: GameRoomModel
@@ -14,6 +15,8 @@ struct GameRoomView: View {
   @State var isGuessSubmitButtonVisible = false
   @State var isVotesSubmitButtonVisible = false
   @State var isReportIssueSheetPresented = false
+  @State var isStartGameConfirmationPresented = false
+  @State var inviteCodeWasCopied = false
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -36,19 +39,22 @@ struct GameRoomView: View {
             }
           }
 
-          if model.game.status == "waiting", let participants = model.game.participants {
+          if model.game.status == "waiting" {
+            let waitingStatuses = model.waitingRoomPlayerStatuses()
+            let playersCount = model.game.playersCount ?? model.game.participants?.count ?? waitingStatuses.count
             Section {
-              ForEach(participants, id: \.id) { participant in
+              ForEach(waitingStatuses) { player in
                 HStack {
-                  Text(participant.player.displayName)
+                  Text(player.displayName)
                   Spacer()
-                  Text(participant.role)
+                  Text(player.statusText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(player.highlightsAsPositive ? .green : .secondary)
                 }
+                .accessibilityIdentifier("waiting-player-\(player.playerID)")
               }
 
-              if participants.count < 2 {
+              if playersCount < 2 {
                 Text("Waiting for other players to join")
                   .font(.callout)
                   .foregroundStyle(.secondary)
@@ -61,14 +67,27 @@ struct GameRoomView: View {
                 Spacer()
                 if model.isHost() {
                   Button("Start Game") {
-                    Task {
-                      await model.startGame()
-                    }
+                    triggerStartGame()
                   }
                   .buttonStyle(.borderedProminent)
-                  .disabled((model.game.playersCount ?? model.game.participants?.count ?? 0) < 2 || model.isBusy)
+                  .disabled(playersCount < 2 || model.isBusy)
                   .accessibilityIdentifier("game-room-start-button")
                 }
+              }
+            }
+            
+            Section("Invite Code") {
+              HStack {
+                Text(model.game.joinCode)
+                  .font(.title2.monospaced())
+                  .accessibilityIdentifier("invite-code-value")
+                Spacer()
+                Button(inviteCodeWasCopied ? "Copied" : "Copy") {
+                  copyInviteCodeToClipboard()
+                }
+                .buttonStyle(.bordered)
+                .disabled(inviteCodeWasCopied)
+                .accessibilityIdentifier("copy-invite-code-button")
               }
             }
           }
@@ -124,7 +143,6 @@ struct GameRoomView: View {
 
           reportIssueSection
         }
-        .navigationTitle("Game \(model.game.joinCode)")
         .scrollContentBackground(.hidden)
         .listStyle(.insetGrouped)
         .listRowBackground(theme.cardBackground)
@@ -132,6 +150,17 @@ struct GameRoomView: View {
         .tint(theme.accent)
         .sheet(isPresented: $isReportIssueSheetPresented) {
           ReportIssueSheet(model: model)
+        }
+        .alert("Start without all invitees?", isPresented: $isStartGameConfirmationPresented) {
+          Button("Cancel", role: .cancel) {
+          }
+          Button("Start Anyway") {
+            Task {
+              await model.startGame()
+            }
+          }
+        } message: {
+          Text("Some invited players have not accepted yet. Start the game anyway?")
         }
         .task {
           if model.round == nil {
@@ -264,6 +293,26 @@ struct GameRoomView: View {
         requiresTarget: true
       )
     ]
+  }
+
+  private func triggerStartGame() {
+    if model.shouldConfirmEarlyStart() {
+      isStartGameConfirmationPresented = true
+      return
+    }
+
+    Task {
+      await model.startGame()
+    }
+  }
+
+  private func copyInviteCodeToClipboard() {
+    UIPasteboard.general.string = model.game.joinCode
+    inviteCodeWasCopied = true
+    Task {
+      try? await Task.sleep(for: .seconds(1.5))
+      inviteCodeWasCopied = false
+    }
   }
 
   private var currentOnboardingStep: OnboardingStep? {
