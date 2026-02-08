@@ -1,5 +1,8 @@
 import Foundation
-import GameKit
+@preconcurrency import GameKit
+
+extension GKTurnBasedMatch: @unchecked @retroactive Sendable {}
+extension GKTurnBasedParticipant: @unchecked @retroactive Sendable {}
 
 @MainActor
 final class GameCenterMatchmakingProvider: MatchmakingProvider {
@@ -39,13 +42,21 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     request.maxPlayers = playerCount
     request.defaultNumberOfPlayers = playerCount
     request.recipients = recipients
-    request.inviteMessage = "Join my Wordsmoke game."
+    request.inviteMessage = "Join my \(goalLength) letter Wordsmoke game."
 
     let matchID = try await findMatchID(with: request)
     let game = try await apiClient.createGame(goalLength: goalLength, gcMatchId: matchID)
 
     let matchData = try JSONSerialization.data(withJSONObject: ["server_game_id": game.id])
-    saveMatchData(matchID: matchID, matchData: matchData)
+    do {
+      try await saveMatchDataAndNotify(
+        matchID: matchID,
+        matchData: matchData,
+        invitedPlayerIDs: inviteeIDs
+      )
+    } catch {
+      print("[GameCenter] Failed to finalize turn handoff: \(error)")
+    }
 
     return game
   }
@@ -61,7 +72,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
   }
 
   private func findMatchID(with request: GKMatchRequest) async throws -> String {
-    try await withCheckedThrowingContinuation { continuation in
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
       GKTurnBasedMatch.find(for: request) { match, error in
         if let error {
           continuation.resume(throwing: error)
@@ -76,21 +87,77 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     }
   }
 
-  private func saveMatchData(matchID: String, matchData: Data) {
-    GKTurnBasedMatch.load(withID: matchID) { match, error in
-      if let error {
-        print("[GameCenter] Failed to load match: \(error)")
-        return
-      }
-      guard let match else {
-        print("[GameCenter] Missing match for id \(matchID)")
-        return
-      }
-      match.saveCurrentTurn(withMatch: matchData) { saveError in
-        if let saveError {
-          print("[GameCenter] Failed to save matchData: \(saveError)")
+  private func saveMatchDataAndNotify(
+    matchID: String,
+    matchData: Data,
+    invitedPlayerIDs: [String]
+  ) async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      GKTurnBasedMatch.load(withID: matchID) { match, error in
+        if let error {
+          continuation.resume(throwing: error)
+          return
+        }
+
+        guard let match else {
+          continuation.resume(throwing: MatchmakingError.matchCreationFailed)
+          return
+        }
+
+        match.saveCurrentTurn(withMatch: matchData) { saveError in
+          if let saveError {
+            continuation.resume(throwing: saveError)
+            return
+          }
+
+          let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match)
+          guard !invitedParticipants.isEmpty else {
+            print("[GameCenter] No invited participants resolved for match \(matchID)")
+            continuation.resume(returning: ())
+            return
+          }
+
+          let reminderMessageKey = "It's your turn in Wordsmoke."
+          match.message = reminderMessageKey
+          let defaultTurnTimeout: TimeInterval = 60 * 60 * 24 * 7
+
+          match.endTurn(
+            withNextParticipants: invitedParticipants,
+            turnTimeout: defaultTurnTimeout,
+            match: matchData
+          ) { endTurnError in
+            if let endTurnError {
+              continuation.resume(throwing: endTurnError)
+              return
+            }
+
+            match.sendReminder(
+              to: invitedParticipants,
+              localizableMessageKey: reminderMessageKey,
+              arguments: []
+            ) { reminderError in
+              if let reminderError {
+                print("[GameCenter] Failed to send reminder for match \(matchID): \(reminderError)")
+              }
+              continuation.resume(returning: ())
+            }
+          }
         }
       }
     }
+  }
+
+  private nonisolated static func participants(
+    for invitedPlayerIDs: [String],
+    in match: GKTurnBasedMatch
+  ) -> [GKTurnBasedParticipant] {
+    let participantsByPlayerID = match.participants.reduce(into: [String: GKTurnBasedParticipant]()) {
+      rows,
+      participant in
+      guard let playerID = participant.player?.teamPlayerID else { return }
+      rows[playerID] = participant
+    }
+
+    return invitedPlayerIDs.compactMap { participantsByPlayerID[$0] }
   }
 }
