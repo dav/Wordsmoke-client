@@ -54,6 +54,7 @@
 		E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489F85041C711924670A1610 /* GameRoomModel.swift */; };
 		F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E692155893C5379625E35 /* RootView.swift */; };
 		FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */; };
+		1D1E4E78D0ED48FDB587D963 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 7090F78CB63244F2ADE429E1 /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -141,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				57179CB80ED5832F0A6F197B /* AmplitudeSwift in Frameworks */,
+				1D1E4E78D0ED48FDB587D963 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +293,7 @@
 				4D3121F84CA6F10967AAF055 /* Sources */,
 				DA6EF2746D81177992D20A1F /* Resources */,
 				77D4075EBF2AE98E7038DBAC /* Frameworks */,
+				F7BAC0592CF84F42BD89E788 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -299,6 +302,7 @@
 			name = Wordsmoke;
 			packageProductDependencies = (
 				DCCA268A928787D873948531 /* AmplitudeSwift */,
+				7090F78CB63244F2ADE429E1 /* Sentry */,
 			);
 			productName = Wordsmoke;
 			productReference = 9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */;
@@ -359,6 +363,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */,
+				9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -560,6 +565,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.playwordsmoke;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Debug;
 		};
@@ -655,6 +662,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.playwordsmoke;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Release;
 		};
@@ -802,6 +811,14 @@
 				kind = branch;
 			};
 		};
+		9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -810,7 +827,41 @@
 			package = C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */;
 			productName = AmplitudeSwift;
 		};
+		7090F78CB63244F2ADE429E1 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F7BAC0592CF84F42BD89E788 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.
+if which sentry-cli >/dev/null; then
+  export SENTRY_ORG=akuaku
+  export SENTRY_PROJECT=apple-ios
+  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)
+  if [ ! $? -eq 0 ]; then
+    echo \"warning: sentry-cli - $ERROR\"
+  fi
+else
+  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
+fi
+";
+			name = "Upload Debug Symbols to Sentry";
+		};
+/* End PBXShellScriptBuildPhase section */
 	};
 	rootObject = 8D1E79912D3D074F18DA7C0D /* Project object */;
 }
