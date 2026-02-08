@@ -29,7 +29,7 @@ extension GameRoomView {
 
   @ViewBuilder
   func submissionForm() -> some View {
-    TextField("Guess word", text: $model.guessWord)
+    TextField("Guess \(model.game.goalLength)-letter word", text: $model.guessWord)
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
       .textContentType(.oneTimeCode)

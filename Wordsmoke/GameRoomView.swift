@@ -238,6 +238,8 @@ struct GameRoomView: View {
         onboardingVisibleTargets = Set(anchors.keys)
       }
     }
+    .navigationTitle("\(model.game.goalLength) Letter Word")
+    .navigationBarTitleDisplayMode(.inline)
   }
 
   private var onboardingSteps: [OnboardingStep] {
