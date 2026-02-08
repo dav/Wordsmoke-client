@@ -2,6 +2,8 @@ import AmplitudeSwift
 
 @MainActor
 final class AnalyticsService {
+  static let shared = AnalyticsService()
+
   private let amplitude: Amplitude
 
   init() {

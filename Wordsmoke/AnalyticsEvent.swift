@@ -1,6 +1,7 @@
 import Foundation
 
 enum AnalyticsEvent: String {
+  case clientError = "client_error"
   case onboardingStarted = "onboarding_started"
   case onboardingStepViewed = "onboarding_step_viewed"
   case onboardingStepCompleted = "onboarding_step_completed"

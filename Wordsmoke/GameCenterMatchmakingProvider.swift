@@ -55,7 +55,16 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
         invitedPlayerIDs: inviteeIDs
       )
     } catch {
-      print("[GameCenter] Failed to finalize turn handoff: \(error)")
+      ErrorReporter.log(
+        "Failed to finalize turn handoff",
+        level: .error,
+        category: .gameCenter,
+        error: error,
+        metadata: [
+          "operation": "save_match_data_and_notify",
+          "match_id": matchID
+        ]
+      )
     }
 
     return game
@@ -112,7 +121,15 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
 
           let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match)
           guard !invitedParticipants.isEmpty else {
-            print("[GameCenter] No invited participants resolved for match \(matchID)")
+            ErrorReporter.log(
+              "No invited participants resolved for match",
+              level: .warning,
+              category: .matchmaking,
+              metadata: [
+                "operation": "resolve_invited_participants",
+                "match_id": matchID
+              ]
+            )
             continuation.resume(returning: ())
             return
           }
@@ -137,7 +154,16 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               arguments: []
             ) { reminderError in
               if let reminderError {
-                print("[GameCenter] Failed to send reminder for match \(matchID): \(reminderError)")
+                ErrorReporter.log(
+                  "Failed to send turn reminder",
+                  level: .warning,
+                  category: .gameCenter,
+                  error: reminderError,
+                  metadata: [
+                    "operation": "send_reminder",
+                    "match_id": matchID
+                  ]
+                )
               }
               continuation.resume(returning: ())
             }

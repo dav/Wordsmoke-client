@@ -9,7 +9,7 @@ final class AppModel {
   var gameCenter = GameCenterService()
   var apiClient: APIClient
   var matchmakingProvider: MatchmakingProvider
-  let analytics = AnalyticsService()
+  let analytics = AnalyticsService.shared
   var session: SessionResponse?
   var currentGame: GameResponse?
   var games: [GameResponse] = []
@@ -122,9 +122,21 @@ final class AppModel {
       let debugInfo = debugDescription(for: error)
       statusMessage = "Failed to connect: \(debugInfo)"
       connectionErrorMessage = "Failed to connect to the server. Retrying…"
-      print("[GameCenter] Connect failed: \(debugInfo)")
+      ErrorReporter.log(
+        "Connect to server failed",
+        level: .error,
+        category: .gameCenter,
+        error: error,
+        metadata: ["operation": "connect_to_server"]
+      )
       if let lastError = gameCenter.lastError {
-        print("[GameCenter] Last error: \(lastError)")
+        ErrorReporter.log(
+          "Game Center reported a last error",
+          level: .warning,
+          category: .gameCenter,
+          error: lastError,
+          metadata: ["operation": "connect_to_server_last_error"]
+        )
       }
     }
   }
@@ -164,7 +176,13 @@ final class AppModel {
         pendingGoalLength = first
       }
     } catch {
-      print("[API] Failed to load goal word lengths: \(debugDescription(for: error))")
+      ErrorReporter.log(
+        "Failed to load goal word lengths",
+        level: .warning,
+        category: .api,
+        error: error,
+        metadata: ["operation": "load_goal_word_lengths"]
+      )
     }
   }
 
@@ -254,7 +272,18 @@ final class AppModel {
         return
       } catch let error as APIError {
         if case .statusCode(404, _) = error, attempt < maxRetries {
-          print("[GameCenter] Game not found for match \(match.matchID), retrying (\(attempt)/\(maxRetries))…")
+          ErrorReporter.log(
+            "Game not found for turn-based match, retrying",
+            level: .info,
+            category: .gameCenter,
+            error: error,
+            metadata: [
+              "operation": "join_game_by_match_id_retry",
+              "match_id": match.matchID,
+              "attempt": "\(attempt)",
+              "max_retries": "\(maxRetries)"
+            ]
+          )
           try? await Task.sleep(for: retryDelay)
           continue
         }
@@ -391,12 +420,23 @@ final class AppModel {
     let shortVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
 
-    print("[Bundle] id=\(bundleID) version=\(shortVersion ?? "nil") build=\(build ?? "nil")")
+    ErrorReporter.log(
+      "Bundle info",
+      level: .debug,
+      category: .build,
+      metadata: [
+        "bundle_id": bundleID,
+        "version": shortVersion ?? "nil",
+        "build": build ?? "nil"
+      ]
+    )
 
     if shortVersion == nil || build == nil {
-      print(
-        "[Bundle][Warning] Missing CFBundleShortVersionString (Marketing Version) and/or CFBundleVersion (Build). "
-        + "Set MARKETING_VERSION and CURRENT_PROJECT_VERSION in Build Settings or .xcconfig."
+      ErrorReporter.log(
+        "Missing CFBundleShortVersionString and/or CFBundleVersion",
+        level: .warning,
+        category: .build,
+        metadata: ["operation": "bundle_info_check"]
       )
     }
   }

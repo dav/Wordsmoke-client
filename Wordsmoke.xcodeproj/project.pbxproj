@@ -23,6 +23,7 @@
 		A2000000000000000000000B /* InvitePlayersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* InvitePlayersViewModel.swift */; };
 		A2000000000000000000000C /* InviteeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001C /* InviteeRowView.swift */; };
 		A2000000000000000000000D /* InvitePlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* InvitePlayersView.swift */; };
+		A2000000000000000000000E /* ErrorReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001E /* ErrorReporter.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
 		1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */; };
 		1FE969C3EF10A917CEE87E39 /* WordsmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */; };
@@ -96,6 +97,7 @@
 		A1000000000000000000001B /* InvitePlayersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersViewModel.swift; sourceTree = "<group>"; };
 		A1000000000000000000001C /* InviteeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteeRowView.swift; sourceTree = "<group>"; };
 		A1000000000000000000001D /* InvitePlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersView.swift; sourceTree = "<group>"; };
+		A1000000000000000000001E /* ErrorReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReporter.swift; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
 		370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnBasedMatchmakerView.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 				A10000000000000000000019 /* ActionCableClient.swift */,
 				3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */,
 				15CF1284B4330AC01A425C64 /* AnalyticsService.swift */,
+				A1000000000000000000001E /* ErrorReporter.swift */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
 				26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */,
 				3F10D9B3B967F68F1C71A4EB /* APIModels.swift */,
@@ -408,6 +411,7 @@
 				990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */,
 				4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */,
 				91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */,
+				A2000000000000000000000E /* ErrorReporter.swift in Sources */,
 				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,

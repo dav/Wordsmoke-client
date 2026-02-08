@@ -43,7 +43,13 @@ final class TurnBasedMatchmakerCoordinator: NSObject, @MainActor GKTurnBasedMatc
   }
 
   func turnBasedMatchmakerViewController(_ viewController: GKTurnBasedMatchmakerViewController, didFailWithError error: Error) {
-    print("[GameCenter] Turn-based matchmaker failed: \(error)")
+    ErrorReporter.log(
+      "Turn-based matchmaker failed",
+      level: .warning,
+      category: .gameCenter,
+      error: error,
+      metadata: ["operation": "turn_based_matchmaker_view_controller"]
+    )
     onCancel()
   }
 

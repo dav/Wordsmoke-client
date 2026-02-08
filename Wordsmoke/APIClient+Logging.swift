@@ -20,12 +20,30 @@ extension APIClient {
       return String(data: data, encoding: .utf8) ?? ""
     }()
 
-    print("[API] ➡️ \(method) \(urlString)")
+    ErrorReporter.log(
+      "API request",
+      level: .debug,
+      category: .api,
+      metadata: [
+        "method": method,
+        "url": urlString
+      ]
+    )
     if !headers.isEmpty {
-      print("[API] Headers: \(headers)")
+      ErrorReporter.log(
+        "API request headers",
+        level: .debug,
+        category: .api,
+        metadata: ["headers": truncate("\(headers)")]
+      )
     }
     if !body.isEmpty {
-      print("[API] ➡️ Body:\n\(body)")
+      ErrorReporter.log(
+        "API request body",
+        level: .debug,
+        category: .api,
+        metadata: ["body": truncate(body)]
+      )
     }
     #endif
   }
@@ -34,7 +52,11 @@ extension APIClient {
     #if DEBUG
     guard shouldLogResponse(response, data: data, strategy: strategy) else { return }
     guard let httpResponse = response as? HTTPURLResponse else {
-      print("[API] ⬅️😵 invalid response")
+      ErrorReporter.log(
+        "API response was not HTTPURLResponse",
+        level: .debug,
+        category: .api
+      )
       return
     }
 
@@ -46,10 +68,24 @@ extension APIClient {
     }()
 
     let symbol = responseSymbol(for: httpResponse.statusCode)
-    print("[API] \(symbol) \(httpResponse.statusCode) \(httpResponse.url?.absoluteString ?? "")")
+    ErrorReporter.log(
+      "API response",
+      level: .debug,
+      category: .api,
+      metadata: [
+        "symbol": symbol,
+        "status_code": "\(httpResponse.statusCode)",
+        "url": httpResponse.url?.absoluteString ?? ""
+      ]
+    )
 
     if !body.isEmpty {
-      print("[API] ⬅️ Body:\n\(body)")
+      ErrorReporter.log(
+        "API response body",
+        level: .debug,
+        category: .api,
+        metadata: ["body": truncate(body)]
+      )
     }
     #endif
   }
@@ -177,6 +213,13 @@ private extension APIClient {
       return nil
     }
     return "[" + elements.joined(separator: ",") + "]"
+  }
+
+  func truncate(_ value: String, maxLength: Int = 600) -> String {
+    if value.count <= maxLength {
+      return value
+    }
+    return String(value.prefix(maxLength))
   }
 }
 

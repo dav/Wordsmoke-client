@@ -70,7 +70,13 @@ final class MatchmakerCoordinator: NSObject, @MainActor GKMatchmakerViewControll
   }
 
   func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
-    print("[GameCenter] Matchmaker failed: \(error)")
+    ErrorReporter.log(
+      "Game Center matchmaker failed",
+      level: .warning,
+      category: .gameCenter,
+      error: error,
+      metadata: ["operation": "matchmaker_view_controller"]
+    )
     onFinish()
   }
 
