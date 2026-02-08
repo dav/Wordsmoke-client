@@ -27,6 +27,40 @@ struct TestAdminClient {
     let players: [Player]
   }
 
+  struct AcceptInvitesResponse: Decodable, Sendable {
+    let acceptedInviteCount: Int
+    let acceptedPlayerIDs: [String]
+    let game: Game
+
+    enum CodingKeys: String, CodingKey {
+      case acceptedInviteCount
+      case acceptedInviteCountSnake = "accepted_invite_count"
+      case acceptedPlayerIDs
+      case acceptedPlayerIDsSnake = "accepted_player_ids"
+      case game
+    }
+
+    init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+
+      acceptedInviteCount =
+        (try? container.decode(Int.self, forKey: .acceptedInviteCount)) ??
+        (try? container.decode(Int.self, forKey: .acceptedInviteCountSnake)) ??
+        0
+
+      acceptedPlayerIDs =
+        (try? container.decode([String].self, forKey: .acceptedPlayerIDs)) ??
+        (try? container.decode([String].self, forKey: .acceptedPlayerIDsSnake)) ??
+        []
+
+      if let nestedGame = try? container.decode(Game.self, forKey: .game) {
+        game = nestedGame
+      } else {
+        game = try Game(from: decoder)
+      }
+    }
+  }
+
   struct StateResponse: Decodable, Sendable {
     struct GameState: Decodable, Sendable {
       let id: String
@@ -171,6 +205,21 @@ struct TestAdminClient {
     let (data, response) = try await urlSession.data(for: request)
     try validate(response: response, data: data)
     return try decoder.decode(VirtualPlayerResponse.self, from: data)
+  }
+
+  func acceptInvites(gameID: String, playerIDs: [String]? = nil) async throws -> AcceptInvitesResponse {
+    let url = baseURL.appending(path: "test_admin/games/\(gameID)/accept_invites")
+    var request = authorizedRequest(url: url)
+    request.httpMethod = "POST"
+
+    if let playerIDs, !playerIDs.isEmpty {
+      request.httpBody = try JSONSerialization.data(withJSONObject: ["player_ids": playerIDs])
+      request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    }
+
+    let (data, response) = try await urlSession.data(for: request)
+    try validate(response: response, data: data)
+    return try decoder.decode(AcceptInvitesResponse.self, from: data)
   }
 
   func createSubmission(

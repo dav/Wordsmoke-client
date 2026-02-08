@@ -81,6 +81,7 @@ struct InvitePlayersView: View {
             }
           }
           .disabled(!viewModel.canSendInvites || appModel.isBusy)
+          .accessibilityIdentifier("send-invites-button")
         }
       }
       .task {

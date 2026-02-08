@@ -5,6 +5,24 @@ extension GameRoomView {
     model.round != nil
   }
 
+  var reportIssueSection: some View {
+    Section {
+      Button {
+        isReportIssueSheetPresented = true
+      } label: {
+        Label {
+          Text("Report Issue")
+            .foregroundStyle(.red)
+        } icon: {
+          Image(systemName: "exclamationmark.triangle.fill")
+            .foregroundStyle(.red)
+        }
+      }
+      .tint(.red)
+      .accessibilityIdentifier("report-issue-button")
+    }
+  }
+
   func shouldShowSubmissionForm(for round: RoundPayload) -> Bool {
     model.ownSubmission(in: round)?.createdAt == nil
   }
@@ -433,6 +451,237 @@ extension GameRoomView {
       case .success:
         return .secondary
       }
+    }
+  }
+}
+
+private enum ReportIssueStep: Equatable {
+  case options
+  case problemWithGame
+  case inappropriateContent
+
+  var title: String {
+    switch self {
+    case .options:
+      "Report Issue"
+    case .problemWithGame:
+      "Problem with game"
+    case .inappropriateContent:
+      "Inappropriate Content"
+    }
+  }
+}
+
+struct ReportIssueSheet: View {
+  let model: GameRoomModel
+
+  @Environment(\.dismiss) private var dismiss
+  @State private var step: ReportIssueStep = .options
+  @State private var problemDescription = ""
+  @State private var reporterName = ""
+  @State private var reporterEmail = ""
+  @State private var selectedPhraseIDs = Set<String>()
+  @State private var isSubmitting = false
+  @State private var errorMessage: String?
+  @State private var showSuccessAlert = false
+
+  private var reportablePhrases: [ReportablePhrase] {
+    model.reportablePhrases()
+  }
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        switch step {
+        case .options:
+          optionsContent
+        case .problemWithGame:
+          problemWithGameContent
+        case .inappropriateContent:
+          inappropriateContent
+        }
+
+        if let errorMessage, !errorMessage.isEmpty {
+          Section {
+            Text(errorMessage)
+              .foregroundStyle(.red)
+          }
+        }
+      }
+      .navigationTitle(step.title)
+      .toolbar {
+        if step != .options {
+          ToolbarItem(placement: .topBarLeading) {
+            Button("Back") {
+              errorMessage = nil
+              step = .options
+            }
+          }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Close") {
+            dismiss()
+          }
+        }
+      }
+      .alert("Report Sent", isPresented: $showSuccessAlert) {
+        Button("Done") {
+          dismiss()
+        }
+      } message: {
+        Text("Thanks. Your report was submitted.")
+      }
+    }
+  }
+
+  private var optionsContent: some View {
+    Section {
+      Button("Problem with game", systemImage: "wrench.and.screwdriver.fill") {
+        errorMessage = nil
+        step = .problemWithGame
+      }
+      .accessibilityIdentifier("report-problem-with-game-button")
+
+      Button("Inappropriate Content", systemImage: "hand.raised.fill") {
+        errorMessage = nil
+        step = .inappropriateContent
+      }
+      .accessibilityIdentifier("report-inappropriate-content-button")
+    } footer: {
+      Text("Select what you want to report.")
+    }
+  }
+
+  private var problemWithGameContent: some View {
+    Group {
+      Section("Describe the problem") {
+        TextEditor(text: $problemDescription)
+          .frame(minHeight: 140)
+          .textInputAutocapitalization(.sentences)
+          .accessibilityIdentifier("report-problem-description-field")
+      }
+
+      Section("Optional contact info") {
+        TextField("Name (optional)", text: $reporterName)
+          .textContentType(.name)
+          .accessibilityIdentifier("report-problem-name-field")
+        TextField("Email (optional)", text: $reporterEmail)
+          .textContentType(.emailAddress)
+          .textInputAutocapitalization(.never)
+          .autocorrectionDisabled()
+          .keyboardType(.emailAddress)
+          .accessibilityIdentifier("report-problem-email-field")
+      }
+
+      Section {
+        Button {
+          Task {
+            await submitProblemWithGameReport()
+          }
+        } label: {
+          if isSubmitting {
+            ProgressView()
+          } else {
+            Text("Send Report")
+          }
+        }
+        .disabled(isSubmitting || trimmedProblemDescription.isEmpty)
+        .accessibilityIdentifier("report-problem-submit-button")
+      }
+    }
+  }
+
+  private var inappropriateContent: some View {
+    Group {
+      if reportablePhrases.isEmpty {
+        Section {
+          Text("No other-player phrases are available to report yet.")
+            .foregroundStyle(.secondary)
+        }
+      } else {
+        Section("Select phrase(s) to report") {
+          ForEach(reportablePhrases) { phrase in
+            Button {
+              toggleSelection(for: phrase.id)
+            } label: {
+              HStack(alignment: .top, spacing: 12) {
+                Image(systemName: selectedPhraseIDs.contains(phrase.id) ? "checkmark.circle.fill" : "circle")
+                  .foregroundStyle(selectedPhraseIDs.contains(phrase.id) ? .red : .secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(phrase.phrase)
+                    .foregroundStyle(.primary)
+                  Text("Round \(phrase.roundNumber) • \(phrase.playerName) (\(phrase.playerID))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              }
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("report-phrase-\(phrase.id)")
+          }
+        }
+
+        Section {
+          Button {
+            Task {
+              await submitInappropriateContentReport()
+            }
+          } label: {
+            if isSubmitting {
+              ProgressView()
+            } else {
+              Text("Send Report")
+            }
+          }
+          .disabled(isSubmitting || selectedPhraseIDs.isEmpty)
+          .accessibilityIdentifier("report-inappropriate-submit-button")
+        }
+      }
+    }
+  }
+
+  private var trimmedProblemDescription: String {
+    problemDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private func toggleSelection(for phraseID: String) {
+    if selectedPhraseIDs.contains(phraseID) {
+      selectedPhraseIDs.remove(phraseID)
+    } else {
+      selectedPhraseIDs.insert(phraseID)
+    }
+  }
+
+  private func submitProblemWithGameReport() async {
+    guard !isSubmitting else { return }
+    isSubmitting = true
+    defer { isSubmitting = false }
+    errorMessage = nil
+
+    do {
+      try await model.submitProblemWithGameReport(
+        description: trimmedProblemDescription,
+        name: reporterName,
+        email: reporterEmail
+      )
+      showSuccessAlert = true
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  private func submitInappropriateContentReport() async {
+    guard !isSubmitting else { return }
+    isSubmitting = true
+    defer { isSubmitting = false }
+    errorMessage = nil
+
+    let selected = reportablePhrases.filter { selectedPhraseIDs.contains($0.id) }
+    do {
+      try await model.submitInappropriateContentReport(selectedPhrases: selected)
+      showSuccessAlert = true
+    } catch {
+      errorMessage = error.localizedDescription
     }
   }
 }

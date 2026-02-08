@@ -192,9 +192,39 @@ enum APIError: Error, CustomNSError, LocalizedError {
       if trimmed.isEmpty {
         return "HTTP \(statusCode)"
       }
+      if let payload = APIErrorPayload.decode(from: trimmed) {
+        if let detailsMessage = payload.detailsMessage {
+          return detailsMessage
+        }
+        if let message = payload.message?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+          return message
+        }
+      }
       return "HTTP \(statusCode): \(trimmed)"
     case .invalidResponse:
       return "Invalid server response"
     }
+  }
+}
+
+private struct APIErrorPayload: Decodable {
+  let message: String?
+  let details: [String: [String]]?
+
+  var detailsMessage: String? {
+    guard let details else { return nil }
+    let messages = details
+      .keys
+      .sorted()
+      .flatMap { details[$0] ?? [] }
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+    guard !messages.isEmpty else { return nil }
+    return messages.joined(separator: "\n")
+  }
+
+  static func decode(from rawBody: String) -> APIErrorPayload? {
+    guard let data = rawBody.data(using: .utf8) else { return nil }
+    return try? JSONDecoder().decode(APIErrorPayload.self, from: data)
   }
 }

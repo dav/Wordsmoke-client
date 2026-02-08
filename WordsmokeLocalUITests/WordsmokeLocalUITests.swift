@@ -1,7 +1,9 @@
+import Foundation
 import XCTest
 
 @MainActor
 final class WordsmokeLocalUITests: XCTestCase {
+  private static let defaultInviteeNames = ["Alice", "Bob", "Cindy"]
   private let app = XCUIApplication()
   private var adminClient: TestAdminClient?
   private var createdGameID: String?
@@ -32,29 +34,20 @@ final class WordsmokeLocalUITests: XCTestCase {
   func testLocalGameFlow() async throws {
     let baseURL = Self.resolveBaseURL()
     let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
     let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
     adminClient = admin
 
-    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
-    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
-    app.launch()
+    launchApp(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
 
     let createdAfter = Date()
-    tapNewGameAndCreate()
-
-    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
-    createdGameID = game.id
-    _ = try await admin.createVirtualPlayers(gameID: game.id, count: 2)
-
-    let gameCard = app.buttons["active-game-\(game.id)"]
-    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
-    gameCard.tap()
+    let game = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter,
+      playerCount: 3
+    )
 
     dismissOnboardingIfPresent()
-
-    let startButton = app.buttons["game-room-start-button"]
-    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
-    startButton.tap()
 
     let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
     let roundOneID = try requireRoundID(from: roundOneState)
@@ -62,9 +55,6 @@ final class WordsmokeLocalUITests: XCTestCase {
 
     let localPlayerID = try requireLocalPlayerID(from: roundOneState)
     let virtualPlayerIDs = roundOneState.participants.filter { $0.virtual }.map { $0.id }
-      _ = roundOneState.participants.reduce(into: [String: String]()) { result, participant in
-      result[participant.id] = participant.displayName
-    }
     var expectedGuessesByRound: [Int: [String: String]] = [:]
 
     try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "test")
@@ -106,7 +96,6 @@ final class WordsmokeLocalUITests: XCTestCase {
     let roundTwoState = try await admin.waitForRound(gameID: game.id, number: 2, timeout: 30)
     let roundTwoID = try requireRoundID(from: roundTwoState)
     let wordsRoundTwo = try await admin.fetchWords(gameID: game.id, excludeGoal: false)
-      _ = try requirePlayerName(from: roundTwoState, playerID: localPlayerID)
 
     let goalWord = wordsRoundTwo.goalWord
 
@@ -134,13 +123,6 @@ final class WordsmokeLocalUITests: XCTestCase {
       .filter { $0.playerId != localPlayerID }
       .map { $0.id }
     XCTAssertGreaterThanOrEqual(otherSubmissionIDsRoundTwo.count, 2)
-
-    let roundTwoStateForGuesses = try await admin.fetchState(gameID: game.id)
-      _ = roundTwoStateForGuesses.submissions.reduce(into: [String: String]()) { result, submission in
-      if let guessWord = submission.guessWord {
-        result[submission.playerName] = guessWord.uppercased()
-      }
-    }
 
     try submitVotes(favoriteID: otherSubmissionIDsRoundTwo[0], leastID: otherSubmissionIDsRoundTwo[1])
 
@@ -176,32 +158,21 @@ final class WordsmokeLocalUITests: XCTestCase {
   func testTwoPlayerGameLocalPlayerWins() async throws {
     let baseURL = Self.resolveBaseURL()
     let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
     let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
     adminClient = admin
 
-    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
-    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
-    app.launch()
+    launchApp(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
 
     let createdAfter = Date()
-    tapNewGameAndCreate(wordLength: 4)
-
-    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
-    createdGameID = game.id
-
-    // Create only 1 virtual player for 2-player game (no voting phase)
-    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 1)
-    let virtualPlayer = virtualPlayersResponse.players.first { $0.virtual }!
-
-    let gameCard = app.buttons["active-game-\(game.id)"]
-    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
-    gameCard.tap()
+    let game = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter,
+      playerCount: 2,
+      wordLength: 4
+    )
 
     dismissOnboardingIfPresent()
-
-    let startButton = app.buttons["game-room-start-button"]
-    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
-    startButton.tap()
 
     // Round 1: Both players submit non-goal words
     let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
@@ -209,6 +180,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
 
     let localPlayer = roundOneState.participants.first { !$0.virtual }!
+    let virtualPlayer = try requireVirtualPlayer(from: roundOneState)
 
     try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
 
@@ -255,32 +227,21 @@ final class WordsmokeLocalUITests: XCTestCase {
   func testTwoPlayerGameLocalPlayerLoses() async throws {
     let baseURL = Self.resolveBaseURL()
     let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
     let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
     adminClient = admin
 
-    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
-    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
-    app.launch()
+    launchApp(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
 
     let createdAfter = Date()
-    tapNewGameAndCreate(wordLength: 7)
-
-    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
-    createdGameID = game.id
-
-    // Create only 1 virtual player for 2-player game (no voting phase)
-    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 1)
-    let virtualPlayer = virtualPlayersResponse.players.first { $0.virtual }!
-
-    let gameCard = app.buttons["active-game-\(game.id)"]
-    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
-    gameCard.tap()
+    let game = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter,
+      playerCount: 2,
+      wordLength: 7
+    )
 
     dismissOnboardingIfPresent()
-
-    let startButton = app.buttons["game-room-start-button"]
-    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
-    startButton.tap()
 
     // Round 1: Both players submit non-goal words
     let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
@@ -288,6 +249,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
 
     let localPlayer = roundOneState.participants.first { !$0.virtual }!
+    let virtualPlayer = try requireVirtualPlayer(from: roundOneState)
 
     try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
 
@@ -343,32 +305,20 @@ final class WordsmokeLocalUITests: XCTestCase {
   func testVotingUIUpdatesAfterSubmission() async throws {
     let baseURL = Self.resolveBaseURL()
     let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
     let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
     adminClient = admin
 
-    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
-    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
-    app.launch()
+    launchApp(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
 
     let createdAfter = Date()
-    tapNewGameAndCreate()
-
-    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
-    createdGameID = game.id
-
-    // Create 2 virtual players for 3-player game (voting is enabled for 3+ players)
-    let virtualPlayersResponse = try await admin.createVirtualPlayers(gameID: game.id, count: 2)
-    let virtualPlayerIDs = virtualPlayersResponse.players.filter { $0.virtual }.map { $0.id }
-
-    let gameCard = app.buttons["active-game-\(game.id)"]
-    XCTAssertTrue(gameCard.waitForExistence(timeout: 20))
-    gameCard.tap()
+    let game = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter,
+      playerCount: 3
+    )
 
     dismissOnboardingIfPresent()
-
-    let startButton = app.buttons["game-room-start-button"]
-    XCTAssertTrue(startButton.waitForExistence(timeout: 20))
-    startButton.tap()
 
     // Round 1: All players submit guesses
     let roundOneState = try await admin.waitForRound(gameID: game.id, number: 1, timeout: 30)
@@ -376,6 +326,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     let wordsRoundOne = try await admin.fetchWords(gameID: game.id, excludeGoal: true)
 
     let localPlayerID = try requireLocalPlayerID(from: roundOneState)
+    let virtualPlayerIDs = roundOneState.participants.filter(\.virtual).map(\.id)
 
     try submitGuess(word: wordsRoundOne.randomGuessWord, phrasePrefix: "round one")
 
@@ -492,13 +443,34 @@ final class WordsmokeLocalUITests: XCTestCase {
     return element.waitForExistence(timeout: perSwipeTimeout)
   }
 
-  private func tapNewGameAndCreate(wordLength: Int? = nil) {
+  private func createGameThroughInviteFlow(
+    admin: TestAdminClient,
+    createdAfter: Date,
+    playerCount: Int,
+    wordLength: Int? = nil
+  ) async throws -> TestAdminClient.Game {
+    tapNewGameAndCreate(wordLength: wordLength, playerCount: playerCount)
+    try selectInviteesAndSend(requiredInvitees: max(playerCount - 1, 0))
+    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
+    _ = try await admin.acceptInvites(gameID: game.id)
+    return game
+  }
+
+  private func tapNewGameAndCreate(wordLength: Int? = nil, playerCount: Int = 2) {
     let newGameButton = app.buttons["new-game-button"]
     XCTAssertTrue(newGameButton.waitForExistence(timeout: 20))
     newGameButton.tap()
 
     let createButton = app.buttons["create-game-button"]
     XCTAssertTrue(createButton.waitForExistence(timeout: 10))
+
+    let playerCountButton = app.buttons["\(playerCount) players"]
+    XCTAssertTrue(
+      playerCountButton.waitForExistence(timeout: 5),
+      "Segment for \(playerCount) players should exist"
+    )
+    playerCountButton.tap()
 
     if let wordLength {
       let segment = app.buttons["\(wordLength) letters"]
@@ -507,6 +479,83 @@ final class WordsmokeLocalUITests: XCTestCase {
     }
 
     createButton.tap()
+  }
+
+  private func selectInviteesAndSend(requiredInvitees: Int) throws {
+    let sendButton = app.buttons["send-invites-button"]
+    XCTAssertTrue(sendButton.waitForExistence(timeout: 10), "Invite sheet should appear.")
+    let inviteeRows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "invitee-row-"))
+    XCTAssertTrue(
+      waitForInviteeRows(inviteeRows, timeout: 10),
+      "Invitee rows failed to load. Verify debug matchmaking token and virtual players."
+    )
+
+    let preferredNames = Self.resolvePreferredInviteeNames()
+    var selectedRowIDs = Set<String>()
+    var selectedCount = 0
+    for name in preferredNames where selectedCount < requiredInvitees {
+      if let selectedRowID = selectInvitee(named: name, in: inviteeRows) {
+        selectedRowIDs.insert(selectedRowID)
+        selectedCount += 1
+      }
+    }
+
+    if selectedCount < requiredInvitees {
+      for index in 0..<inviteeRows.count where selectedCount < requiredInvitees {
+        let row = inviteeRows.element(boundBy: index)
+        guard row.exists else { continue }
+        if selectedRowIDs.contains(row.identifier) {
+          continue
+        }
+        row.tap()
+        selectedRowIDs.insert(row.identifier)
+        selectedCount += 1
+      }
+    }
+
+    XCTAssertEqual(
+      selectedCount,
+      requiredInvitees,
+      "Not enough invitees available to satisfy test requirements."
+    )
+    XCTAssertTrue(sendButton.isEnabled, "Send Invites should be enabled after selecting invitees.")
+    sendButton.tap()
+  }
+
+  private func selectInvitee(named name: String, in rows: XCUIElementQuery) -> String? {
+    for index in 0..<rows.count {
+      let row = rows.element(boundBy: index)
+      guard row.exists else { continue }
+      if row.label.localizedStandardContains(name) {
+        row.tap()
+        return row.identifier
+      }
+    }
+    let fallback = rows.matching(NSPredicate(format: "label CONTAINS[c] %@", name)).firstMatch
+    if fallback.waitForExistence(timeout: 1) {
+      fallback.tap()
+      return fallback.identifier
+    }
+    let textMatch = app.staticTexts[name].firstMatch
+    if textMatch.waitForExistence(timeout: 1) {
+      textMatch.tap()
+      return textMatch.identifier
+    }
+    return nil
+  }
+
+  private func waitForInviteeRows(_ rows: XCUIElementQuery, timeout: TimeInterval) -> Bool {
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline {
+      if rows.count > 0 {
+        return true
+      }
+      if app.staticTexts["No players available."].exists {
+        return false
+      }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+    }
+    return rows.count > 0
   }
 
   private func dismissOnboardingIfPresent(timeout: TimeInterval = 2) {
@@ -586,27 +635,14 @@ final class WordsmokeLocalUITests: XCTestCase {
     ])
   }
 
-  private func requireRoundNumber(from state: TestAdminClient.StateResponse) throws -> Int {
-    if let roundNumber = state.currentRound?.number {
-      return roundNumber
+  private func requireVirtualPlayer(
+    from state: TestAdminClient.StateResponse
+  ) throws -> TestAdminClient.StateResponse.Participant {
+    if let virtualPlayer = state.participants.first(where: \.virtual) {
+      return virtualPlayer
     }
-    throw NSError(domain: "WordsmokeLocalUITests", code: 5, userInfo: [
-      NSLocalizedDescriptionKey: "Current round number not found."
-    ])
-  }
-
-  private func requirePlayerName(
-    from state: TestAdminClient.StateResponse,
-    playerID: String
-  ) throws -> String {
-    if let participant = state.participants.first(where: { $0.id == playerID }) {
-      return participant.displayName
-    }
-    if let submission = state.submissions.first(where: { $0.playerId == playerID }) {
-      return submission.playerName
-    }
-    throw NSError(domain: "WordsmokeLocalUITests", code: 4, userInfo: [
-      NSLocalizedDescriptionKey: "Player name not found for \(playerID)."
+    throw NSError(domain: "WordsmokeLocalUITests", code: 6, userInfo: [
+      NSLocalizedDescriptionKey: "Virtual player not found in participants."
     ])
   }
 
@@ -620,11 +656,45 @@ final class WordsmokeLocalUITests: XCTestCase {
 
   private static func resolveAdminToken() throws -> String {
     let env = ProcessInfo.processInfo.environment
-    if let token = env["WORDSMOKE_TEST_ADMIN_TOKEN"], !token.isEmpty {
+    if let token = normalizedToken(env["WORDSMOKE_TEST_ADMIN_TOKEN"]) {
       return token
     }
     throw NSError(domain: "WordsmokeLocalUITests", code: 2, userInfo: [
       NSLocalizedDescriptionKey: "Missing WORDSMOKE_TEST_ADMIN_TOKEN in environment."
     ])
+  }
+
+  private static func resolveDebugMatchmakingToken(fallback: String) -> String {
+    let env = ProcessInfo.processInfo.environment
+    return normalizedToken(env["WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"]) ?? fallback
+  }
+
+  private static func resolvePreferredInviteeNames() -> [String] {
+    let env = ProcessInfo.processInfo.environment
+    if let rawValue = env["WORDSMOKE_UI_TEST_INVITEE_NAMES"] {
+      let names = rawValue
+        .split(separator: ",")
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { !$0.isEmpty }
+      if !names.isEmpty {
+        return names
+      }
+    }
+    return defaultInviteeNames
+  }
+
+  private static func normalizedToken(_ raw: String?) -> String? {
+    guard let raw else { return nil }
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+    guard trimmed != "__TEST_ADMIN_TOKEN__" else { return nil }
+    return trimmed
+  }
+
+  private func launchApp(baseURL: URL, debugMatchmakingToken: String) {
+    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
+    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
+    app.launchEnvironment["WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"] = debugMatchmakingToken
+    app.launch()
   }
 }

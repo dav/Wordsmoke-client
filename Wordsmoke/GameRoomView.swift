@@ -13,6 +13,7 @@ struct GameRoomView: View {
   @State private var lastTrackedStepID: OnboardingStepID?
   @State var isGuessSubmitButtonVisible = false
   @State var isVotesSubmitButtonVisible = false
+  @State var isReportIssueSheetPresented = false
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -120,6 +121,8 @@ struct GameRoomView: View {
               .accessibilityIdentifier("refresh-round-button")
             }
           }
+
+          reportIssueSection
         }
         .navigationTitle("Game \(model.game.joinCode)")
         .scrollContentBackground(.hidden)
@@ -127,6 +130,9 @@ struct GameRoomView: View {
         .listRowBackground(theme.cardBackground)
         .background(theme.background)
         .tint(theme.accent)
+        .sheet(isPresented: $isReportIssueSheetPresented) {
+          ReportIssueSheet(model: model)
+        }
         .task {
           if model.round == nil {
             await model.refreshRound()

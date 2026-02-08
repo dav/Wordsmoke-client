@@ -1,6 +1,14 @@
 import Foundation
 import Observation
 
+struct ReportablePhrase: Identifiable, Hashable, Sendable {
+  let id: String
+  let roundNumber: Int
+  let playerID: String
+  let playerName: String
+  let phrase: String
+}
+
 @MainActor
 @Observable
 final class GameRoomModel {
@@ -184,6 +192,43 @@ extension GameRoomModel {
       errorMessage = error.localizedDescription
     }
   }
+
+  func submitProblemWithGameReport(
+    description: String,
+    name: String?,
+    email: String?
+  ) async throws {
+    let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedDescription.isEmpty else {
+      throw SupportReportValidationError(message: "Please describe the problem.")
+    }
+
+    let message = problemWithGameReportMessage(
+      description: trimmedDescription,
+      providedName: name,
+      providedEmail: email
+    )
+    try await apiClient.submitSupportIssue(
+      topic: "Problem with game",
+      message: message,
+      name: name,
+      email: email
+    )
+  }
+
+  func submitInappropriateContentReport(selectedPhrases: [ReportablePhrase]) async throws {
+    guard !selectedPhrases.isEmpty else {
+      throw SupportReportValidationError(message: "Select at least one phrase to report.")
+    }
+
+    let message = inappropriateContentReportMessage(selectedPhrases: selectedPhrases)
+    try await apiClient.submitSupportIssue(
+      topic: "Inappropriate Content",
+      message: message,
+      name: playerName(for: localPlayerID),
+      email: nil
+    )
+  }
 }
 
 extension GameRoomModel {
@@ -304,6 +349,38 @@ extension GameRoomModel {
     return player.gameCenterPlayerID.hasPrefix("VIRTUAL-")
   }
 
+  func reportablePhrases() -> [ReportablePhrase] {
+    var seenSubmissionIDs = Set<String>()
+    var phrases: [ReportablePhrase] = []
+
+    for round in reportRounds() {
+      for submission in round.submissions where submission.playerID != localPlayerID {
+        guard let phrase = submission.phrase?.trimmingCharacters(in: .whitespacesAndNewlines), !phrase.isEmpty else {
+          continue
+        }
+        guard seenSubmissionIDs.insert(submission.id).inserted else {
+          continue
+        }
+        phrases.append(
+          ReportablePhrase(
+            id: submission.id,
+            roundNumber: round.number,
+            playerID: submission.playerID,
+            playerName: submission.playerName,
+            phrase: phrase
+          )
+        )
+      }
+    }
+
+    return phrases.sorted {
+      if $0.roundNumber == $1.roundNumber {
+        return $0.playerName.localizedStandardCompare($1.playerName) == .orderedAscending
+      }
+      return $0.roundNumber > $1.roundNumber
+    }
+  }
+
   func winnerIDs(for round: RoundPayload) -> [String] {
     let correct = round.submissions.filter { $0.correctGuess == true }
     guard !correct.isEmpty else { return [] }
@@ -329,6 +406,59 @@ extension GameRoomModel {
   func canSubmitVotes() -> Bool {
     guard let favoriteID = selectedFavoriteID, let leastID = selectedLeastID else { return false }
     return favoriteID != leastID
+  }
+
+  func problemWithGameReportMessage(
+    description: String,
+    providedName: String?,
+    providedEmail: String?
+  ) -> String {
+    let timestamp = ISO8601DateFormatter().string(from: Date())
+    var lines = [
+      description,
+      "",
+      "---",
+      "report_type: Problem with game",
+      "submitted_at: \(timestamp)",
+      "game_id: \(game.id)",
+      "player_id: \(localPlayerID)",
+      "player_name: \(playerName(for: localPlayerID) ?? "Unknown")"
+    ]
+
+    let name = providedName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if !name.isEmpty {
+      lines.append("provided_name: \(name)")
+    }
+
+    let email = providedEmail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if !email.isEmpty {
+      lines.append("provided_email: \(email)")
+    }
+
+    return lines.joined(separator: "\n")
+  }
+
+  func inappropriateContentReportMessage(selectedPhrases: [ReportablePhrase]) -> String {
+    let timestamp = ISO8601DateFormatter().string(from: Date())
+    var lines = [
+      "A player reported inappropriate content.",
+      "",
+      "---",
+      "report_type: Inappropriate Content",
+      "submitted_at: \(timestamp)",
+      "game_id: \(game.id)",
+      "player_id: \(localPlayerID)",
+      "player_name: \(playerName(for: localPlayerID) ?? "Unknown")",
+      "selected_phrases:"
+    ]
+
+    for phrase in selectedPhrases.sorted(by: { $0.id < $1.id }) {
+      lines.append(
+        "- round=\(phrase.roundNumber) player_id=\(phrase.playerID) player_name=\"\(phrase.playerName)\" phrase=\"\(phrase.phrase)\""
+      )
+    }
+
+    return lines.joined(separator: "\n")
   }
 
   func validateGuessWord() async {
@@ -449,4 +579,10 @@ extension GameRoomModel {
       game = updatedGame
     }
   }
+}
+
+private struct SupportReportValidationError: LocalizedError {
+  let message: String
+
+  var errorDescription: String? { message }
 }

@@ -36,6 +36,7 @@ struct InviteeRowView: View {
       .contentShape(.rect)
     }
     .buttonStyle(.plain)
+    .accessibilityIdentifier("invitee-row-\(invitee.id)")
   }
 
   private func initials(for name: String) -> String {

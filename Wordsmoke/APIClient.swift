@@ -335,6 +335,41 @@ struct APIClient {
     return try decode(ClientPolicyResponse.self, from: data, response: response)
   }
 
+  func submitSupportIssue(
+    topic: String,
+    message: String,
+    name: String?,
+    email: String?
+  ) async throws {
+    guard let supportURL = URL(string: "https://api.web3forms.com/submit") else {
+      throw APIError.invalidResponse
+    }
+
+    var request = URLRequest(url: supportURL)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    let payload: [String: String] = [
+      "access_key": supportAccessKey,
+      "name": normalizedSupportName(name),
+      "email": normalizedSupportEmail(email),
+      "topic": topic,
+      "message": message
+    ]
+    request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+
+    if let supportResponse = try? decode(SupportSubmissionResponse.self, from: data, response: response),
+       supportResponse.success == false {
+      throw SupportSubmissionError(message: supportResponse.message ?? "Support request failed.")
+    }
+  }
+
   private func validate(response: URLResponse, data: Data) throws {
     guard let httpResponse = response as? HTTPURLResponse else {
       throw APIError.invalidResponse
@@ -380,4 +415,32 @@ struct APIClient {
       request.setValue(debugMatchmakingToken, forHTTPHeaderField: "X-Debug-Matchmaking-Token")
     }
   }
+
+  private var supportAccessKey: String {
+    if baseURL.host?.lowercased() == "wordsmoke.akuaku.org" {
+      return "02b294b3-496a-4b54-8cec-c427aad4de36"
+    }
+    return "6e031250-0aa2-4ccd-998e-7d3ec06ec7f5"
+  }
+
+  private func normalizedSupportName(_ name: String?) -> String {
+    let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return trimmed.isEmpty ? "Wordsmoke Player" : trimmed
+  }
+
+  private func normalizedSupportEmail(_ email: String?) -> String {
+    let trimmed = email?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return trimmed.isEmpty ? "noreply@wordsmoke.app" : trimmed
+  }
+}
+
+private struct SupportSubmissionResponse: Decodable {
+  let success: Bool
+  let message: String?
+}
+
+private struct SupportSubmissionError: LocalizedError {
+  let message: String
+
+  var errorDescription: String? { message }
 }
