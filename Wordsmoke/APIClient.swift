@@ -325,6 +325,32 @@ struct APIClient {
     return result.lengths
   }
 
+  func registerDeviceToken(_ token: String, environment: String = "production") async throws {
+    var request = URLRequest(url: baseURL.appending(path: "device_tokens"))
+    request.httpMethod = "POST"
+    applyStandardHeaders(&request, includeContentType: true)
+
+    let body: [String: Any] = ["device_token": ["token": token, "environment": environment]]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+  }
+
+  func unregisterDeviceToken(_ token: String) async throws {
+    let encoded = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
+    var request = URLRequest(url: baseURL.appending(path: "device_tokens/\(encoded)"))
+    request.httpMethod = "DELETE"
+    applyStandardHeaders(&request)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+  }
+
   func fetchClientPolicy() async throws -> ClientPolicyResponse {
     var request = URLRequest(url: baseURL.appending(path: "client_policy"))
     request.httpMethod = "GET"

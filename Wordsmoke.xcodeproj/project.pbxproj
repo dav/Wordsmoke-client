@@ -12,6 +12,8 @@
 		0AC5E3EE6DAD7DF1813568D6 /* APIErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2037713DC60C690130A2DD3C /* APIErrorTests.swift */; };
 		0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5172F0844CBC8E960B066C4 /* GameModels.swift */; };
 		0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */; };
+		11109AF3F3717E349454520C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E8739BCE09A170459A1B9C /* AppDelegate.swift */; };
+		11C2B29E7CD8313D3DF64424 /* PushNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6628A4F8545894B5E71957D9 /* PushNotificationService.swift */; };
 		11CC515FEB7C778B54D594C9 /* MatchmakingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901A588C6C9AB834AECE369F /* MatchmakingError.swift */; };
 		120E5A79351FD15E5DE09527 /* ServerMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD8E1147C206031CED891B5 /* ServerMatchmakingProvider.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
@@ -103,11 +105,13 @@
 		585D7DFCC9D6EDE6221DAF49 /* MatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingProvider.swift; sourceTree = "<group>"; };
 		5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedbackTests.swift; sourceTree = "<group>"; };
 		639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameRoomView+Subviews.swift"; sourceTree = "<group>"; };
+		6628A4F8545894B5E71957D9 /* PushNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationService.swift; sourceTree = "<group>"; };
 		6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6E8299751BDE633CA83FB3A9 /* WordsmokeLocalUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeLocalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F213A3024987A913C1104C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		772F6010EE3B781D767C6AF9 /* MatchmakingEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingEvent.swift; sourceTree = "<group>"; };
 		80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeLocalUITests.swift; sourceTree = "<group>"; };
+		80E8739BCE09A170459A1B9C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeUITests.swift; sourceTree = "<group>"; };
 		901A588C6C9AB834AECE369F /* MatchmakingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingError.swift; sourceTree = "<group>"; };
 		90934B6A3E365C30CC3876EF /* TestAdminClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAdminClient.swift; sourceTree = "<group>"; };
@@ -199,6 +203,7 @@
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
 				26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */,
 				3F10D9B3B967F68F1C71A4EB /* APIModels.swift */,
+				80E8739BCE09A170459A1B9C /* AppDelegate.swift */,
 				4878A06FDDA991B74D275E35 /* AppEnvironment.swift */,
 				E9945E9A4B85356A3EAEB6AC /* AppModel.swift */,
 				C6552EA626DE57F91C1ADB24 /* AppRoute.swift */,
@@ -228,6 +233,7 @@
 				DB5EE51A948C47A4B233495E /* OnboardingModels.swift */,
 				CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */,
 				4128BA52E3428D244575448C /* OnboardingStore.swift */,
+				6628A4F8545894B5E71957D9 /* PushNotificationService.swift */,
 				E6884B6216C35B5F2CD87500 /* RootSubviews.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
 				0FD8E1147C206031CED891B5 /* ServerMatchmakingProvider.swift */,
@@ -442,6 +448,7 @@
 				AFE0D46CE56C7C6D62737023 /* ActionCableClient.swift in Sources */,
 				4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */,
 				91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */,
+				11109AF3F3717E349454520C /* AppDelegate.swift in Sources */,
 				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,
@@ -469,6 +476,7 @@
 				7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */,
 				C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */,
 				6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */,
+				11C2B29E7CD8313D3DF64424 /* PushNotificationService.swift in Sources */,
 				CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
 				120E5A79351FD15E5DE09527 /* ServerMatchmakingProvider.swift in Sources */,

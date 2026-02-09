@@ -23,6 +23,7 @@ enum ErrorCategory: String {
   case gameCenter = "game_center"
   case actionCable = "action_cable"
   case matchmaking
+  case push
   case build
 }
 

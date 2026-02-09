@@ -10,6 +10,7 @@ final class AppModel {
   var apiClient: APIClient
   var matchmakingProvider: MatchmakingProvider
   let analytics = AnalyticsService.shared
+  let pushService = PushNotificationService()
   var session: SessionResponse?
   var currentGame: GameResponse?
   var games: [GameResponse] = []
@@ -38,6 +39,11 @@ final class AppModel {
   func start() async {
     apiClient.debugMatchmakingToken = AppEnvironment.debugMatchmakingToken
     matchmakingProvider.update(apiClient: apiClient)
+    pushService.onNotificationTapped = { [weak self] gameID in
+      Task { @MainActor [weak self] in
+        await self?.openGameFromNotification(gameID: gameID)
+      }
+    }
     gameCenter.configure()
     statusMessage = "Waiting for Game Center sign-in…"
     handleAuthChange()
@@ -114,6 +120,8 @@ final class AppModel {
       session = response
       apiClient.authToken = response.token
       matchmakingProvider.update(apiClient: apiClient)
+      pushService.update(apiClient: apiClient)
+      pushService.requestPermissionAndRegister()
       statusMessage = "Connected to server."
       connectionErrorMessage = nil
       await loadGoalWordLengths()
@@ -401,6 +409,30 @@ final class AppModel {
   func selectGame(_ game: GameResponse) {
     currentGame = game
     enterGame()
+  }
+
+  func openGameFromNotification(gameID: String) async {
+    if let existing = games.first(where: { $0.id == gameID }) {
+      selectGame(existing)
+      return
+    }
+
+    do {
+      let game = try await apiClient.fetchGame(id: gameID)
+      currentGame = game
+      if !games.contains(where: { $0.id == gameID }) {
+        games.insert(game, at: 0)
+      }
+      enterGame()
+    } catch {
+      ErrorReporter.log(
+        "Failed to open game from notification",
+        level: .warning,
+        category: .push,
+        error: error,
+        metadata: ["game_id": gameID]
+      )
+    }
   }
 
   private func debugDescription(for error: Error) -> String {
