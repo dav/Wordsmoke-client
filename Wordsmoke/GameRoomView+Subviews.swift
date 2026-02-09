@@ -30,6 +30,7 @@ extension GameRoomView {
   @ViewBuilder
   func submissionForm() -> some View {
     TextField("Guess \(model.game.goalLength)-letter word", text: $model.guessWord)
+      .focused($focusedField, equals: .guess)
       .textInputAutocapitalization(.never)
       .autocorrectionDisabled()
       .textContentType(.oneTimeCode)
@@ -42,6 +43,7 @@ extension GameRoomView {
         }
       }
     TextField("Phrase", text: $model.phrase)
+      .focused($focusedField, equals: .phrase)
       .textInputAutocapitalization(.sentences)
       .accessibilityIdentifier("phrase-field")
       .onboardingTarget(.phraseField)

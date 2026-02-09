@@ -2,6 +2,11 @@ import SwiftUI
 import UIKit
 
 struct GameRoomView: View {
+  enum SubmissionField {
+    case guess
+    case phrase
+  }
+
   @Bindable var model: GameRoomModel
   @Bindable var onboarding: OnboardingStore
   let analytics: AnalyticsService
@@ -9,6 +14,7 @@ struct GameRoomView: View {
   @Environment(\.appTheme) var theme
   @Environment(\.debugEnabled) var showDebug
   @Environment(\.scenePhase) private var scenePhase
+  @FocusState var focusedField: SubmissionField?
   @State private var onboardingIndex = 0
   @State private var onboardingIsActive = false
   @State private var onboardingVisibleTargets = Set<OnboardingTarget>()
@@ -168,6 +174,7 @@ struct GameRoomView: View {
           if model.round == nil {
             await model.refreshRound()
           }
+          setInitialFocus()
         }
         .onAppear {
           if scenePhase == .active {
@@ -409,6 +416,15 @@ struct GameRoomView: View {
         }
         try? await Task.sleep(for: .milliseconds(150))
       }
+    }
+  }
+
+  private func setInitialFocus() {
+    guard let round = model.round, shouldShowSubmissionForm(for: round) else { return }
+    if model.guessWord.isEmpty {
+      focusedField = .guess
+    } else if model.phrase.isEmpty {
+      focusedField = .phrase
     }
   }
 
