@@ -8,22 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		090E44A5F9E4B6617CB750B3 /* TestAdminClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90934B6A3E365C30CC3876EF /* TestAdminClient.swift */; };
+		0A4499420B10E15D150281CA /* ErrorReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B14C579CB39E6A826EBE866 /* ErrorReporter.swift */; };
+		0AC5E3EE6DAD7DF1813568D6 /* APIErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2037713DC60C690130A2DD3C /* APIErrorTests.swift */; };
 		0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5172F0844CBC8E960B066C4 /* GameModels.swift */; };
 		0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */; };
-		A20000000000000000000001 /* DebugMatchmakingPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* DebugMatchmakingPlayer.swift */; };
-		A20000000000000000000002 /* DebugMatchmakingPlayersResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */; };
-		A20000000000000000000003 /* MatchmakingSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* MatchmakingSource.swift */; };
-		A20000000000000000000004 /* MatchmakingInvitee.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* MatchmakingInvitee.swift */; };
-		A20000000000000000000005 /* MatchmakingEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* MatchmakingEvent.swift */; };
-		A20000000000000000000006 /* MatchmakingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* MatchmakingError.swift */; };
-		A20000000000000000000007 /* MatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* MatchmakingProvider.swift */; };
-		A20000000000000000000008 /* GameCenterMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */; };
-		A20000000000000000000009 /* ActionCableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000019 /* ActionCableClient.swift */; };
-		A2000000000000000000000A /* ServerMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001A /* ServerMatchmakingProvider.swift */; };
-		A2000000000000000000000B /* InvitePlayersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001B /* InvitePlayersViewModel.swift */; };
-		A2000000000000000000000C /* InviteeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001C /* InviteeRowView.swift */; };
-		A2000000000000000000000D /* InvitePlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001D /* InvitePlayersView.swift */; };
-		A2000000000000000000000E /* ErrorReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001E /* ErrorReporter.swift */; };
+		11CC515FEB7C778B54D594C9 /* MatchmakingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901A588C6C9AB834AECE369F /* MatchmakingError.swift */; };
+		120E5A79351FD15E5DE09527 /* ServerMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD8E1147C206031CED891B5 /* ServerMatchmakingProvider.swift */; };
 		188CE24B422311252B060105 /* WordsmokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */; };
 		1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */; };
 		1FE969C3EF10A917CEE87E39 /* WordsmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */; };
@@ -35,7 +25,10 @@
 		4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5944935A35D4EDE774A15C /* APIClient.swift */; };
 		4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */; };
 		46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B6E0D99AEACE3C415847FF /* MarksView.swift */; };
+		4DD0B7CD8973107E474FF61C /* GameCenterMatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77DE6E151E846E00FD73A67 /* GameCenterMatchmakingProvider.swift */; };
 		57179CB80ED5832F0A6F197B /* AmplitudeSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DCCA268A928787D873948531 /* AmplitudeSwift */; };
+		5A9B79D4E1823C307862C105 /* MatchmakingInvitee.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4758E3EBF097AA7EBAD5CE1 /* MatchmakingInvitee.swift */; };
+		5D113701A5D383032B9ED323 /* MatchmakingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 585D7DFCC9D6EDE6221DAF49 /* MatchmakingProvider.swift */; };
 		6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4128BA52E3428D244575448C /* OnboardingStore.swift */; };
 		6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */; };
 		7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5EE51A948C47A4B233495E /* OnboardingModels.swift */; };
@@ -46,15 +39,23 @@
 		99F0DDEC61771B1B1E19E76F /* TurnBasedMatchmakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */; };
 		9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6552EA626DE57F91C1ADB24 /* AppRoute.swift */; };
 		9E24AE866B79A935B8FC9C86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 173209AFEBBDE6466400BA6A /* Assets.xcassets */; };
+		9E32DDC9142C179F45B71A78 /* InviteeRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA40A833C0BDF93C61D81338 /* InviteeRowView.swift */; };
 		A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */; };
 		A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */; };
+		AFE0D46CE56C7C6D62737023 /* ActionCableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C63CFE3B3C700079E5C6616 /* ActionCableClient.swift */; };
 		C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */; };
+		C3C5120C6F90849EB2DB4D30 /* InvitePlayersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367F9C19E26DB106CABBEF24 /* InvitePlayersViewModel.swift */; };
+		C75B2DFCF4B4277E965C190C /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 1AA1081A263BE6C51107C7DF /* Sentry */; };
+		CDDD2DBC6C68A3597602B61B /* InvitePlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C85F18B83E952E4E5D935B /* InvitePlayersView.swift */; };
 		CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6884B6216C35B5F2CD87500 /* RootSubviews.swift */; };
 		D5CFF5879FE920AC5FC417F1 /* NewGameSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E879A39397FE5587AB552F9A /* NewGameSheetView.swift */; };
+		D77114BE365527D4DE07E176 /* DebugMatchmakingPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18155725832715C87227A0D7 /* DebugMatchmakingPlayer.swift */; };
+		D7AE980839EB6736B162AC35 /* MatchmakingEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772F6010EE3B781D767C6AF9 /* MatchmakingEvent.swift */; };
+		D84DAA0537900622E83A092D /* MatchmakingSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF540AB550C776B2C99652A /* MatchmakingSource.swift */; };
+		E77AAE306BE54B84F4A1A7E9 /* DebugMatchmakingPlayersResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C9C620121D3A46BC1CAF65 /* DebugMatchmakingPlayersResponse.swift */; };
 		E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489F85041C711924670A1610 /* GameRoomModel.swift */; };
 		F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E692155893C5379625E35 /* RootView.swift */; };
 		FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */; };
-		1D1E4E78D0ED48FDB587D963 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 7090F78CB63244F2ADE429E1 /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,24 +84,15 @@
 
 /* Begin PBXFileReference section */
 		06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterAuthView.swift; sourceTree = "<group>"; };
+		0FD8E1147C206031CED891B5 /* ServerMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerMatchmakingProvider.swift; sourceTree = "<group>"; };
 		15CF1284B4330AC01A425C64 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		173209AFEBBDE6466400BA6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A10000000000000000000011 /* DebugMatchmakingPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayer.swift; sourceTree = "<group>"; };
-		A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayersResponse.swift; sourceTree = "<group>"; };
-		A10000000000000000000013 /* MatchmakingSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingSource.swift; sourceTree = "<group>"; };
-		A10000000000000000000014 /* MatchmakingInvitee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingInvitee.swift; sourceTree = "<group>"; };
-		A10000000000000000000015 /* MatchmakingEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingEvent.swift; sourceTree = "<group>"; };
-		A10000000000000000000016 /* MatchmakingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingError.swift; sourceTree = "<group>"; };
-		A10000000000000000000017 /* MatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingProvider.swift; sourceTree = "<group>"; };
-		A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterMatchmakingProvider.swift; sourceTree = "<group>"; };
-		A10000000000000000000019 /* ActionCableClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionCableClient.swift; sourceTree = "<group>"; };
-		A1000000000000000000001A /* ServerMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerMatchmakingProvider.swift; sourceTree = "<group>"; };
-		A1000000000000000000001B /* InvitePlayersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersViewModel.swift; sourceTree = "<group>"; };
-		A1000000000000000000001C /* InviteeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteeRowView.swift; sourceTree = "<group>"; };
-		A1000000000000000000001D /* InvitePlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersView.swift; sourceTree = "<group>"; };
-		A1000000000000000000001E /* ErrorReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReporter.swift; sourceTree = "<group>"; };
+		18155725832715C87227A0D7 /* DebugMatchmakingPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayer.swift; sourceTree = "<group>"; };
+		1C63CFE3B3C700079E5C6616 /* ActionCableClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionCableClient.swift; sourceTree = "<group>"; };
+		2037713DC60C690130A2DD3C /* APIErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIErrorTests.swift; sourceTree = "<group>"; };
 		24BE8D3EE075C1BB4CF3DA9F /* WordsmokeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeApp.swift; sourceTree = "<group>"; };
 		26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APIClient+Logging.swift"; sourceTree = "<group>"; };
+		367F9C19E26DB106CABBEF24 /* InvitePlayersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersViewModel.swift; sourceTree = "<group>"; };
 		370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnBasedMatchmakerView.swift; sourceTree = "<group>"; };
 		3F10D9B3B967F68F1C71A4EB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
@@ -108,17 +100,25 @@
 		4878A06FDDA991B74D275E35 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		489F85041C711924670A1610 /* GameRoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomModel.swift; sourceTree = "<group>"; };
 		4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakerView.swift; sourceTree = "<group>"; };
+		585D7DFCC9D6EDE6221DAF49 /* MatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingProvider.swift; sourceTree = "<group>"; };
 		5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedbackTests.swift; sourceTree = "<group>"; };
 		639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameRoomView+Subviews.swift"; sourceTree = "<group>"; };
 		6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6E8299751BDE633CA83FB3A9 /* WordsmokeLocalUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeLocalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F213A3024987A913C1104C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		772F6010EE3B781D767C6AF9 /* MatchmakingEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingEvent.swift; sourceTree = "<group>"; };
 		80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeLocalUITests.swift; sourceTree = "<group>"; };
 		850E1EE3EAE18A8FF2C9EFC0 /* WordsmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordsmokeUITests.swift; sourceTree = "<group>"; };
+		901A588C6C9AB834AECE369F /* MatchmakingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingError.swift; sourceTree = "<group>"; };
 		90934B6A3E365C30CC3876EF /* TestAdminClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAdminClient.swift; sourceTree = "<group>"; };
+		95C85F18B83E952E4E5D935B /* InvitePlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitePlayersView.swift; sourceTree = "<group>"; };
+		9B14C579CB39E6A826EBE866 /* ErrorReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorReporter.swift; sourceTree = "<group>"; };
 		9E5944935A35D4EDE774A15C /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Wordsmoke.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4758E3EBF097AA7EBAD5CE1 /* MatchmakingInvitee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingInvitee.swift; sourceTree = "<group>"; };
+		A5C9C620121D3A46BC1CAF65 /* DebugMatchmakingPlayersResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMatchmakingPlayersResponse.swift; sourceTree = "<group>"; };
 		B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomView.swift; sourceTree = "<group>"; };
+		BA40A833C0BDF93C61D81338 /* InviteeRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteeRowView.swift; sourceTree = "<group>"; };
 		BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C6552EA626DE57F91C1ADB24 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 		CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingOverlay.swift; sourceTree = "<group>"; };
@@ -128,12 +128,14 @@
 		DB5EE51A948C47A4B233495E /* OnboardingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingModels.swift; sourceTree = "<group>"; };
 		DB618B7FCE6C7D79605BED4F /* WordleFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordleFeedback.swift; sourceTree = "<group>"; };
 		DB7E692155893C5379625E35 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		DEF540AB550C776B2C99652A /* MatchmakingSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchmakingSource.swift; sourceTree = "<group>"; };
 		E18EECCF935B314EB7072740 /* WordsmokeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6884B6216C35B5F2CD87500 /* RootSubviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootSubviews.swift; sourceTree = "<group>"; };
 		E879A39397FE5587AB552F9A /* NewGameSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSheetView.swift; sourceTree = "<group>"; };
 		E9945E9A4B85356A3EAEB6AC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterService.swift; sourceTree = "<group>"; };
 		F00F4D13137D3509E26348B5 /* WordsmokeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WordsmokeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F77DE6E151E846E00FD73A67 /* GameCenterMatchmakingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterMatchmakingProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,7 +144,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				57179CB80ED5832F0A6F197B /* AmplitudeSwift in Frameworks */,
-				1D1E4E78D0ED48FDB587D963 /* Sentry in Frameworks */,
+				C75B2DFCF4B4277E965C190C /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -152,6 +154,7 @@
 		3B4B724B4E59D538C7F7F4DC /* WordsmokeTests */ = {
 			isa = PBXGroup;
 			children = (
+				2037713DC60C690130A2DD3C /* APIErrorTests.swift */,
 				5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */,
 			);
 			path = WordsmokeTests;
@@ -190,10 +193,9 @@
 		9EF0DD21729CA587BCDD4145 /* Wordsmoke */ = {
 			isa = PBXGroup;
 			children = (
-				A10000000000000000000019 /* ActionCableClient.swift */,
+				1C63CFE3B3C700079E5C6616 /* ActionCableClient.swift */,
 				3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */,
 				15CF1284B4330AC01A425C64 /* AnalyticsService.swift */,
-				A1000000000000000000001E /* ErrorReporter.swift */,
 				9E5944935A35D4EDE774A15C /* APIClient.swift */,
 				26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */,
 				3F10D9B3B967F68F1C71A4EB /* APIModels.swift */,
@@ -201,33 +203,34 @@
 				E9945E9A4B85356A3EAEB6AC /* AppModel.swift */,
 				C6552EA626DE57F91C1ADB24 /* AppRoute.swift */,
 				173209AFEBBDE6466400BA6A /* Assets.xcassets */,
-				A10000000000000000000011 /* DebugMatchmakingPlayer.swift */,
-				A10000000000000000000012 /* DebugMatchmakingPlayersResponse.swift */,
+				18155725832715C87227A0D7 /* DebugMatchmakingPlayer.swift */,
+				A5C9C620121D3A46BC1CAF65 /* DebugMatchmakingPlayersResponse.swift */,
+				9B14C579CB39E6A826EBE866 /* ErrorReporter.swift */,
 				06660FAFB5BFEA767A710AE6 /* GameCenterAuthView.swift */,
-				A10000000000000000000018 /* GameCenterMatchmakingProvider.swift */,
+				F77DE6E151E846E00FD73A67 /* GameCenterMatchmakingProvider.swift */,
 				EC6B0C80E7DFBFB5787E7891 /* GameCenterService.swift */,
 				D5172F0844CBC8E960B066C4 /* GameModels.swift */,
 				489F85041C711924670A1610 /* GameRoomModel.swift */,
 				B7A5BE46C0F2E7CDBE537AAE /* GameRoomView.swift */,
 				639970BB57B892DF5ECFBFE5 /* GameRoomView+Subviews.swift */,
 				6F213A3024987A913C1104C8 /* Info.plist */,
-				A1000000000000000000001D /* InvitePlayersView.swift */,
-				A1000000000000000000001B /* InvitePlayersViewModel.swift */,
-				A1000000000000000000001C /* InviteeRowView.swift */,
+				BA40A833C0BDF93C61D81338 /* InviteeRowView.swift */,
+				95C85F18B83E952E4E5D935B /* InvitePlayersView.swift */,
+				367F9C19E26DB106CABBEF24 /* InvitePlayersViewModel.swift */,
 				D0B6E0D99AEACE3C415847FF /* MarksView.swift */,
-				A10000000000000000000016 /* MatchmakingError.swift */,
-				A10000000000000000000015 /* MatchmakingEvent.swift */,
-				A10000000000000000000014 /* MatchmakingInvitee.swift */,
-				A10000000000000000000017 /* MatchmakingProvider.swift */,
-				A10000000000000000000013 /* MatchmakingSource.swift */,
 				4DE4C3F4EC3E06A2FE5DD77A /* MatchmakerView.swift */,
+				901A588C6C9AB834AECE369F /* MatchmakingError.swift */,
+				772F6010EE3B781D767C6AF9 /* MatchmakingEvent.swift */,
+				A4758E3EBF097AA7EBAD5CE1 /* MatchmakingInvitee.swift */,
+				585D7DFCC9D6EDE6221DAF49 /* MatchmakingProvider.swift */,
+				DEF540AB550C776B2C99652A /* MatchmakingSource.swift */,
 				E879A39397FE5587AB552F9A /* NewGameSheetView.swift */,
 				DB5EE51A948C47A4B233495E /* OnboardingModels.swift */,
 				CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */,
 				4128BA52E3428D244575448C /* OnboardingStore.swift */,
 				E6884B6216C35B5F2CD87500 /* RootSubviews.swift */,
 				DB7E692155893C5379625E35 /* RootView.swift */,
-				A1000000000000000000001A /* ServerMatchmakingProvider.swift */,
+				0FD8E1147C206031CED891B5 /* ServerMatchmakingProvider.swift */,
 				6E553368DB8CDB7BC6CA7437 /* SettingsView.swift */,
 				BC7675EFEBCDF26FA2EE8DAF /* Theme.swift */,
 				370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */,
@@ -293,7 +296,7 @@
 				4D3121F84CA6F10967AAF055 /* Sources */,
 				DA6EF2746D81177992D20A1F /* Resources */,
 				77D4075EBF2AE98E7038DBAC /* Frameworks */,
-				F7BAC0592CF84F42BD89E788 /* Upload Debug Symbols to Sentry */,
+				87344C75ED07BF4B0FB77DCE /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -302,7 +305,7 @@
 			name = Wordsmoke;
 			packageProductDependencies = (
 				DCCA268A928787D873948531 /* AmplitudeSwift */,
-				7090F78CB63244F2ADE429E1 /* Sentry */,
+				1AA1081A263BE6C51107C7DF /* Sentry */,
 			);
 			productName = Wordsmoke;
 			productReference = 9F96B2EBFF0BC96398D8CCA5 /* Wordsmoke.app */;
@@ -363,7 +366,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */,
-				9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				083D448EB2064AAF7C084F7B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -388,6 +391,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		87344C75ED07BF4B0FB77DCE /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(TARGET_NAME)",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=akuaku\n  export SENTRY_PROJECT=apple-ios\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		1C0CDDC33727BDB0F206888B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -410,42 +435,42 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A20000000000000000000009 /* ActionCableClient.swift in Sources */,
 				A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */,
 				4036436EA046E6D0D95FB5E1 /* APIClient.swift in Sources */,
 				990A59705CDDB5A44D5E3602 /* APIModels.swift in Sources */,
+				AFE0D46CE56C7C6D62737023 /* ActionCableClient.swift in Sources */,
 				4356C59711008B94919F6965 /* AnalyticsEvent.swift in Sources */,
 				91AB21E8A0843E099B4362B1 /* AnalyticsService.swift in Sources */,
-				A2000000000000000000000E /* ErrorReporter.swift in Sources */,
 				992E541325869BCD42F79E95 /* AppEnvironment.swift in Sources */,
 				237ADDA4B74C2ECC04D8F302 /* AppModel.swift in Sources */,
 				9A57665FC0ADD5F06BB1CDC1 /* AppRoute.swift in Sources */,
-				A20000000000000000000001 /* DebugMatchmakingPlayer.swift in Sources */,
-				A20000000000000000000002 /* DebugMatchmakingPlayersResponse.swift in Sources */,
+				D77114BE365527D4DE07E176 /* DebugMatchmakingPlayer.swift in Sources */,
+				E77AAE306BE54B84F4A1A7E9 /* DebugMatchmakingPlayersResponse.swift in Sources */,
+				0A4499420B10E15D150281CA /* ErrorReporter.swift in Sources */,
 				0DFBCBACED279809259065F5 /* GameCenterAuthView.swift in Sources */,
-				A20000000000000000000008 /* GameCenterMatchmakingProvider.swift in Sources */,
+				4DD0B7CD8973107E474FF61C /* GameCenterMatchmakingProvider.swift in Sources */,
 				6E5BE0D36E6F4D6AAE04DC15 /* GameCenterService.swift in Sources */,
 				0D5468404F2FAC9387AA5B21 /* GameModels.swift in Sources */,
 				E83AC8C60FCC327D27C31EE4 /* GameRoomModel.swift in Sources */,
 				384BDE316C50D7003DDA51D0 /* GameRoomView+Subviews.swift in Sources */,
 				1C91F177AAF1C36586044492 /* GameRoomView.swift in Sources */,
-				A2000000000000000000000D /* InvitePlayersView.swift in Sources */,
-				A2000000000000000000000B /* InvitePlayersViewModel.swift in Sources */,
-				A2000000000000000000000C /* InviteeRowView.swift in Sources */,
+				CDDD2DBC6C68A3597602B61B /* InvitePlayersView.swift in Sources */,
+				C3C5120C6F90849EB2DB4D30 /* InvitePlayersViewModel.swift in Sources */,
+				9E32DDC9142C179F45B71A78 /* InviteeRowView.swift in Sources */,
 				46B7885F96D39AC83337DB27 /* MarksView.swift in Sources */,
-				A20000000000000000000006 /* MatchmakingError.swift in Sources */,
-				A20000000000000000000005 /* MatchmakingEvent.swift in Sources */,
-				A20000000000000000000004 /* MatchmakingInvitee.swift in Sources */,
-				A20000000000000000000007 /* MatchmakingProvider.swift in Sources */,
-				A20000000000000000000003 /* MatchmakingSource.swift in Sources */,
 				201438E09379AAA53040BBF7 /* MatchmakerView.swift in Sources */,
+				11CC515FEB7C778B54D594C9 /* MatchmakingError.swift in Sources */,
+				D7AE980839EB6736B162AC35 /* MatchmakingEvent.swift in Sources */,
+				5A9B79D4E1823C307862C105 /* MatchmakingInvitee.swift in Sources */,
+				5D113701A5D383032B9ED323 /* MatchmakingProvider.swift in Sources */,
+				D84DAA0537900622E83A092D /* MatchmakingSource.swift in Sources */,
 				D5CFF5879FE920AC5FC417F1 /* NewGameSheetView.swift in Sources */,
 				7C2EB0E1FF01A749C433D40A /* OnboardingModels.swift in Sources */,
 				C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */,
 				6BE34CC281FD4CDD46110D47 /* OnboardingStore.swift in Sources */,
 				CFB379C2F120EC59729E421F /* RootSubviews.swift in Sources */,
 				F3F2B72E9A417F40C227B232 /* RootView.swift in Sources */,
-				A2000000000000000000000A /* ServerMatchmakingProvider.swift in Sources */,
+				120E5A79351FD15E5DE09527 /* ServerMatchmakingProvider.swift in Sources */,
 				3878FA8049E3F2CBBC9BC9F0 /* SettingsView.swift in Sources */,
 				FEB9D10C40A042E1CD638A6C /* Theme.swift in Sources */,
 				99F0DDEC61771B1B1E19E76F /* TurnBasedMatchmakerView.swift in Sources */,
@@ -458,6 +483,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0AC5E3EE6DAD7DF1813568D6 /* APIErrorTests.swift in Sources */,
 				88E55F4F66D839892678D95E /* WordleFeedbackTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -557,6 +583,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Wordsmoke/Wordsmoke.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Wordsmoke/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -565,8 +593,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.playwordsmoke;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Debug;
 		};
@@ -654,6 +680,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Wordsmoke/Wordsmoke.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Wordsmoke/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -662,8 +690,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.akuaku.playwordsmoke;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
 			};
 			name = Release;
 		};
@@ -803,6 +829,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		083D448EB2064AAF7C084F7B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/amplitude/Amplitude-Swift";
@@ -811,57 +845,20 @@
 				kind = branch;
 			};
 		};
-		9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1AA1081A263BE6C51107C7DF /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 083D448EB2064AAF7C084F7B /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		DCCA268A928787D873948531 /* AmplitudeSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C5C5C8E6CA2C229690A082A0 /* XCRemoteSwiftPackageReference "Amplitude-Swift" */;
 			productName = AmplitudeSwift;
 		};
-		7090F78CB63244F2ADE429E1 /* Sentry */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9745DF08040343139101DEA8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
-			productName = Sentry;
-		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		F7BAC0592CF84F42BD89E788 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.
-if which sentry-cli >/dev/null; then
-  export SENTRY_ORG=akuaku
-  export SENTRY_PROJECT=apple-ios
-  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)
-  if [ ! $? -eq 0 ]; then
-    echo \"warning: sentry-cli - $ERROR\"
-  fi
-else
-  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"
-fi
-";
-			name = "Upload Debug Symbols to Sentry";
-		};
-/* End PBXShellScriptBuildPhase section */
 	};
 	rootObject = 8D1E79912D3D074F18DA7C0D /* Project object */;
 }

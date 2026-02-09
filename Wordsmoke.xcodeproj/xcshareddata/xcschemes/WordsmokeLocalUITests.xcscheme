@@ -38,18 +38,13 @@
       </MacroExpansion>
       <EnvironmentVariables>
          <EnvironmentVariable
-            key = "WORDSMOKE_TEST_ADMIN_TOKEN"
-            value = "iueyrhsdf"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
             key = "WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"
             value = "ihsdfs8"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "WORDSMOKE_UI_TEST_INVITEE_NAMES"
-            value = "Alice,Bob,Cindy"
+            key = "WORDSMOKE_TEST_ADMIN_TOKEN"
+            value = "iueyrhsdf"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
@@ -86,18 +81,6 @@
             ReferencedContainer = "container:Wordsmoke.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "WORDSMOKE_TEST_ADMIN_TOKEN&#10;WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"
-            value = "iueyrhsdf"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"
-            value = "ihsdfs8"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

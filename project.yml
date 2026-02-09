@@ -47,6 +47,9 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSGKFriendListUsageDescription: Wordsmoke uses your Game Center friends list to let you invite people you know.
     scheme:
+      environmentVariables:
+        WORDSMOKE_TEST_ADMIN_TOKEN: "iueyrhsdf"
+        WORDSMOKE_DEBUG_MATCHMAKING_TOKEN: ihsdfs8
       testTargets:
         - WordsmokeTests
         - WordsmokeUITests
@@ -105,4 +108,5 @@ schemes:
       targets:
         - WordsmokeLocalUITests
       environmentVariables:
-        WORDSMOKE_TEST_ADMIN_TOKEN: "__TEST_ADMIN_TOKEN__"
+        WORDSMOKE_TEST_ADMIN_TOKEN: "iueyrhsdf"
+        WORDSMOKE_DEBUG_MATCHMAKING_TOKEN: "ihsdfs8"
