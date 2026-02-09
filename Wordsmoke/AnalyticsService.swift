@@ -9,7 +9,9 @@ final class AnalyticsService {
   init() {
     amplitude = Amplitude(
       configuration: Configuration(
-        apiKey: "885989fb9c8cf7d1e72869376c936217" // https://app.amplitude.com/analytics/sekai-no/settings/api-keys/api
+        // https://app.amplitude.com/analytics/sekai-no/settings/api-keys/api
+        apiKey: "885989fb9c8cf7d1e72869376c936217",
+        autocapture: [.sessions, .appLifecycles]
       )
     )
   }
