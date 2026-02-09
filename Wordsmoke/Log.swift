@@ -10,9 +10,9 @@ enum LogLevel: String {
 
   var sendsAmplitudeTelemetry: Bool {
     switch self {
-    case .warning, .error, .critical:
+    case .info, .warning, .error, .critical:
       return true
-    case .debug, .info:
+    case .debug:
       return false
     }
   }
