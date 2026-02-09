@@ -252,6 +252,17 @@ final class AppModel {
       enterGame()
     } catch {
       statusMessage = "Failed to create game: \(debugDescription(for: error))"
+      
+      Log.log(
+        "Failed to create game",
+        level: .error,
+        category: .appModel,
+        error: error,
+        metadata: [
+          "operation": "create_game_with_invites"
+        ]
+      )
+
     }
   }
 
