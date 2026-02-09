@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 import Sentry
 
 
@@ -18,6 +19,7 @@ struct WordsmokeApp: App {
       RootView(model: model)
         .onChange(of: scenePhase) { _, newValue in
           if newValue == .active {
+            UNUserNotificationCenter.current().setBadgeCount(0) { _ in }
             Task {
               await model.refreshClientPolicy()
             }
