@@ -58,30 +58,6 @@ targets:
         product: AmplitudeSwift
       - package: sentry-cocoa
         product: Sentry
-    postBuildScripts:
-      - name: Upload Debug Symbols to Sentry
-        runOnlyWhenInstalling: true
-        basedOnDependencyAnalysis: false
-        inputFiles:
-          - "$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(TARGET_NAME)"
-        script: |
-          # This script is responsible for uploading debug symbols and source context for Sentry.
-          if [ "${CONFIGURATION:-}" != "Release" ] || [ -z "${DWARF_DSYM_FOLDER_PATH:-}" ]; then
-            # Only upload for Release archives (Xcode Cloud / distribution builds)
-            echo "skipping! Configuration is ${CONFIGURATION}"
-            exit 0
-          fi
-          if which sentry-cli >/dev/null; then
-            export SENTRY_ORG=akuaku
-            export SENTRY_PROJECT=apple-ios
-            OUTPUT=$(sentry-cli debug-files upload --include-sources "$DWARF_DSYM_FOLDER_PATH" 2>&1)
-            STATUS=$?
-            if [ $STATUS -ne 0 ]; then
-              echo "warning: sentry-cli failed ($STATUS): $OUTPUT"
-            fi
-          else
-            echo "warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases"
-          fi
   WordsmokeTests:
     type: bundle.unit-test
     platform: iOS
