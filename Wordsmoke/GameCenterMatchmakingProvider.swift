@@ -119,15 +119,23 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
             return
           }
 
+          let participantSummary = match.participants.map { p in
+            let id = p.player?.teamPlayerID ?? "nil"
+            let status = "\(p.status.rawValue)"
+            return "\(id)(s=\(status))"
+          }.joined(separator: ", ")
+
           let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match)
           guard !invitedParticipants.isEmpty else {
             ErrorReporter.log(
               "No invited participants resolved for match",
-              level: .warning,
+              level: .error,
               category: .matchmaking,
               metadata: [
                 "operation": "resolve_invited_participants",
-                "match_id": matchID
+                "match_id": matchID,
+                "participant_summary": participantSummary,
+                "invited_player_ids": invitedPlayerIDs.joined(separator: ",")
               ]
             )
             continuation.resume(returning: ())
@@ -138,6 +146,17 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
           match.message = reminderMessageKey
           let defaultTurnTimeout: TimeInterval = 60 * 60 * 24 * 7
 
+          ErrorReporter.log(
+            "Calling endTurn for match",
+            level: .info,
+            category: .matchmaking,
+            metadata: [
+              "match_id": matchID,
+              "next_participant_count": "\(invitedParticipants.count)",
+              "participant_summary": participantSummary
+            ]
+          )
+
           match.endTurn(
             withNextParticipants: invitedParticipants,
             turnTimeout: defaultTurnTimeout,
@@ -147,6 +166,13 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               continuation.resume(throwing: endTurnError)
               return
             }
+
+            ErrorReporter.log(
+              "endTurn succeeded, sending reminder",
+              level: .info,
+              category: .matchmaking,
+              metadata: ["match_id": matchID]
+            )
 
             match.sendReminder(
               to: invitedParticipants,
@@ -177,13 +203,33 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     for invitedPlayerIDs: [String],
     in match: GKTurnBasedMatch
   ) -> [GKTurnBasedParticipant] {
+    let localPlayerID = GKLocalPlayer.local.teamPlayerID
+
+    // Try exact match by teamPlayerID first
     let participantsByPlayerID = match.participants.reduce(into: [String: GKTurnBasedParticipant]()) {
-      rows,
-      participant in
+      rows, participant in
       guard let playerID = participant.player?.teamPlayerID else { return }
       rows[playerID] = participant
     }
+    let matched = invitedPlayerIDs.compactMap { participantsByPlayerID[$0] }
+    if !matched.isEmpty { return matched }
 
-    return invitedPlayerIDs.compactMap { participantsByPlayerID[$0] }
+    // Fallback: participant.player may be nil for pending invitees.
+    // Use all participants except the local player.
+    let fallback = match.participants.filter { $0.player?.teamPlayerID != localPlayerID }
+
+    ErrorReporter.log(
+      "Using fallback participant resolution",
+      level: .info,
+      category: .matchmaking,
+      metadata: [
+        "total_participants": "\(match.participants.count)",
+        "resolved_players": "\(participantsByPlayerID.count)",
+        "fallback_count": "\(fallback.count)",
+        "invited_ids": invitedPlayerIDs.joined(separator: ",")
+      ]
+    )
+
+    return fallback
   }
 }
