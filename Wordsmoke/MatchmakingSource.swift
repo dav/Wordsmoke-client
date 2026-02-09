@@ -16,7 +16,7 @@ enum MatchmakingSource {
   var detail: String {
     switch self {
     case .gameCenter:
-      return "Invite friends from your Game Center list. Access must be granted in Settings."
+      return "You must add friends in Game Center app first before they are available below."
     case .debug:
       return "Invite virtual players from the debug server."
     }
