@@ -60,6 +60,8 @@ targets:
         product: Sentry
     postBuildScripts:
       - name: Upload Debug Symbols to Sentry
+        runOnlyWhenInstalling: true
+        basedOnDependencyAnalysis: false
         inputFiles:
           - "$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(TARGET_NAME)"
         script: |
