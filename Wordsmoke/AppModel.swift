@@ -130,7 +130,7 @@ final class AppModel {
       let debugInfo = debugDescription(for: error)
       statusMessage = "Failed to connect: \(debugInfo)"
       connectionErrorMessage = "Failed to connect to the server. Retrying…"
-      ErrorReporter.log(
+      Log.log(
         "Connect to server failed",
         level: .error,
         category: .gameCenter,
@@ -138,7 +138,7 @@ final class AppModel {
         metadata: ["operation": "connect_to_server"]
       )
       if let lastError = gameCenter.lastError {
-        ErrorReporter.log(
+        Log.log(
           "Game Center reported a last error",
           level: .warning,
           category: .gameCenter,
@@ -184,7 +184,7 @@ final class AppModel {
         pendingGoalLength = first
       }
     } catch {
-      ErrorReporter.log(
+      Log.log(
         "Failed to load goal word lengths",
         level: .warning,
         category: .api,
@@ -280,7 +280,7 @@ final class AppModel {
         return
       } catch let error as APIError {
         if case .statusCode(404, _) = error, attempt < maxRetries {
-          ErrorReporter.log(
+          Log.log(
             "Game not found for turn-based match, retrying",
             level: .info,
             category: .gameCenter,
@@ -425,7 +425,7 @@ final class AppModel {
       }
       enterGame()
     } catch {
-      ErrorReporter.log(
+      Log.log(
         "Failed to open game from notification",
         level: .warning,
         category: .push,
@@ -452,7 +452,7 @@ final class AppModel {
     let shortVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
 
-    ErrorReporter.log(
+    Log.log(
       "Bundle info",
       level: .debug,
       category: .build,
@@ -464,7 +464,7 @@ final class AppModel {
     )
 
     if shortVersion == nil || build == nil {
-      ErrorReporter.log(
+      Log.log(
         "Missing CFBundleShortVersionString and/or CFBundleVersion",
         level: .warning,
         category: .build,

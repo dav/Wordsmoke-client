@@ -20,7 +20,7 @@ extension APIClient {
       return String(data: data, encoding: .utf8) ?? ""
     }()
 
-    ErrorReporter.log(
+    Log.log(
       "API request",
       level: .debug,
       category: .api,
@@ -30,7 +30,7 @@ extension APIClient {
       ]
     )
     if !headers.isEmpty {
-      ErrorReporter.log(
+      Log.log(
         "API request headers",
         level: .debug,
         category: .api,
@@ -38,7 +38,7 @@ extension APIClient {
       )
     }
     if !body.isEmpty {
-      ErrorReporter.log(
+      Log.log(
         "API request body",
         level: .debug,
         category: .api,
@@ -52,7 +52,7 @@ extension APIClient {
     #if DEBUG
     guard shouldLogResponse(response, data: data, strategy: strategy) else { return }
     guard let httpResponse = response as? HTTPURLResponse else {
-      ErrorReporter.log(
+      Log.log(
         "API response was not HTTPURLResponse",
         level: .debug,
         category: .api
@@ -68,7 +68,7 @@ extension APIClient {
     }()
 
     let symbol = responseSymbol(for: httpResponse.statusCode)
-    ErrorReporter.log(
+    Log.log(
       "API response",
       level: .debug,
       category: .api,
@@ -80,7 +80,7 @@ extension APIClient {
     )
 
     if !body.isEmpty {
-      ErrorReporter.log(
+      Log.log(
         "API response body",
         level: .debug,
         category: .api,

@@ -416,7 +416,7 @@ struct APIClient {
       return try decoder.decode(T.self, from: data)
     } catch {
       let body = String(data: data, encoding: .utf8) ?? ""
-      ErrorReporter.log(
+      Log.log(
         "Failed to decode API response",
         level: .error,
         category: .api,

@@ -23,7 +23,7 @@ final class PushNotificationService: NSObject {
           UIApplication.shared.registerForRemoteNotifications()
         }
       } catch {
-        ErrorReporter.log(
+        Log.log(
           "Push notification authorization failed",
           level: .warning,
           category: .push,
@@ -41,7 +41,7 @@ final class PushNotificationService: NSObject {
   }
 
   func handleRegistrationError(_ error: Error) {
-    ErrorReporter.log(
+    Log.log(
       "Remote notification registration failed",
       level: .warning,
       category: .push,
@@ -70,7 +70,7 @@ final class PushNotificationService: NSObject {
         try await apiClient.registerDeviceToken(token, environment: environment)
         registeredToken = token
       } catch {
-        ErrorReporter.log(
+        Log.log(
           "Failed to register device token",
           level: .warning,
           category: .push,

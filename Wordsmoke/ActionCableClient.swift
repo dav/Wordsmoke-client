@@ -45,7 +45,7 @@ final class ActionCableClient {
       do {
         try await webSocketTask?.send(.string(text))
       } catch {
-        ErrorReporter.log(
+        Log.log(
           "Action Cable send failed",
           level: .warning,
           category: .actionCable,
@@ -75,7 +75,7 @@ final class ActionCableClient {
             break
           }
         } catch {
-          ErrorReporter.log(
+          Log.log(
             "Action Cable receive failed",
             level: .warning,
             category: .actionCable,

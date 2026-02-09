@@ -1,13 +1,14 @@
 import Foundation
+import Sentry
 
-enum ErrorLogLevel: String {
+enum LogLevel: String {
   case debug
   case info
   case warning
   case error
   case critical
 
-  var sendsRemoteTelemetry: Bool {
+  var sendsAmplitudeTelemetry: Bool {
     switch self {
     case .warning, .error, .critical:
       return true
@@ -17,7 +18,7 @@ enum ErrorLogLevel: String {
   }
 }
 
-enum ErrorCategory: String {
+enum LogCategory: String {
   case api
   case appModel = "app_model"
   case gameCenter = "game_center"
@@ -27,11 +28,11 @@ enum ErrorCategory: String {
   case build
 }
 
-enum ErrorReporter {
+enum Log {
   static func log(
     _ message: String,
-    level: ErrorLogLevel = .debug,
-    category: ErrorCategory = .appModel,
+    level: LogLevel = .debug,
+    category: LogCategory = .appModel,
     error: Error? = nil,
     metadata: [String: String] = [:],
     file: StaticString = #fileID,
@@ -52,7 +53,7 @@ enum ErrorReporter {
     }
 
     logToConsole(payload: payload)
-    trackTelemetryIfNeeded(level: level, payload: payload)
+    sendRemoteTelemetry(level: level, message: message, payload: payload)
   }
 
   private static func logToConsole(payload: [String: String]) {
@@ -68,8 +69,32 @@ enum ErrorReporter {
     }
   }
 
-  private static func trackTelemetryIfNeeded(level: ErrorLogLevel, payload: [String: String]) {
-    guard level.sendsRemoteTelemetry else { return }
+  private static func sendRemoteTelemetry(level: LogLevel, message: String, payload: [String: String]) {
+    #if DEBUG
+    return
+    #else
+    // Sentry structured logging — all levels
+    let sentryLogger = SentrySDK.logger
+    var attributes: [String: String] = [:]
+    for (key, value) in payload where key != "message" && key != "log_level" {
+      attributes[key] = value
+    }
+
+    switch level {
+    case .debug:
+      sentryLogger.debug(message, attributes: attributes)
+    case .info:
+      sentryLogger.info(message, attributes: attributes)
+    case .warning:
+      sentryLogger.warn(message, attributes: attributes)
+    case .error:
+      sentryLogger.error(message, attributes: attributes)
+    case .critical:
+      sentryLogger.fatal(message, attributes: attributes)
+    }
+
+    // Amplitude — warning+ only
+    guard level.sendsAmplitudeTelemetry else { return }
 
     Task { @MainActor in
       var eventProperties: [String: Any] = [:]
@@ -78,6 +103,7 @@ enum ErrorReporter {
       }
       AnalyticsService.shared.track(.clientError, properties: eventProperties)
     }
+    #endif
   }
 
   private static func truncate(_ value: String, maxLength: Int = 500) -> String {

@@ -55,7 +55,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
         invitedPlayerIDs: inviteeIDs
       )
     } catch {
-      ErrorReporter.log(
+      Log.log(
         "Failed to finalize turn handoff",
         level: .error,
         category: .gameCenter,
@@ -127,7 +127,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
 
           let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match)
           guard !invitedParticipants.isEmpty else {
-            ErrorReporter.log(
+            Log.log(
               "No invited participants resolved for match",
               level: .error,
               category: .matchmaking,
@@ -146,7 +146,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
           match.message = reminderMessageKey
           let defaultTurnTimeout: TimeInterval = 60 * 60 * 24 * 7
 
-          ErrorReporter.log(
+          Log.log(
             "Calling endTurn for match",
             level: .info,
             category: .matchmaking,
@@ -167,7 +167,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               return
             }
 
-            ErrorReporter.log(
+            Log.log(
               "endTurn succeeded, sending reminder",
               level: .info,
               category: .matchmaking,
@@ -180,7 +180,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               arguments: []
             ) { reminderError in
               if let reminderError {
-                ErrorReporter.log(
+                Log.log(
                   "Failed to send turn reminder",
                   level: .warning,
                   category: .gameCenter,
@@ -218,7 +218,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     // Use all participants except the local player.
     let fallback = match.participants.filter { $0.player?.teamPlayerID != localPlayerID }
 
-    ErrorReporter.log(
+    Log.log(
       "Using fallback participant resolution",
       level: .info,
       category: .matchmaking,
