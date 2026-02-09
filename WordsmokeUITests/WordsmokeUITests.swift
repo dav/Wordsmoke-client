@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class WordsmokeUITests: XCTestCase {
   func testLaunchShowsTitle() {
     let app = XCUIApplication()

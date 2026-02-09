@@ -45,7 +45,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     request.inviteMessage = "Join my \(goalLength) letter Wordsmoke game."
 
     let matchID = try await findMatchID(with: request)
-    let game = try await apiClient.createGame(goalLength: goalLength, gcMatchId: matchID)
+    let game = try await apiClient.createGame(goalLength: goalLength, playerCount: playerCount, gcMatchId: matchID)
 
     let matchData = try JSONSerialization.data(withJSONObject: ["server_game_id": game.id])
     do {

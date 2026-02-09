@@ -50,12 +50,15 @@ struct APIClient {
     return try decode(SessionResponse.self, from: data, response: response)
   }
 
-  func createGame(goalLength: Int, gcMatchId: String? = nil) async throws -> GameResponse {
+  func createGame(goalLength: Int, playerCount: Int? = nil, gcMatchId: String? = nil) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games"))
     request.httpMethod = "POST"
     applyStandardHeaders(&request, includeContentType: true)
 
     var gameParams: [String: Any] = ["goal_length": goalLength]
+    if let playerCount {
+      gameParams["player_count"] = playerCount
+    }
     if let gcMatchId {
       gameParams["gc_match_id"] = gcMatchId
     }
