@@ -502,11 +502,10 @@ final class AppModel {
   }
 
   private static func makeMatchmakingProvider(apiClient: APIClient) -> MatchmakingProvider {
-  #if DEBUG
+  #if targetEnvironment(simulator)
     return ServerMatchmakingProvider(apiClient: apiClient)
   #else
     return GameCenterMatchmakingProvider(apiClient: apiClient)
   #endif
   }
-
 }
