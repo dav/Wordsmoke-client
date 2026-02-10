@@ -264,6 +264,17 @@ struct APIClient {
     return try decode(RoundResponse.self, from: data, response: response)
   }
 
+  func deleteGame(id: String) async throws {
+    var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
+    request.httpMethod = "DELETE"
+    applyStandardHeaders(&request)
+
+    logRequest(request)
+    let (data, response) = try await urlSession.data(for: request)
+    logResponse(response, data: data)
+    try validate(response: response, data: data)
+  }
+
   func updateGameStatus(id: String, status: String) async throws -> GameResponse {
     var request = URLRequest(url: baseURL.appending(path: "games/\(id)"))
     request.httpMethod = "PATCH"

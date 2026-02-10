@@ -391,6 +391,15 @@ final class AppModel {
     lobbyPollingTask = nil
   }
 
+  func deleteGame(_ game: GameResponse) async {
+    do {
+      try await apiClient.deleteGame(id: game.id)
+      games.removeAll { $0.id == game.id }
+    } catch {
+      statusMessage = "Failed to delete game: \(debugDescription(for: error))"
+    }
+  }
+
   func startGame() async {
     guard let gameID = currentGame?.id else { return }
     guard !isBusy else { return }

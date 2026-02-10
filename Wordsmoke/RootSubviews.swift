@@ -37,84 +37,88 @@ struct GameSummaryView: View {
   }
 }
 
-struct ActiveGamesView: View {
-  let games: [GameResponse]
-  let title: String
-  let isLoading: Bool
+struct ActiveGameRow: View {
+  let game: GameResponse
   let showDebug: Bool
   let currentPlayerName: String?
+  let currentPlayerID: String?
   let theme: AppTheme
-  let onSelect: (GameResponse) -> Void
+  let onSelect: () -> Void
+  var onDelete: (() -> Void)?
+
+  private var canDelete: Bool {
+    guard let currentPlayerID, let creatorId = game.creatorId else { return false }
+    return game.status == "waiting" && creatorId == currentPlayerID
+  }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text(title)
-        .font(.title3)
-        .bold()
-        .foregroundStyle(theme.textPrimary)
-
-      if isLoading {
-        Text("Loading")
-          .foregroundStyle(theme.textSecondary)
-      } else if games.isEmpty {
-        Text("No games yet.")
-          .foregroundStyle(theme.textSecondary)
-      } else {
-        ForEach(games, id: \.id) { game in
-          Button {
-            onSelect(game)
-          } label: {
-            if showDebug {
-              HStack {
-                VStack(alignment: .leading) {
-                  let participantNames = playerNames(for: game, omittingCurrentPlayer: true)
-                  if !participantNames.isEmpty {
-                    Text(participantNames.joined(separator: ", "))
-                      .font(.caption)
-                      .foregroundStyle(theme.textSecondary)
-                  }
-                  Text("Join Code: \(game.joinCode)")
-                    .font(.callout)
-                    .foregroundStyle(theme.textPrimary)
-                  Text("Status: \(game.status)")
-                    .font(.caption)
-                    .foregroundStyle(theme.textSecondary)
-                }
-                Spacer()
-                if let playersCount = game.playersCount {
-                  Text("\(playersCount) players")
-                    .font(.caption)
-                    .foregroundStyle(theme.textSecondary)
-                }
-              }
-            } else {
-              VStack(alignment: .leading, spacing: 4) {
-                playerNamesLine(for: game)
-                  .font(.callout)
-                  .foregroundStyle(theme.textPrimary)
-                Text(statusLine(for: game))
-                  .font(.caption)
-                  .foregroundStyle(theme.textSecondary)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
+    Button(action: onSelect) {
+      if showDebug {
+        HStack {
+          VStack(alignment: .leading) {
+            let participantNames = playerNames(omittingCurrentPlayer: true)
+            if !participantNames.isEmpty {
+              Text(participantNames.joined(separator: ", "))
+                .font(.caption)
+                .foregroundStyle(theme.textSecondary)
             }
+            Text("Join Code: \(game.joinCode)")
+              .font(.callout)
+              .foregroundStyle(theme.textPrimary)
+            Text("Status: \(game.status)")
+              .font(.caption)
+              .foregroundStyle(theme.textSecondary)
           }
-          .buttonStyle(CardButtonStyle(theme: theme))
-          .accessibilityIdentifier("active-game-\(game.id)")
+          Spacer()
+          if let playersCount = game.playersCount {
+            Text("\(playersCount) players")
+              .font(.caption)
+              .foregroundStyle(theme.textSecondary)
+          }
+        }
+      } else {
+        VStack(alignment: .leading, spacing: 4) {
+          playerNamesLine
+            .font(.callout)
+            .foregroundStyle(theme.textPrimary)
+          Text(statusLine)
+            .font(.caption)
+            .foregroundStyle(theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }
+    .buttonStyle(CardButtonStyle(theme: theme))
+    .accessibilityIdentifier("active-game-\(game.id)")
+    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+      if canDelete {
+        Button(role: .destructive) {
+          onDelete?()
+        } label: {
+          Label("Delete", systemImage: "trash")
+        }
+      }
+    }
+    .contextMenu {
+      if canDelete {
+        Button(role: .destructive) {
+          onDelete?()
+        } label: {
+          Label("Delete Game", systemImage: "trash")
         }
       }
     }
   }
 
-  private func playerNamesLine(for game: GameResponse) -> Text {
-    let names = playerNames(for: game, omittingCurrentPlayer: true)
+  private var playerNamesLine: Text {
+    let names = playerNames(omittingCurrentPlayer: true)
     if names.isEmpty {
       return Text("Players unavailable")
     }
     return Text(names.joined(separator: ", "))
   }
 
-  private func playerNames(for game: GameResponse, omittingCurrentPlayer: Bool) -> [String] {
+  private func playerNames(omittingCurrentPlayer: Bool) -> [String] {
     let currentName = currentPlayerName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     if let participantNames = game.participantNames {
       return normalizedNames(
@@ -152,7 +156,7 @@ struct ActiveGamesView: View {
     return filtered.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
   }
 
-  private func statusLine(for game: GameResponse) -> String {
+  private var statusLine: String {
     if game.status == "waiting" {
       return "not started"
     }
@@ -167,88 +171,68 @@ struct ActiveGamesView: View {
   }
 }
 
-struct CompletedGamesView: View {
-  let games: [GameResponse]
-  let isLoading: Bool
+struct CompletedGameRow: View {
+  let game: GameResponse
   let showDebug: Bool
   let currentPlayerName: String?
   let theme: AppTheme
-  let onSelect: (GameResponse) -> Void
+  let onSelect: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Completed Games")
-        .font(.title3)
-        .bold()
-        .foregroundStyle(theme.textPrimary)
-
-      if isLoading {
-        Text("Loading")
-          .foregroundStyle(theme.textSecondary)
-      } else if games.isEmpty {
-        Text("No completed games yet.")
-          .foregroundStyle(theme.textSecondary)
-      } else {
-        ForEach(games, id: \.id) { game in
-          Button {
-            onSelect(game)
-          } label: {
-            if showDebug {
-              HStack {
-                VStack(alignment: .leading) {
-                  let participantNames = playerNames(for: game)
-                  if !participantNames.isEmpty {
-                    Text(participantNames.joined(separator: ", "))
-                      .font(.caption)
-                      .foregroundStyle(theme.textSecondary)
-                  }
-                  Text("Join Code: \(game.joinCode)")
-                    .font(.callout)
-                    .foregroundStyle(theme.textPrimary)
-                  if let winnerNames = game.winnerNames,
-                     let roundNumber = game.winningRoundNumber,
-                     !winnerNames.isEmpty {
-                    Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
-                      .font(.caption)
-                      .foregroundStyle(theme.textSecondary)
-                  } else if let roundNumber = game.winningRoundNumber {
-                    Text("Completed in round \(roundNumber)")
-                      .font(.caption)
-                      .foregroundStyle(theme.textSecondary)
-                  } else {
-                    Text("Completed")
-                      .font(.caption)
-                      .foregroundStyle(theme.textSecondary)
-                  }
-                }
-                Spacer()
-                if let playersCount = game.playersCount {
-                  Text("\(playersCount) players")
-                    .font(.caption)
-                    .foregroundStyle(theme.textSecondary)
-                }
-              }
+    Button(action: onSelect) {
+      if showDebug {
+        HStack {
+          VStack(alignment: .leading) {
+            let participantNames = playerNames
+            if !participantNames.isEmpty {
+              Text(participantNames.joined(separator: ", "))
+                .font(.caption)
+                .foregroundStyle(theme.textSecondary)
+            }
+            Text("Join Code: \(game.joinCode)")
+              .font(.callout)
+              .foregroundStyle(theme.textPrimary)
+            if let winnerNames = game.winnerNames,
+               let roundNumber = game.winningRoundNumber,
+               !winnerNames.isEmpty {
+              Text("Won by: \(winnerNames.joined(separator: ", ")) in round \(roundNumber)")
+                .font(.caption)
+                .foregroundStyle(theme.textSecondary)
+            } else if let roundNumber = game.winningRoundNumber {
+              Text("Completed in round \(roundNumber)")
+                .font(.caption)
+                .foregroundStyle(theme.textSecondary)
             } else {
-              VStack(alignment: .leading, spacing: 4) {
-                playerNamesLineWithTrophies(for: game)
-                  .font(.callout)
-                  .foregroundStyle(theme.textPrimary)
-                Text(completedRoundsLine(for: game))
-                  .font(.caption)
-                  .foregroundStyle(theme.textSecondary)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
+              Text("Completed")
+                .font(.caption)
+                .foregroundStyle(theme.textSecondary)
             }
           }
-          .buttonStyle(CardButtonStyle(theme: theme))
-          .accessibilityIdentifier("completed-game-\(game.id)")
+          Spacer()
+          if let playersCount = game.playersCount {
+            Text("\(playersCount) players")
+              .font(.caption)
+              .foregroundStyle(theme.textSecondary)
+          }
         }
+      } else {
+        VStack(alignment: .leading, spacing: 4) {
+          playerNamesLineWithTrophies
+            .font(.callout)
+            .foregroundStyle(theme.textPrimary)
+          Text(completedRoundsLine)
+            .font(.caption)
+            .foregroundStyle(theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
+    .buttonStyle(CardButtonStyle(theme: theme))
+    .accessibilityIdentifier("completed-game-\(game.id)")
   }
 
-  private func playerNamesLineWithTrophies(for game: GameResponse) -> some View {
-    let names = playerNames(for: game)
+  private var playerNamesLineWithTrophies: some View {
+    let names = playerNames
     let winners = Set(game.winnerNames ?? [])
 
     return HStack(spacing: 0) {
@@ -270,7 +254,7 @@ struct CompletedGamesView: View {
     }
   }
 
-  private func playerNames(for game: GameResponse) -> [String] {
+  private var playerNames: [String] {
     if let participantNames = game.participantNames {
       return normalizedNames(from: participantNames)
     }
@@ -287,7 +271,7 @@ struct CompletedGamesView: View {
     names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
   }
 
-  private func completedRoundsLine(for game: GameResponse) -> String {
+  private var completedRoundsLine: String {
     if let roundNumber = game.winningRoundNumber {
       return "\(roundNumber) rounds"
     }

@@ -199,6 +199,7 @@ final class ReportFlowTests: XCTestCase {
       joinCode: "ABCD",
       gcMatchId: nil,
       goalLength: 5,
+      creatorId: nil,
       currentRoundID: nil,
       currentRoundNumber: nil,
       playersCount: 2,

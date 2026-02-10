@@ -232,6 +232,7 @@ struct RootView: View {
     let serverStatusText: String
     let onShowSettings: () -> Void
     let onShowJoinSheet: () -> Void
+    @State private var gameToDelete: GameResponse?
 
     private var activeGames: [GameResponse] {
       model.games.filter { $0.status != "completed" }
@@ -246,8 +247,11 @@ struct RootView: View {
     var body: some View {
       let isLoadingGames = !model.hasLoadedGames
 
-      VStack(alignment: .leading, spacing: theme.sectionSpacing) {
+      List {
         HeaderView(theme: theme, onShowSettings: onShowSettings)
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
+          .listRowSeparator(.hidden)
 
         if showDebug || model.connectionErrorMessage != nil || !model.gameCenter.isAuthenticated {
           StatusCardView(
@@ -256,38 +260,117 @@ struct RootView: View {
             showDebug: showDebug,
             serverStatusText: serverStatusText
           )
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
+          .listRowSeparator(.hidden)
         }
 
         if model.session != nil {
           LobbyButtonsView(theme: theme, onShowJoinSheet: onShowJoinSheet) {
             model.presentNewGameSheet()
           }
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
+          .listRowSeparator(.hidden)
         }
 
         if model.session != nil {
-          ActiveGamesView(
-            games: activeGames,
-            title: "Active Games",
-            isLoading: isLoadingGames,
-            showDebug: showDebug,
-            currentPlayerName: model.session?.playerName,
-            theme: theme
-          ) { game in
-            model.selectGame(game)
+          Text("Active Games")
+            .font(.title3)
+            .bold()
+            .foregroundStyle(theme.textPrimary)
+            .padding(.top, 8)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+          if isLoadingGames {
+            Text("Loading")
+              .foregroundStyle(theme.textSecondary)
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+          } else if activeGames.isEmpty {
+            Text("No games yet.")
+              .foregroundStyle(theme.textSecondary)
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+          } else {
+            ForEach(activeGames, id: \.id) { game in
+              ActiveGameRow(
+                game: game,
+                showDebug: showDebug,
+                currentPlayerName: model.session?.playerName,
+                currentPlayerID: model.session?.playerID,
+                theme: theme,
+                onSelect: { model.selectGame(game) },
+                onDelete: { gameToDelete = game }
+              )
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+            }
           }
 
-          CompletedGamesView(
-            games: completedGames,
-            isLoading: isLoadingGames,
-            showDebug: showDebug,
-            currentPlayerName: model.session?.playerName,
-            theme: theme
-          ) { game in
-            model.selectGame(game)
+          Text("Completed Games")
+            .font(.title3)
+            .bold()
+            .foregroundStyle(theme.textPrimary)
+            .padding(.top, 8)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+          if isLoadingGames {
+            Text("Loading")
+              .foregroundStyle(theme.textSecondary)
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+          } else if completedGames.isEmpty {
+            Text("No completed games yet.")
+              .foregroundStyle(theme.textSecondary)
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+          } else {
+            ForEach(completedGames, id: \.id) { game in
+              CompletedGameRow(
+                game: game,
+                showDebug: showDebug,
+                currentPlayerName: model.session?.playerName,
+                theme: theme,
+                onSelect: { model.selectGame(game) }
+              )
+              .listRowInsets(EdgeInsets())
+              .listRowBackground(Color.clear)
+              .listRowSeparator(.hidden)
+            }
           }
         }
-
-        Spacer()
+      }
+      .listStyle(.plain)
+      .scrollContentBackground(.hidden)
+      .refreshable {
+        await model.loadGames()
+      }
+      .confirmationDialog(
+        "Delete this game?",
+        isPresented: Binding(
+          get: { gameToDelete != nil },
+          set: { if !$0 { gameToDelete = nil } }
+        ),
+        titleVisibility: .visible
+      ) {
+        Button("Delete Game", role: .destructive) {
+          if let game = gameToDelete {
+            Task { await model.deleteGame(game) }
+          }
+          gameToDelete = nil
+        }
+      } message: {
+        Text("This game will be permanently deleted.")
       }
       .task(id: model.session?.token) {
         guard model.session != nil, !model.hasLoadedGames else { return }
