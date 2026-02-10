@@ -10,6 +10,7 @@ struct GameRoomView: View {
   @Bindable var model: GameRoomModel
   @Bindable var onboarding: OnboardingStore
   let analytics: AnalyticsService
+  var onDelete: (() -> Void)?
   private let gameRoomBottomAnchorID = "game-room-bottom-anchor"
   @Environment(\.appTheme) var theme
   @Environment(\.debugEnabled) var showDebug
@@ -23,6 +24,7 @@ struct GameRoomView: View {
   @State var isVotesSubmitButtonVisible = false
   @State var isReportIssueSheetPresented = false
   @State var isStartGameConfirmationPresented = false
+  @State var isDeleteGameConfirmationPresented = false
   @State var inviteCodeWasCopied = false
 
   var body: some View {
@@ -97,6 +99,15 @@ struct GameRoomView: View {
                 .accessibilityIdentifier("copy-invite-code-button")
               }
             }
+
+            if model.isHost() {
+              Section {
+                Button("Delete Game", role: .destructive) {
+                  isDeleteGameConfirmationPresented = true
+                }
+                .accessibilityIdentifier("delete-game-button")
+              }
+            }
           }
 
           let reportRounds = model.reportRounds()
@@ -169,6 +180,17 @@ struct GameRoomView: View {
           }
         } message: {
           Text("Some invited players have not accepted yet. Start the game anyway?")
+        }
+        .confirmationDialog(
+          "Delete this game?",
+          isPresented: $isDeleteGameConfirmationPresented,
+          titleVisibility: .visible
+        ) {
+          Button("Delete Game", role: .destructive) {
+            onDelete?()
+          }
+        } message: {
+          Text("This game will be permanently deleted.")
         }
         .task {
           if model.round == nil {

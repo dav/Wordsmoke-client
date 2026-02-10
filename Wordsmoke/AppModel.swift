@@ -400,6 +400,14 @@ final class AppModel {
     }
   }
 
+  func deleteCurrentGame() async {
+    guard let game = currentGame else { return }
+    await deleteGame(game)
+    currentGame = nil
+    gameRoomModel = nil
+    navigationPath = NavigationPath()
+  }
+
   func startGame() async {
     guard let gameID = currentGame?.id else { return }
     guard !isBusy else { return }

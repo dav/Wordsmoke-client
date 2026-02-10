@@ -216,7 +216,9 @@ struct RootView: View {
           switch route {
           case .game:
             if let gameRoomModel = model.gameRoomModel {
-              GameRoomView(model: gameRoomModel, onboarding: onboardingStore, analytics: model.analytics)
+              GameRoomView(model: gameRoomModel, onboarding: onboardingStore, analytics: model.analytics) {
+                Task { await model.deleteCurrentGame() }
+              }
             } else {
               Text("Game unavailable")
             }
