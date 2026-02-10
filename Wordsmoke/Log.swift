@@ -60,13 +60,25 @@ enum Log {
     let category = payload["category"] ?? "unknown"
     let level = payload["log_level"] ?? "debug"
     let message = payload["message"] ?? "log"
-    let description = payload["error_description"]
+    let error_description = payload["error_description"]
+    let body = payload["body"]
+    let method = payload["method"]
+    let url = payload["url"]
 
-    if let description {
-      print("[\(category.uppercased())][\(level.uppercased())] \(message): \(description)")
+    if let error_description {
+      print("[\(category.uppercased())][\(level.uppercased())] \(message): \(error_description)")
     } else {
-      print("[\(category.uppercased())][\(level.uppercased())] \(message)")
+      if message == "API request" {
+        print("[\(category.uppercased())][\(level.uppercased())] \(message) \(method ?? "Unknown HTTP Method") \(url ?? "unknown URL")")
+      } else {
+        print("[\(category.uppercased())][\(level.uppercased())] \(message)")
+      }
     }
+    #if DEBUG
+    if let body {
+      print(body)
+    }
+    #endif
   }
 
   private static func sendRemoteTelemetry(level: LogLevel, message: String, payload: [String: String]) {

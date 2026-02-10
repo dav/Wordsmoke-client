@@ -44,15 +44,16 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
     request.recipients = recipients
     request.inviteMessage = "Join my \(goalLength) letter Wordsmoke game."
 
-    let matchID = try await findMatchID(with: request)
-    let game = try await apiClient.createGame(goalLength: goalLength, playerCount: playerCount, gcMatchId: matchID)
+    let gameCenterMatchID = try await findMatchID(with: request)
+    let game = try await apiClient.createGame(goalLength: goalLength, playerCount: playerCount, gcMatchId: gameCenterMatchID)
 
     let matchData = try JSONSerialization.data(withJSONObject: ["server_game_id": game.id])
     do {
       try await saveMatchDataAndNotify(
-        matchID: matchID,
+        matchID: gameCenterMatchID,
         matchData: matchData,
-        invitedPlayerIDs: inviteeIDs
+        invitedPlayerIDs: inviteeIDs,
+        game: game
       )
     } catch {
       Log.log(
@@ -62,7 +63,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
         error: error,
         metadata: [
           "operation": "save_match_data_and_notify",
-          "match_id": matchID
+          "match_id": gameCenterMatchID
         ]
       )
     }
@@ -99,7 +100,8 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
   private func saveMatchDataAndNotify(
     matchID: String,
     matchData: Data,
-    invitedPlayerIDs: [String]
+    invitedPlayerIDs: [String],
+    game: GameResponse
   ) async throws {
     try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
       GKTurnBasedMatch.load(withID: matchID) { match, error in
@@ -125,7 +127,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
             return "\(id)(s=\(status))"
           }.joined(separator: ", ")
 
-          let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match)
+          let invitedParticipants = Self.participants(for: invitedPlayerIDs, in: match) // GKTurnBasedParticipant
           guard !invitedParticipants.isEmpty else {
             Log.log(
               "No invited participants resolved for match",
@@ -151,9 +153,12 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
             level: .info,
             category: .matchmaking,
             metadata: [
+              "operation": "end_turn",
               "match_id": matchID,
               "next_participant_count": "\(invitedParticipants.count)",
-              "participant_summary": participantSummary
+              "participant_summary": participantSummary,
+              "game_id": game.id,
+              "join_code": game.joinCode
             ]
           )
 
@@ -171,7 +176,13 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               "endTurn succeeded, sending reminder",
               level: .info,
               category: .matchmaking,
-              metadata: ["match_id": matchID]
+              metadata: [
+                "operation": "end_turn",
+                "match_id": matchID,
+                "participant_count": "\(invitedParticipants.count)",
+                "game_id": game.id,
+                "join_code": game.joinCode
+              ]
             )
 
             match.sendReminder(
@@ -187,7 +198,10 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
                   error: reminderError,
                   metadata: [
                     "operation": "send_reminder",
-                    "match_id": matchID
+                    "match_id": matchID,
+                    "participant_count": "\(invitedParticipants.count)",
+                    "game_id": game.id,
+                    "join_code": game.joinCode
                   ]
                 )
               }
