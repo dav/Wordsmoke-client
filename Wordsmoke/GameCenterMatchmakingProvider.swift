@@ -144,8 +144,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
             return
           }
 
-          let reminderMessageKey = "It's your turn in Wordsmoke."
-          match.message = reminderMessageKey
+          match.message = "It's your turn in Wordsmoke."
           let defaultTurnTimeout: TimeInterval = 60 * 60 * 24 * 7
 
           Log.log(
@@ -173,7 +172,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
             }
 
             Log.log(
-              "endTurn succeeded, sending reminder",
+              "endTurn succeeded",
               level: .info,
               category: .matchmaking,
               metadata: [
@@ -185,28 +184,7 @@ final class GameCenterMatchmakingProvider: MatchmakingProvider {
               ]
             )
 
-            match.sendReminder(
-              to: invitedParticipants,
-              localizableMessageKey: reminderMessageKey,
-              arguments: []
-            ) { reminderError in
-              if let reminderError {
-                Log.log(
-                  "Failed to send turn reminder",
-                  level: .warning,
-                  category: .gameCenter,
-                  error: reminderError,
-                  metadata: [
-                    "operation": "send_reminder",
-                    "match_id": matchID,
-                    "participant_count": "\(invitedParticipants.count)",
-                    "game_id": game.id,
-                    "join_code": game.joinCode
-                  ]
-                )
-              }
-              continuation.resume(returning: ())
-            }
+            continuation.resume(returning: ())
           }
         }
       }
