@@ -122,13 +122,16 @@ extension GameRoomView {
     ForEach(orderedIDs, id: \.self) { playerID in
       let name = model.playerName(for: playerID, in: [round]) ?? "Player"
       let submission = round.submissions.first { $0.playerID == playerID }
+      let isLocal = playerID == model.localPlayerID
       let guessWord = submission?.guessWord?.uppercased()
       HStack(spacing: 12) {
         if let submission, let marks = submission.marks {
           MarksView(
             marks: marks,
             letters: submission.guessWord?.map { String($0) },
-            size: 28
+            size: 28,
+            phrase: !isLocal ? submission.phrase : nil,
+            isOtherPlayer: !isLocal
           )
         } else {
           Text("—")
@@ -355,7 +358,9 @@ extension GameRoomView {
       MarksView(
         marks: marks,
         letters: (revealAll || isLocal) ? submission.guessWord?.map { String($0) } : nil,
-        size: 36
+        size: 36,
+        phrase: !isLocal ? submission.phrase : nil,
+        isOtherPlayer: !isLocal
       )
     }
     if let phrase = submission.phrase {
