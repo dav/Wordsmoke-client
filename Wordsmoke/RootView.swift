@@ -126,6 +126,11 @@ struct RootView: View {
         }
         .onChange(of: scenePhase) { _, newValue in
           updateLobbyPolling(for: newValue)
+          if newValue == .active {
+            Task {
+              await model.recoverInvitedGamesFromGameCenter()
+            }
+          }
         }
         .onChange(of: useDevelopment) { _, _ in
           model.updateBaseURLIfNeeded()

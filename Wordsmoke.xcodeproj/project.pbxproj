@@ -44,6 +44,7 @@
 		A0265289E027323F5D0F80D6 /* WordsmokeLocalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80462885043913F7FD181BB5 /* WordsmokeLocalUITests.swift */; };
 		A61376C60AB43A20D757AF48 /* APIClient+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CE425CF4953EEB2C3BAE53 /* APIClient+Logging.swift */; };
 		AFE0D46CE56C7C6D62737023 /* ActionCableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C63CFE3B3C700079E5C6616 /* ActionCableClient.swift */; };
+		B80D7EBF0C97FFEC51568F92 /* AppModelMatchRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B81153C047AEF4ECD80E94 /* AppModelMatchRecoveryTests.swift */; };
 		C19222EA4C4B7ED34AC911DF /* OnboardingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDECFB85767D5C33016FB382 /* OnboardingOverlay.swift */; };
 		C3C5120C6F90849EB2DB4D30 /* InvitePlayersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367F9C19E26DB106CABBEF24 /* InvitePlayersViewModel.swift */; };
 		C75B2DFCF4B4277E965C190C /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 1AA1081A263BE6C51107C7DF /* Sentry */; };
@@ -98,6 +99,7 @@
 		370C37DAE03DF2A8BA31B811 /* TurnBasedMatchmakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnBasedMatchmakerView.swift; sourceTree = "<group>"; };
 		3F10D9B3B967F68F1C71A4EB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3FCCC4DD726945D78458BCA9 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
+		40B81153C047AEF4ECD80E94 /* AppModelMatchRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelMatchRecoveryTests.swift; sourceTree = "<group>"; };
 		4128BA52E3428D244575448C /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
 		4878A06FDDA991B74D275E35 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		489F85041C711924670A1610 /* GameRoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRoomModel.swift; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 			isa = PBXGroup;
 			children = (
 				2037713DC60C690130A2DD3C /* APIErrorTests.swift */,
+				40B81153C047AEF4ECD80E94 /* AppModelMatchRecoveryTests.swift */,
 				5FC924BF009D49B13F6FF7A4 /* WordleFeedbackTests.swift */,
 			);
 			path = WordsmokeTests;
@@ -469,6 +472,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0AC5E3EE6DAD7DF1813568D6 /* APIErrorTests.swift in Sources */,
+				B80D7EBF0C97FFEC51568F92 /* AppModelMatchRecoveryTests.swift in Sources */,
 				88E55F4F66D839892678D95E /* WordleFeedbackTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

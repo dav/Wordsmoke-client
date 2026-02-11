@@ -29,6 +29,9 @@ final class AppModel {
   var pendingPlayerCount: Int = 2
   private var lobbyPollingTask: Task<Void, Never>?
   private var connectionRetryTask: Task<Void, Never>?
+  private var isReconcilingTurnBasedMatches = false
+  private var lastTurnBasedMatchRecoveryAt: Date?
+  private let turnBasedMatchRecoveryMinimumInterval: TimeInterval = 20
 
   init() {
     let client = APIClient(baseURL: AppEnvironment.baseURL)
@@ -126,6 +129,7 @@ final class AppModel {
       connectionErrorMessage = nil
       await loadGoalWordLengths()
       await loadGames()
+      await recoverInvitedGamesFromGameCenter(force: true)
     } catch {
       let debugInfo = debugDescription(for: error)
       statusMessage = "Failed to connect: \(debugInfo)"
@@ -190,6 +194,86 @@ final class AppModel {
         category: .api,
         error: error,
         metadata: ["operation": "load_goal_word_lengths"]
+      )
+    }
+  }
+
+  func recoverInvitedGamesFromGameCenter(force: Bool = false) async {
+    guard gameCenter.isAuthenticated, session != nil else { return }
+    guard !isReconcilingTurnBasedMatches else { return }
+    if !force, let lastRecoveryAt = lastTurnBasedMatchRecoveryAt {
+      let elapsed = Date.now.timeIntervalSince(lastRecoveryAt)
+      if elapsed < turnBasedMatchRecoveryMinimumInterval {
+        return
+      }
+    }
+
+    isReconcilingTurnBasedMatches = true
+    defer {
+      isReconcilingTurnBasedMatches = false
+      lastTurnBasedMatchRecoveryAt = .now
+    }
+
+    do {
+      let summaries = try await gameCenter.loadTurnBasedMatchSummaries()
+      let knownMatchIDs = Set(games.compactMap(\.gcMatchId))
+      let matchIDsToRecover = AppModel.recoverableMatchIDs(from: summaries, knownMatchIDs: knownMatchIDs)
+
+      guard !matchIDsToRecover.isEmpty else { return }
+
+      var recoveredCount = 0
+      for matchID in matchIDsToRecover {
+        do {
+          let game = try await apiClient.joinGameByMatchId(matchID)
+          mergeRecoveredGame(game)
+          recoveredCount += 1
+        } catch let apiError as APIError {
+          if case .statusCode(404, _) = apiError {
+            Log.log(
+              "No server game found for turn-based match",
+              level: .info,
+              category: .gameCenter,
+              metadata: [
+                "operation": "recover_invited_games",
+                "match_id": matchID
+              ]
+            )
+          } else {
+            Log.log(
+              "Failed to recover turn-based match",
+              level: .warning,
+              category: .gameCenter,
+              error: apiError,
+              metadata: [
+                "operation": "recover_invited_games",
+                "match_id": matchID
+              ]
+            )
+          }
+        } catch {
+          Log.log(
+            "Failed to recover turn-based match",
+            level: .warning,
+            category: .gameCenter,
+            error: error,
+            metadata: [
+              "operation": "recover_invited_games",
+              "match_id": matchID
+            ]
+          )
+        }
+      }
+
+      if recoveredCount > 0 {
+        statusMessage = recoveredCount == 1 ? "Recovered 1 invited game." : "Recovered \(recoveredCount) invited games."
+      }
+    } catch {
+      Log.log(
+        "Failed to load turn-based matches for recovery",
+        level: .warning,
+        category: .gameCenter,
+        error: error,
+        metadata: ["operation": "recover_invited_games_load_matches"]
       )
     }
   }
@@ -460,6 +544,37 @@ final class AppModel {
         error: error,
         metadata: ["game_id": gameID]
       )
+    }
+  }
+
+  nonisolated static func recoverableMatchIDs(
+    from summaries: [TurnBasedMatchSummary],
+    knownMatchIDs: Set<String>
+  ) -> [String] {
+    summaries.compactMap { summary in
+      guard !knownMatchIDs.contains(summary.matchID) else { return nil }
+      guard let status = summary.localParticipantStatus else { return summary.matchID }
+      switch status {
+      case .invited, .active:
+        return summary.matchID
+      case .unknown, .matching, .declined, .done:
+        return nil
+      @unknown default:
+        return nil
+      }
+    }
+  }
+
+  private func mergeRecoveredGame(_ game: GameResponse) {
+    if let index = games.firstIndex(where: { $0.id == game.id }) {
+      games[index] = game
+    } else {
+      games.insert(game, at: 0)
+    }
+
+    if currentGame?.id == game.id {
+      currentGame = game
+      gameRoomModel?.updateGame(game)
     }
   }
 

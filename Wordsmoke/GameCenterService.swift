@@ -27,6 +27,11 @@ struct TurnBasedMatchItem: Identifiable {
   let match: GKTurnBasedMatch
 }
 
+struct TurnBasedMatchSummary: Sendable {
+  let matchID: String
+  let localParticipantStatus: GKTurnBasedParticipant.Status?
+}
+
 @MainActor
 @Observable
 final class GameCenterService: NSObject {
@@ -64,6 +69,10 @@ final class GameCenterService: NSObject {
       teamPlayerID: playerID ?? "SIMULATOR-LOCAL",
       bundleID: bundleID
     )
+  }
+
+  func loadTurnBasedMatchSummaries() async throws -> [TurnBasedMatchSummary] {
+    []
   }
 #else
   func configure() {
@@ -120,6 +129,22 @@ final class GameCenterService: NSObject {
       lastErrorDescription = error.localizedDescription
       lastError = error
       throw error
+    }
+  }
+
+  func loadTurnBasedMatchSummaries() async throws -> [TurnBasedMatchSummary] {
+    let localPlayerID = GKLocalPlayer.local.teamPlayerID
+    let matches = try await GKTurnBasedMatch.loadMatches()
+
+    return matches.map { match in
+      let localParticipant = match.participants.first { participant in
+        participant.player?.teamPlayerID == localPlayerID
+      }
+
+      return TurnBasedMatchSummary(
+        matchID: match.matchID,
+        localParticipantStatus: localParticipant?.status
+      )
     }
   }
 #endif
