@@ -34,6 +34,15 @@ enum ThemeSelection: String, CaseIterable, Identifiable, Hashable {
     }
   }
 
+  var preferredColorScheme: ColorScheme? {
+    switch self {
+    case .system:
+      return nil
+    case .sunrise, .ocean, .forest:
+      return .light
+    }
+  }
+
   var theme: AppTheme {
     switch self {
     case .system:

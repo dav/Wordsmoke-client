@@ -16,9 +16,25 @@ final class AppModelMatchRecoveryTests: XCTestCase {
 
     let recoverable = AppModel.recoverableMatchIDs(
       from: summaries,
-      knownMatchIDs: ["known-active"]
+      knownMatchIDs: ["known-active"],
+      ignoredMatchIDs: []
     )
 
     XCTAssertEqual(recoverable, ["invited", "active", "unknown-status"])
+  }
+
+  func testRecoverableMatchIDsExcludeIgnoredMatches() {
+    let summaries = [
+      TurnBasedMatchSummary(matchID: "ignored-match", localParticipantStatus: .invited),
+      TurnBasedMatchSummary(matchID: "recover-me", localParticipantStatus: .invited)
+    ]
+
+    let recoverable = AppModel.recoverableMatchIDs(
+      from: summaries,
+      knownMatchIDs: [],
+      ignoredMatchIDs: ["ignored-match"]
+    )
+
+    XCTAssertEqual(recoverable, ["recover-me"])
   }
 }

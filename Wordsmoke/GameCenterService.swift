@@ -74,6 +74,9 @@ final class GameCenterService: NSObject {
   func loadTurnBasedMatchSummaries() async throws -> [TurnBasedMatchSummary] {
     []
   }
+
+  func removeTurnBasedMatch(matchID: String) async throws {
+  }
 #else
   func configure() {
     GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
@@ -146,6 +149,11 @@ final class GameCenterService: NSObject {
         localParticipantStatus: localParticipant?.status
       )
     }
+  }
+
+  func removeTurnBasedMatch(matchID: String) async throws {
+    let match = try await GKTurnBasedMatch.load(withID: matchID)
+    try await match.remove()
   }
 #endif
 

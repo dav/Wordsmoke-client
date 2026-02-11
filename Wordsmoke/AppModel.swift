@@ -32,11 +32,15 @@ final class AppModel {
   private var isReconcilingTurnBasedMatches = false
   private var lastTurnBasedMatchRecoveryAt: Date?
   private let turnBasedMatchRecoveryMinimumInterval: TimeInterval = 20
+  private var ignoredOrphanedMatchIDs: Set<String>
+  private static let orphanedMatchIDsDefaultsKey = "game_center.orphaned_match_ids"
+  private static let maxStoredOrphanedMatchIDs = 200
 
   init() {
     let client = APIClient(baseURL: AppEnvironment.baseURL)
     self.apiClient = client
     self.matchmakingProvider = AppModel.makeMatchmakingProvider(apiClient: client)
+    self.ignoredOrphanedMatchIDs = AppModel.loadOrphanedMatchIDs()
   }
 
   func start() async {
@@ -217,7 +221,11 @@ final class AppModel {
     do {
       let summaries = try await gameCenter.loadTurnBasedMatchSummaries()
       let knownMatchIDs = Set(games.compactMap(\.gcMatchId))
-      let matchIDsToRecover = AppModel.recoverableMatchIDs(from: summaries, knownMatchIDs: knownMatchIDs)
+      let matchIDsToRecover = AppModel.recoverableMatchIDs(
+        from: summaries,
+        knownMatchIDs: knownMatchIDs,
+        ignoredMatchIDs: ignoredOrphanedMatchIDs
+      )
 
       guard !matchIDsToRecover.isEmpty else { return }
 
@@ -229,6 +237,7 @@ final class AppModel {
           recoveredCount += 1
         } catch let apiError as APIError {
           if case .statusCode(404, _) = apiError {
+            markMatchIDAsOrphaned(matchID)
             Log.log(
               "No server game found for turn-based match",
               level: .info,
@@ -238,6 +247,7 @@ final class AppModel {
                 "match_id": matchID
               ]
             )
+            await removeOrphanedMatchFromGameCenter(matchID)
           } else {
             Log.log(
               "Failed to recover turn-based match",
@@ -549,10 +559,12 @@ final class AppModel {
 
   nonisolated static func recoverableMatchIDs(
     from summaries: [TurnBasedMatchSummary],
-    knownMatchIDs: Set<String>
+    knownMatchIDs: Set<String>,
+    ignoredMatchIDs: Set<String>
   ) -> [String] {
     summaries.compactMap { summary in
       guard !knownMatchIDs.contains(summary.matchID) else { return nil }
+      guard !ignoredMatchIDs.contains(summary.matchID) else { return nil }
       guard let status = summary.localParticipantStatus else { return summary.matchID }
       switch status {
       case .invited, .active:
@@ -566,6 +578,11 @@ final class AppModel {
   }
 
   private func mergeRecoveredGame(_ game: GameResponse) {
+    if let gcMatchId = game.gcMatchId {
+      ignoredOrphanedMatchIDs.remove(gcMatchId)
+      persistOrphanedMatchIDs()
+    }
+
     if let index = games.firstIndex(where: { $0.id == game.id }) {
       games[index] = game
     } else {
@@ -576,6 +593,49 @@ final class AppModel {
       currentGame = game
       gameRoomModel?.updateGame(game)
     }
+  }
+
+  private func markMatchIDAsOrphaned(_ matchID: String) {
+    ignoredOrphanedMatchIDs.insert(matchID)
+    persistOrphanedMatchIDs()
+  }
+
+  private func removeOrphanedMatchFromGameCenter(_ matchID: String) async {
+    do {
+      try await gameCenter.removeTurnBasedMatch(matchID: matchID)
+      Log.log(
+        "Removed orphaned turn-based match from local Game Center",
+        level: .info,
+        category: .gameCenter,
+        metadata: [
+          "operation": "remove_orphaned_match",
+          "match_id": matchID
+        ]
+      )
+    } catch {
+      Log.log(
+        "Failed to remove orphaned turn-based match from local Game Center",
+        level: .warning,
+        category: .gameCenter,
+        error: error,
+        metadata: [
+          "operation": "remove_orphaned_match",
+          "match_id": matchID
+        ]
+      )
+    }
+  }
+
+  private static func loadOrphanedMatchIDs() -> Set<String> {
+    let rows = UserDefaults.standard.stringArray(forKey: orphanedMatchIDsDefaultsKey) ?? []
+    return Set(rows)
+  }
+
+  private func persistOrphanedMatchIDs() {
+    let sorted = Array(ignoredOrphanedMatchIDs).sorted()
+    let trimmed = Array(sorted.suffix(AppModel.maxStoredOrphanedMatchIDs))
+    UserDefaults.standard.set(trimmed, forKey: AppModel.orphanedMatchIDsDefaultsKey)
+    ignoredOrphanedMatchIDs = Set(trimmed)
   }
 
   private func debugDescription(for error: Error) -> String {

@@ -19,6 +19,10 @@ struct RootView: View {
     ThemeSelection(rawValue: themeSelectionRaw)?.theme ?? .system
   }
 
+  private var themeSelection: ThemeSelection {
+    ThemeSelection(rawValue: themeSelectionRaw) ?? .system
+  }
+
   private var serverStatusText: String {
     let label = useDevelopment ? "dev" : "prod"
     return "Connected to \(label) server"
@@ -40,6 +44,7 @@ struct RootView: View {
     )
     .environment(\.appTheme, theme)
     .environment(\.debugEnabled, showDebug)
+    .preferredColorScheme(themeSelection.preferredColorScheme)
   }
 
   private struct RootScaffoldView: View {
