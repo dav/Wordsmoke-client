@@ -692,6 +692,7 @@ extension GameRoomModel {
         round = response.round
       }
       resetRoundStateIfNeeded(roundID: currentRoundID)
+      syncVoteSubmittedFromServer(response.round)
     }
   }
 
@@ -702,6 +703,15 @@ extension GameRoomModel {
     }
     if game != merged {
       game = merged
+    }
+  }
+
+  private func syncVoteSubmittedFromServer(_ round: RoundPayload) {
+    guard round.status == "voting" else { return }
+    // The server sets stage to "reveal" once the viewer has voted;
+    // it's "voting" only while the viewer's vote is still missing.
+    if round.stage != "voting" && !voteSubmitted {
+      voteSubmitted = true
     }
   }
 
