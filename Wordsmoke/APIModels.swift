@@ -59,7 +59,7 @@ struct GameResponse: Decodable, Sendable, Equatable {
   let participantNames: [String]?
   let rounds: [GameRoundSummary]?
   let participants: [GameParticipant]?
-  let invitedPlayers: [GameInvitedPlayer]?
+  var invitedPlayers: [GameInvitedPlayer]?
   let endedAt: String?
   let winnerNames: [String]?
   let winningRoundNumber: Int?

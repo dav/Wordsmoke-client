@@ -244,10 +244,12 @@ extension GameRoomModel {
     guard let participants = game.participants else { return [] }
 
     let participantsByPlayerID = Dictionary(uniqueKeysWithValues: participants.map { ($0.player.id, $0) })
+    let participantGCIDs = Set(participants.map(\.player.gameCenterPlayerID).filter { !$0.isEmpty })
     let invitedByPlayerID = Dictionary(uniqueKeysWithValues: (game.invitedPlayers ?? []).map { ($0.playerID, $0) })
     let hostPlayerID = participants.first(where: { $0.role == "host" })?.player.id
 
     var rowsByPlayerID: [String: WaitingRoomPlayerStatus] = [:]
+    var coveredGCIDs: Set<String> = []
 
     if let hostPlayerID, let host = participantsByPlayerID[hostPlayerID] {
       rowsByPlayerID[hostPlayerID] = WaitingRoomPlayerStatus(
@@ -263,16 +265,21 @@ extension GameRoomModel {
         continue
       }
       let hasJoined = participantsByPlayerID[invited.playerID] != nil
+        || participantGCIDs.contains(invited.playerID)
       rowsByPlayerID[invited.playerID] = WaitingRoomPlayerStatus(
         playerID: invited.playerID,
         displayName: invited.displayName,
         statusText: hasJoined ? "Joined" : "Invited",
         highlightsAsPositive: hasJoined
       )
+      coveredGCIDs.insert(invited.playerID)
     }
 
     for participant in participants where participant.player.id != hostPlayerID {
       if rowsByPlayerID[participant.player.id] != nil {
+        continue
+      }
+      if coveredGCIDs.contains(participant.player.gameCenterPlayerID) {
         continue
       }
       rowsByPlayerID[participant.player.id] = WaitingRoomPlayerStatus(
@@ -292,8 +299,12 @@ extension GameRoomModel {
 
   func hasPendingInvitedPlayers() -> Bool {
     guard let invitedPlayers = game.invitedPlayers else { return false }
-    let joinedPlayerIDs = Set((game.participants ?? []).map { $0.player.id })
-    return invitedPlayers.contains { !($0.accepted || joinedPlayerIDs.contains($0.playerID)) }
+    let participants = game.participants ?? []
+    let joinedPlayerIDs = Set(participants.map(\.player.id))
+    let joinedGCIDs = Set(participants.map(\.player.gameCenterPlayerID).filter { !$0.isEmpty })
+    return invitedPlayers.contains {
+      !($0.accepted || joinedPlayerIDs.contains($0.playerID) || joinedGCIDs.contains($0.playerID))
+    }
   }
 
   func shouldConfirmEarlyStart() -> Bool {
@@ -660,8 +671,12 @@ extension GameRoomModel {
   }
 
   private func applyGameIfChanged(_ updatedGame: GameResponse) {
-    if game != updatedGame {
-      game = updatedGame
+    var merged = updatedGame
+    if merged.invitedPlayers == nil, let existing = game.invitedPlayers {
+      merged.invitedPlayers = existing
+    }
+    if game != merged {
+      game = merged
     }
   }
 }
