@@ -147,18 +147,6 @@ struct GameRoomView: View {
             }
           }
 
-          if shouldShowRefreshButton && showDebug {
-            Section {
-              Button("Refresh Round") {
-                Task {
-                  await model.refreshRound()
-                }
-              }
-              .buttonStyle(.bordered)
-              .accessibilityIdentifier("refresh-round-button")
-            }
-          }
-
           reportIssueSection
             .id(gameRoomBottomAnchorID)
         }
@@ -198,9 +186,12 @@ struct GameRoomView: View {
           }
           setInitialFocus()
         }
+        .refreshable {
+          await model.refreshRound()
+        }
         .onAppear {
           if scenePhase == .active {
-            model.startPolling()
+            model.connectToGameChannel()
           }
           startOnboardingIfNeeded()
           if model.game.status == "completed", model.round == nil {
@@ -212,13 +203,13 @@ struct GameRoomView: View {
           }
         }
         .onDisappear {
-          model.stopPolling()
+          model.disconnectFromGameChannel()
         }
         .onChange(of: scenePhase) { _, newValue in
           if newValue == .active {
-            model.startPolling()
+            model.connectToGameChannel()
           } else {
-            model.stopPolling()
+            model.disconnectFromGameChannel()
           }
         }
         .onChange(of: model.game.status) { _, newValue in

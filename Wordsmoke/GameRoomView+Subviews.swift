@@ -1,10 +1,6 @@
 import SwiftUI
 
 extension GameRoomView {
-  var shouldShowRefreshButton: Bool {
-    model.round != nil
-  }
-
   var reportIssueSection: some View {
     Section {
       Button {

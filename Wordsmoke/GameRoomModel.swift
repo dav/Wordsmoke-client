@@ -36,7 +36,8 @@ final class GameRoomModel {
   var selectedLeastID: String?
   var voteSubmitted = false
   var isBusy = false
-  private var pollingTask: Task<Void, Never>?
+  private var cableClient: ActionCableClient?
+  private var cableReconnectCount = 0
 
   init(game: GameResponse, apiClient: APIClient, localPlayerID: String) {
     self.game = game
@@ -46,20 +47,44 @@ final class GameRoomModel {
 }
 
 extension GameRoomModel {
-  func startPolling() {
-    pollingTask?.cancel()
-    pollingTask = Task { [weak self] in
+  func connectToGameChannel() {
+    disconnectFromGameChannel()
+
+    guard let cableURL = buildCableURL() else { return }
+
+    cableReconnectCount = 0
+
+    let client = ActionCableClient(url: cableURL)
+    client.onMessage = { [weak self] message in
       guard let self else { return }
-      while !Task.isCancelled {
-        await self.refreshRound(logStrategy: .changesOnly, setBusy: false)
-        try? await Task.sleep(for: .seconds(3))
+      self.cableReconnectCount = 0
+      guard message["type"] as? String == "game_updated" else { return }
+      Task { [weak self] in
+        await self?.refreshRound(logStrategy: .changesOnly, setBusy: false)
       }
     }
+    client.onDisconnect = { [weak self] in
+      Task { [weak self] in
+        guard let self, self.cableClient != nil else { return }
+        let attempt = self.cableReconnectCount
+        guard attempt < 5 else { return }
+        self.cableReconnectCount = attempt + 1
+        let delay = min(2.0 * pow(2.0, Double(attempt)), 30.0)
+        try? await Task.sleep(for: .seconds(delay))
+        guard self.cableClient != nil else { return }
+        self.connectToGameChannel()
+      }
+    }
+    cableClient = client
+    client.connect()
+
+    let identifier = "{\"channel\":\"GameChannel\",\"game_id\":\"\(game.id)\"}"
+    client.subscribe(identifier: identifier)
   }
 
-  func stopPolling() {
-    pollingTask?.cancel()
-    pollingTask = nil
+  func disconnectFromGameChannel() {
+    cableClient?.disconnect()
+    cableClient = nil
   }
 
   func updateGame(_ game: GameResponse) {
@@ -679,6 +704,18 @@ extension GameRoomModel {
       game = merged
     }
   }
+
+  private func buildCableURL() -> URL? {
+    guard let token = apiClient.authToken else { return nil }
+    guard var components = URLComponents(url: apiClient.baseURL, resolvingAgainstBaseURL: false) else {
+      return nil
+    }
+    components.scheme = (components.scheme == "https") ? "wss" : "ws"
+    components.path = "/cable"
+    components.queryItems = [URLQueryItem(name: "token", value: token)]
+    return components.url
+  }
+
 }
 
 private struct SupportReportValidationError: LocalizedError {

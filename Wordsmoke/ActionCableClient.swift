@@ -6,6 +6,7 @@ final class ActionCableClient {
   private var webSocketTask: URLSessionWebSocketTask?
   private var receiveTask: Task<Void, Never>?
   var onMessage: (([String: Any]) -> Void)?
+  var onDisconnect: (() -> Void)?
 
   init(url: URL) {
     self.url = url
@@ -82,6 +83,7 @@ final class ActionCableClient {
             error: error,
             metadata: ["operation": "receive"]
           )
+          onDisconnect?()
           return
         }
       }
