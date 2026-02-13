@@ -141,7 +141,10 @@ struct GameRoomView: View {
                 submissionForm()
               }
             } else if round.status == "voting" {
-              Section("Your Round \(round.number) Vote") {
+              Section(model.voteSubmitted
+                ? "Round \(round.number): You've voted"
+                : "Your Round \(round.number) Vote"
+              ) {
                 votingActionSection(for: round)
               }
             }

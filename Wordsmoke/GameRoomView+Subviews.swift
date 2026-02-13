@@ -229,13 +229,30 @@ extension GameRoomView {
       Text("Waiting on your submission.")
         .foregroundStyle(.secondary)
     } else if model.voteSubmitted {
-      Text("Waiting for other players' votes.")
-        .foregroundStyle(.secondary)
-        .accessibilityIdentifier("votes-submitted-waiting")
+      votesSubmittedSummary(for: round)
     } else {
       votingOtherPhrasesSection(for: round)
       submitVotesButton
     }
+  }
+
+  @ViewBuilder
+  private func votesSubmittedSummary(for round: RoundPayload) -> some View {
+    ForEach(model.otherSubmissions(in: round)) { submission in
+      HStack {
+        if submission.id == model.selectedFavoriteID {
+          Image(systemName: "hand.thumbsup.fill")
+            .foregroundStyle(.green)
+        } else if submission.id == model.selectedLeastID {
+          Image(systemName: "hand.thumbsdown.fill")
+            .foregroundStyle(.red)
+        }
+        Text(submission.phrase ?? "")
+      }
+    }
+    Text("Waiting for other players' votes to complete this round.")
+      .foregroundStyle(.secondary)
+      .accessibilityIdentifier("votes-submitted-waiting")
   }
 
   @ViewBuilder

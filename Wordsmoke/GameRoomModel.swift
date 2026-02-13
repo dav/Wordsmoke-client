@@ -712,6 +712,12 @@ extension GameRoomModel {
     // it's "voting" only while the viewer's vote is still missing.
     if round.stage != "voting" && !voteSubmitted {
       voteSubmitted = true
+      if let favoriteID = round.viewerFavoriteSubmissionID {
+        selectedFavoriteID = favoriteID
+      }
+      if let leastID = round.viewerLeastFavoriteSubmissionID {
+        selectedLeastID = leastID
+      }
     }
   }
 

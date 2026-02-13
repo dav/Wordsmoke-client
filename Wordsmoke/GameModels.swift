@@ -7,6 +7,8 @@ struct RoundPayload: Decodable, Sendable, Identifiable, Equatable {
   let stage: String
   let submissions: [RoundSubmission]
   let phraseVotesCount: Int
+  let viewerFavoriteSubmissionID: String?
+  let viewerLeastFavoriteSubmissionID: String?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -15,6 +17,8 @@ struct RoundPayload: Decodable, Sendable, Identifiable, Equatable {
     case submissions
     case stage
     case phraseVotesCount = "phrase_votes_count"
+    case viewerFavoriteSubmissionID = "viewer_favorite_submission_id"
+    case viewerLeastFavoriteSubmissionID = "viewer_least_favorite_submission_id"
   }
 }
 
