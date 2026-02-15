@@ -70,6 +70,7 @@ extension GameRoomView {
     if let errorMessage = model.errorMessage {
       Text(errorMessage)
         .foregroundStyle(.red)
+        .accessibilityIdentifier("submission-error")
     }
 
     if !model.guessWord.isEmpty && !model.isGuessValid {
@@ -233,6 +234,11 @@ extension GameRoomView {
     } else {
       votingOtherPhrasesSection(for: round)
       submitVotesButton
+      if let errorMessage = model.errorMessage {
+        Text(errorMessage)
+          .foregroundStyle(.red)
+          .accessibilityIdentifier("voting-error")
+      }
     }
   }
 

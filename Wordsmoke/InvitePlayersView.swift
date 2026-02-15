@@ -87,6 +87,10 @@ struct InvitePlayersView: View {
       .task {
         await viewModel.loadInvitees()
       }
+      .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+        guard viewModel.isFriendListDenied else { return }
+        Task { await viewModel.loadInvitees() }
+      }
     }
     .presentationDetents([.large])
   }

@@ -1,4 +1,5 @@
 import Foundation
+import GameKit
 import Observation
 
 @MainActor
@@ -10,6 +11,7 @@ final class InvitePlayersViewModel {
   var selectedIDs: Set<String> = []
   var isLoading = false
   var errorMessage: String?
+  var isFriendListDenied = false
 
   init(provider: MatchmakingProvider, playerCount: Int) {
     self.provider = provider
@@ -36,8 +38,16 @@ final class InvitePlayersViewModel {
     do {
       invitees = try await provider.loadInvitees()
       errorMessage = nil
+      isFriendListDenied = false
     } catch {
-      errorMessage = error.localizedDescription
+      let isFriendDenied = (error as NSError).domain == GKError.errorDomain
+        && error.localizedDescription.localizedCaseInsensitiveContains("friend")
+      isFriendListDenied = isFriendDenied
+      if isFriendDenied {
+        errorMessage = "To invite friends, enable \u{201c}Share Friends List\u{201d} in Settings \u{2192} Game Center."
+      } else {
+        errorMessage = error.localizedDescription
+      }
     }
   }
 

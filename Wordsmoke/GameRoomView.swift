@@ -216,6 +216,9 @@ struct GameRoomView: View {
           }
         }
         .onChange(of: model.game.status) { _, newValue in
+          if newValue == "active" {
+            startOnboardingIfNeeded()
+          }
           guard newValue == "completed", model.round == nil else { return }
           withAnimation {
             proxy.scrollTo("game-over-section", anchor: .bottom)
@@ -363,7 +366,7 @@ struct GameRoomView: View {
   private func isOnboardingStepEligible(_ step: OnboardingStep) -> Bool {
     switch step.id {
     case .welcome:
-      return true
+      return model.game.status != "waiting"
     case .guessWord, .phrase, .submitGuess:
       guard let round = model.round else { return false }
       return shouldShowSubmissionForm(for: round)
@@ -373,14 +376,24 @@ struct GameRoomView: View {
     }
   }
 
+  private var gameHasVoting: Bool {
+    (model.game.playersCount ?? model.game.participants?.count ?? 0) >= 3
+  }
+
   private func startOnboardingIfNeeded() {
     guard !onboardingIsActive else { return }
-    guard onboarding.shouldStart else { return }
-    onboardingIsActive = true
-    onboarding.consumeStart()
-    onboardingIndex = 0
-    lastTrackedStepID = nil
-    analytics.track(.onboardingStarted, properties: onboardingContextProperties)
+    if onboarding.shouldStart {
+      onboardingIsActive = true
+      onboarding.consumeStart()
+      onboardingIndex = 0
+      lastTrackedStepID = nil
+      analytics.track(.onboardingStarted, properties: onboardingContextProperties)
+    } else if onboarding.shouldStartVotingOnboarding, gameHasVoting {
+      onboardingIsActive = true
+      onboardingIndex = 4
+      lastTrackedStepID = nil
+      analytics.track(.onboardingStarted, properties: onboardingContextProperties)
+    }
   }
 
   private func advanceOnboarding() {
@@ -392,6 +405,10 @@ struct GameRoomView: View {
     onboardingIndex += 1
     if onboardingIndex >= onboardingSteps.count {
       completeOnboarding()
+    } else if onboardingIndex == 4, !gameHasVoting {
+      onboardingIsActive = false
+      onboarding.markSubmissionCompleted()
+      analytics.track(.onboardingCompleted, properties: onboardingContextProperties)
     }
   }
 

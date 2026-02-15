@@ -31,7 +31,9 @@ final class ReportFlowTests: XCTestCase {
           makeSubmission(id: "s-1", playerID: "player-a", playerName: "Alex", phrase: "first phrase"),
           makeSubmission(id: "s-2", playerID: "player-b", playerName: "Bailey", phrase: nil)
         ],
-        phraseVotesCount: 0
+        phraseVotesCount: 0,
+        viewerFavoriteSubmissionID: nil,
+        viewerLeastFavoriteSubmissionID: nil
       ),
       RoundPayload(
         id: "round-2",
@@ -41,7 +43,9 @@ final class ReportFlowTests: XCTestCase {
         submissions: [
           makeSubmission(id: "s-3", playerID: "player-b", playerName: "Bailey", phrase: "second phrase")
         ],
-        phraseVotesCount: 0
+        phraseVotesCount: 0,
+        viewerFavoriteSubmissionID: nil,
+        viewerLeastFavoriteSubmissionID: nil
       )
     ]
 
@@ -171,7 +175,9 @@ final class ReportFlowTests: XCTestCase {
       status: "voting",
       stage: "voting",
       submissions: [local, first, second, third],
-      phraseVotesCount: 0
+      phraseVotesCount: 0,
+      viewerFavoriteSubmissionID: nil,
+      viewerLeastFavoriteSubmissionID: nil
     )
     let roundReverse = RoundPayload(
       id: "round-voting",
@@ -179,7 +185,9 @@ final class ReportFlowTests: XCTestCase {
       status: "voting",
       stage: "voting",
       submissions: [local, third, second, first],
-      phraseVotesCount: 0
+      phraseVotesCount: 0,
+      viewerFavoriteSubmissionID: nil,
+      viewerLeastFavoriteSubmissionID: nil
     )
 
     let forwardIDs = model.otherSubmissions(in: roundForward).map(\.id)

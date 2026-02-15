@@ -180,7 +180,8 @@ struct RootView: View {
           NewGameSheetView(
             availableLengths: model.availableGoalLengths,
             defaultLength: model.pendingGoalLength,
-            defaultPlayerCount: model.pendingPlayerCount
+            defaultPlayerCount: model.pendingPlayerCount,
+            isDebugServer: AppEnvironment.useDevelopment
           ) { goalLength, playerCount in
             Task {
               await model.createGameWithLength(goalLength, playerCount: playerCount)

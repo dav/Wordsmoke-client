@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NewGameSheetView: View {
   let availableLengths: [Int]
+  let isDebugServer: Bool
   let onCreate: (Int, Int) -> Void
   let onCancel: () -> Void
 
@@ -13,10 +14,12 @@ struct NewGameSheetView: View {
     availableLengths: [Int],
     defaultLength: Int,
     defaultPlayerCount: Int,
+    isDebugServer: Bool = false,
     onCreate: @escaping (Int, Int) -> Void,
     onCancel: @escaping () -> Void
   ) {
     self.availableLengths = availableLengths
+    self.isDebugServer = isDebugServer
     self.onCreate = onCreate
     self.onCancel = onCancel
     self._selectedLength = State(initialValue: availableLengths.contains(defaultLength) ? defaultLength : availableLengths.first ?? 5)
@@ -73,6 +76,13 @@ struct NewGameSheetView: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button("Cancel") { onCancel() }
+        }
+        if isDebugServer {
+          ToolbarItem(placement: .principal) {
+            Text("Debug")
+              .font(.headline)
+              .foregroundStyle(.red)
+          }
         }
         ToolbarItem(placement: .confirmationAction) {
           Button("Create") { onCreate(selectedLength, selectedPlayerCount) }

@@ -7,6 +7,7 @@ final class WordsmokeLocalUITests: XCTestCase {
   private let app = XCUIApplication()
   private var adminClient: TestAdminClient?
   private var createdGameID: String?
+  private var createdGameIDs: [String] = []
   nonisolated(unsafe) private var testDidFail = false
 
   override func setUp() {
@@ -20,8 +21,13 @@ final class WordsmokeLocalUITests: XCTestCase {
         Self.captureFailureArtifacts(app: app, testName: name)
       }
     }
-    if !testDidFail, let adminClient, let createdGameID {
+    if !testDidFail, let adminClient {
+      if let createdGameID {
         try await adminClient.deleteGame(gameID: createdGameID)
+      }
+      for gameID in createdGameIDs {
+        try? await adminClient.deleteGame(gameID: gameID)
+      }
     }
     try await super.tearDown()
   }
@@ -396,6 +402,7 @@ final class WordsmokeLocalUITests: XCTestCase {
     XCTAssertEqual(result, .completed, "Submit button should become enabled")
 
     submitButton.tap()
+    assertNoSubmissionError()
   }
 
   private func submitVotes(favoriteID: String, leastID: String) throws {
@@ -411,6 +418,23 @@ final class WordsmokeLocalUITests: XCTestCase {
     let submitVotesButton = app.buttons["submit-votes-button"]
     XCTAssertTrue(scrollToElement(submitVotesButton, timeout: 10))
     submitVotesButton.tap()
+    assertNoVotingError()
+  }
+
+  private func assertNoSubmissionError() {
+    let errorText = app.staticTexts["submission-error"]
+    XCTAssertFalse(
+      errorText.waitForExistence(timeout: 2),
+      "Unexpected submission error: \(errorText.exists ? errorText.label : "unknown")"
+    )
+  }
+
+  private func assertNoVotingError() {
+    let errorText = app.staticTexts["voting-error"]
+    XCTAssertFalse(
+      errorText.waitForExistence(timeout: 2),
+      "Unexpected voting error: \(errorText.exists ? errorText.label : "unknown")"
+    )
   }
 
   private func scrollToElement(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
@@ -696,5 +720,210 @@ final class WordsmokeLocalUITests: XCTestCase {
     app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
     app.launchEnvironment["WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"] = debugMatchmakingToken
     app.launch()
+  }
+
+  private func launchAppWithOnboardingReset(baseURL: URL, debugMatchmakingToken: String) {
+    app.launchEnvironment["WORDSMOKE_UI_TESTS"] = "1"
+    app.launchEnvironment["WORDSMOKE_BASE_URL"] = baseURL.absoluteString
+    app.launchEnvironment["WORDSMOKE_DEBUG_MATCHMAKING_TOKEN"] = debugMatchmakingToken
+    app.launchEnvironment["WORDSMOKE_RESET_ONBOARDING"] = "1"
+    app.launch()
+  }
+
+  private func advanceOnboardingStep() {
+    for label in ["Start Tour", "Next", "Finish"] {
+      let button = app.buttons[label]
+      if button.waitForExistence(timeout: 2) {
+        button.tap()
+        return
+      }
+    }
+  }
+
+  // MARK: - Onboarding Flow Tests
+
+  func testOnboardingWaitsForGameStart() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    launchAppWithOnboardingReset(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
+
+    // Create a 2-player game but don't accept invites yet (stays in waiting)
+    tapNewGameAndCreate(playerCount: 2)
+    try selectInviteesAndSend(requiredInvitees: 1)
+
+    let createdAfter = Date().addingTimeInterval(-5)
+    let game = try await admin.waitForLatestGame(createdAfter: createdAfter, timeout: 20)
+    createdGameID = game.id
+
+    // Wait a bit and confirm onboarding does NOT appear while waiting
+    let skipButton = app.buttons["Skip Tour"]
+    XCTAssertFalse(skipButton.waitForExistence(timeout: 3), "Onboarding should not show during waiting status")
+
+    // Accept invites → game starts
+    _ = try await admin.acceptInvites(gameID: game.id)
+
+    // Onboarding should now appear
+    let welcomeText = app.staticTexts["Welcome to Wordsmoke"]
+    XCTAssertTrue(welcomeText.waitForExistence(timeout: 15), "Onboarding should appear after game starts")
+
+    // Dismiss onboarding
+    dismissOnboardingIfPresent()
+  }
+
+  func testVotingOnboardingAfterTwoPlayerGame() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    launchAppWithOnboardingReset(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
+
+    // Game 1: 2-player game — walk through submission onboarding then complete round
+    let createdAfter1 = Date()
+    let game1 = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter1,
+      playerCount: 2,
+      wordLength: 4
+    )
+    createdGameIDs.append(game1.id)
+
+    let roundOneState = try await admin.waitForRound(gameID: game1.id, number: 1, timeout: 30)
+    let roundOneID = try requireRoundID(from: roundOneState)
+    let virtualPlayer = try requireVirtualPlayer(from: roundOneState)
+
+    // Walk through onboarding: tap Start Tour, then Next through each step.
+    // Wait for each onboarding button directly — it only appears when the step
+    // is eligible and its target is visible, so this is the synchronization point.
+    let startTourButton = app.buttons["Start Tour"]
+    XCTAssertTrue(startTourButton.waitForExistence(timeout: 15), "Start Tour should appear")
+    startTourButton.tap()
+
+    let nextButton = app.buttons["Next"]
+    for step in 1...3 {
+      XCTAssertTrue(
+        nextButton.waitForExistence(timeout: 15),
+        "Next button should appear for onboarding step \(step)"
+      )
+      nextButton.tap()
+    }
+
+    // After advancing past submitGuess (step 4), onboarding auto-completes for 2-player
+    let skipButtonAfter = app.buttons["Skip Tour"]
+    XCTAssertFalse(skipButtonAfter.waitForExistence(timeout: 3), "Onboarding should end after submit in 2-player game")
+
+    // Complete round 1
+    let wordsRound1 = try await admin.fetchWords(gameID: game1.id, excludeGoal: true)
+    try submitGuess(word: wordsRound1.randomGuessWord, phrasePrefix: "go")
+    _ = try await admin.createSubmission(
+      gameID: game1.id,
+      roundID: roundOneID,
+      playerID: virtualPlayer.id,
+      auto: true,
+      excludeGoal: true
+    )
+
+    // Wait for round 2 to open (confirms round 1 closed) then navigate back to lobby
+    _ = try await admin.waitForRound(gameID: game1.id, number: 2, timeout: 30)
+    app.navigationBars.buttons.firstMatch.tap()
+
+    // Wait for lobby to appear before creating next game
+    let newGameButton = app.buttons["new-game-button"]
+    XCTAssertTrue(newGameButton.waitForExistence(timeout: 10), "Lobby should appear after navigating back")
+
+    // Game 2: 3-player game — voting onboarding should trigger
+    let createdAfter2 = Date()
+    let game2 = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter2,
+      playerCount: 3
+    )
+    createdGameIDs.append(game2.id)
+
+    let round2State = try await admin.waitForRound(gameID: game2.id, number: 1, timeout: 30)
+    let round2ID = try requireRoundID(from: round2State)
+    let virtualPlayerIDs = round2State.participants.filter(\.virtual).map(\.id)
+
+    // Submit guess in 3-player game
+    let wordsRound2 = try await admin.fetchWords(gameID: game2.id, excludeGoal: true)
+    try submitGuess(word: wordsRound2.randomGuessWord, phrasePrefix: "ok")
+
+    for playerID in virtualPlayerIDs {
+      _ = try await admin.createSubmission(
+        gameID: game2.id,
+        roundID: round2ID,
+        playerID: playerID,
+        auto: true,
+        excludeGoal: true
+      )
+    }
+
+    // Wait for voting phase
+    _ = try await admin.waitForRoundStatus(gameID: game2.id, status: "voting", timeout: 20)
+
+    // Voting onboarding should appear
+    let pickFavoriteText = app.staticTexts["Pick a favorite"]
+    XCTAssertTrue(pickFavoriteText.waitForExistence(timeout: 15), "Voting onboarding should appear in 3-player game")
+
+    // Dismiss voting onboarding
+    dismissOnboardingIfPresent()
+  }
+
+  func testOnboardingRerunShowsFullFlow() async throws {
+    let baseURL = Self.resolveBaseURL()
+    let adminToken = try Self.resolveAdminToken()
+    let debugMatchmakingToken = Self.resolveDebugMatchmakingToken(fallback: adminToken)
+    let admin = TestAdminClient(baseURL: baseURL, token: adminToken)
+    adminClient = admin
+
+    launchAppWithOnboardingReset(baseURL: baseURL, debugMatchmakingToken: debugMatchmakingToken)
+
+    // Create a 2-player game and dismiss onboarding
+    let createdAfter = Date()
+    let _ = try await createGameThroughInviteFlow(
+      admin: admin,
+      createdAfter: createdAfter,
+      playerCount: 2,
+      wordLength: 4
+    )
+
+    dismissOnboardingIfPresent(timeout: 10)
+
+    // Navigate back to the lobby where the settings button lives
+    app.navigationBars.buttons.firstMatch.tap()
+
+    // Navigate to Settings and toggle Introduction Flow on
+    let settingsButton = app.buttons["settings-button"]
+    XCTAssertTrue(settingsButton.waitForExistence(timeout: 10))
+    settingsButton.tap()
+
+    let onboardingToggle = app.switches["onboarding-toggle"]
+    XCTAssertTrue(onboardingToggle.waitForExistence(timeout: 10))
+    // Tap the right side of the toggle where the switch control lives
+    let switchControl = onboardingToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5))
+    switchControl.tap()
+
+    // Dismiss settings sheet
+    let doneButton = app.buttons["Done"]
+    if doneButton.waitForExistence(timeout: 3) {
+      doneButton.tap()
+    }
+
+    // Re-enter the game room to trigger onboarding
+    let gameRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "active-game-")).firstMatch
+    XCTAssertTrue(gameRow.waitForExistence(timeout: 10), "Active game row should appear in lobby")
+    gameRow.tap()
+
+    // Onboarding should restart with full flow
+    let welcomeText = app.staticTexts["Welcome to Wordsmoke"]
+    XCTAssertTrue(welcomeText.waitForExistence(timeout: 10), "Full onboarding should restart after settings toggle")
+
+    // Dismiss onboarding
+    dismissOnboardingIfPresent()
   }
 }
