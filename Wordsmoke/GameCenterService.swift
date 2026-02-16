@@ -45,6 +45,7 @@ final class GameCenterService: NSObject {
   var lastError: Error?
   private let eventListener = GameCenterEventListener()
   private var isListenerRegistered = false
+  private var hasAttemptedFriendsAuthorizationPrompt = false
 
 #if targetEnvironment(simulator)
   func configure() {
@@ -94,6 +95,7 @@ final class GameCenterService: NSObject {
         lastErrorDescription = error.localizedDescription
         lastError = error
         isAuthenticated = false
+        hasAttemptedFriendsAuthorizationPrompt = false
         unregisterListenerIfNeeded()
         return
       }
@@ -108,6 +110,7 @@ final class GameCenterService: NSObject {
       if isAuthenticated {
         registerListenerIfNeeded()
       } else {
+        hasAttemptedFriendsAuthorizationPrompt = false
         unregisterListenerIfNeeded()
       }
     }
@@ -156,6 +159,30 @@ final class GameCenterService: NSObject {
     try await match.remove()
   }
 #endif
+
+  func promptForFriendsAccessIfNeeded() async {
+#if targetEnvironment(simulator)
+    return
+#else
+    guard isAuthenticated else { return }
+    guard !hasAttemptedFriendsAuthorizationPrompt else { return }
+    hasAttemptedFriendsAuthorizationPrompt = true
+
+    do {
+      let status = try await GKLocalPlayer.local.loadFriendsAuthorizationStatus()
+      guard status == .notDetermined else { return }
+      _ = try await GKLocalPlayer.local.loadFriends()
+    } catch {
+      Log.log(
+        "Failed to prepare friends access prompt",
+        level: .warning,
+        category: .gameCenter,
+        error: error,
+        metadata: ["operation": "prompt_for_friends_access"]
+      )
+    }
+#endif
+  }
 
   func handleInviteAcceptance(_ invite: GKInvite) {
     inviteMatchmakerItem = InviteMatchmakerItem(invite: invite)

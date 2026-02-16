@@ -90,6 +90,9 @@ final class AppModel {
 
   func handleAuthChange() {
     if gameCenter.isAuthenticated {
+      Task {
+        await gameCenter.promptForFriendsAccessIfNeeded()
+      }
       if session != nil {
         statusMessage = "Connected to server."
         connectionErrorMessage = nil
